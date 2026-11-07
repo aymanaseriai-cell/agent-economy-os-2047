@@ -1,0 +1,29 @@
+name: Daily public opportunity radar (read-only)
+on:
+  schedule:
+    - cron: '38 7 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-issue-search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Find public candidate requests, without messaging anyone
+        run: python automation/opportunity_scan.py
+        env:
+          OPPORTUNITY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-opportunity-candidates
+          path: opportunity-report.json
+          if-no-files-found: warn
+          retention-days: 7

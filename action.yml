@@ -1,0 +1,29 @@
+name: "Agent Evidence Integrity Check"
+description: "Verify SHA-256 hashes for AI agent output files declared in a local JSON manifest"
+author: "Agent Economy OS 2047"
+branding:
+  icon: "check-circle"
+  color: "blue"
+inputs:
+  manifest:
+    description: "Path to evidence manifest JSON"
+    required: true
+    default: "evidence-manifest.json"
+  root:
+    description: "Project root containing declared files"
+    required: false
+    default: "."
+  report:
+    description: "Output JSON report path"
+    required: false
+    default: "evidence-report.json"
+runs:
+  using: "composite"
+  steps:
+    - name: Verify declared files
+      shell: bash
+      env:
+        EVIDENCE_MANIFEST: ${{ inputs.manifest }}
+        EVIDENCE_ROOT: ${{ inputs.root }}
+        EVIDENCE_REPORT: ${{ inputs.report }}
+      run: python3 "$GITHUB_ACTION_PATH/verifier.py" "$EVIDENCE_MANIFEST" --root "$EVIDENCE_ROOT" --json-out "$EVIDENCE_REPORT"

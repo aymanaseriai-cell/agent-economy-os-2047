@@ -1,0 +1,34 @@
+name: Request a custom integration quote
+description: Request a human-approved price for GitHub automation and evidence verification integration.
+title: "[Service request] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "No purchase is made by opening this issue. This form is public. Do not share secrets, source code from private repos, personal or payment data."
+  - type: input
+    id: public-repository
+    attributes:
+      label: Public GitHub repository
+      description: Optional; leave blank if scope cannot be shared publicly.
+      placeholder: https://github.com/OWNER/REPO
+    validations:
+      required: false
+  - type: dropdown
+    id: requested-service
+    attributes:
+      label: What service do you want?
+      options:
+        - Configure automated agent-evidence integrity checks
+        - Add safer GitHub Actions CI automation
+        - Review public agent-delivery pipeline
+        - Other (describe below)
+    validations:
+      required: true
+  - type: textarea
+    id: public-scope
+    attributes:
+      label: Public, non-sensitive scope
+      description: What should a successful result look like?
+    validations:
+      required: true

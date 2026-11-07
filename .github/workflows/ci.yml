@@ -1,0 +1,31 @@
+name: Test and verify
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '23 4 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Verify sample agent evidence
+        run: python verifier.py evidence-manifest.json --root . --json-out evidence-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: evidence-check-result
+          path: evidence-report.json
+          if-no-files-found: ignore
+          retention-days: 14

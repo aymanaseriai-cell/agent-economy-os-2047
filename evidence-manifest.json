@@ -1,0 +1,8 @@
+{
+  "artifacts": [
+    {
+      "path": "examples/output.txt",
+      "sha256": "8ea1a19745343ce9f34808b3ad2448a8efb61402db51980b43147106bf66c41e"
+    }
+  ]
+}

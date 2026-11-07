@@ -1,0 +1,23 @@
+name: Free automated repository audit
+description: Free, automatic, public GitHub repository readiness checklist. No payment or private data.
+title: "[Free audit] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Public repository metadata only. Never post keys, private code, customer data, payment details or secrets. This is not a security certification."
+  - type: input
+    id: public-repository
+    attributes:
+      label: Public GitHub repository
+      description: Full public URL (not a private repository).
+      placeholder: https://github.com/OWNER/REPO
+    validations:
+      required: true
+  - type: checkboxes
+    id: acknowledgement
+    attributes:
+      label: Public-only consent
+      options:
+        - label: I understand this request and the automated reply are public.
+          required: true

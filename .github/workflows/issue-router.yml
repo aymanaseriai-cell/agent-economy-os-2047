@@ -1,0 +1,26 @@
+name: Automatic inbound repo checks
+on:
+  issues:
+    types: [opened, reopened]
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: audit-issue-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  automatic-review:
+    if: startsWith(github.event.issue.title, '[Free audit]') || startsWith(github.event.issue.title, '[Service request]')
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Analyze public repository and reply on issue
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python automation/issue_router.py
