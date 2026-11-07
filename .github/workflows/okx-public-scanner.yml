@@ -1,0 +1,29 @@
+name: OKX Futures public-data 15m scanner (NO TRADES)
+on:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: okx-public-signal-lab
+  cancel-in-progress: true
+jobs:
+  public_data_scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fetch public OKX candles and generate research-only signals
+        run: python3 trading/okx_signal_lab.py --out reports/okx_15m_signals.json --top 8
+      - name: Upload scan report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-public-signal-report
+          path: reports/okx_15m_signals.json
+          if-no-files-found: warn
+          retention-days: 7
