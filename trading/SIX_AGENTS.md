@@ -1,4 +1,6 @@
-# SIX-AGENT EVIDENCE COUNCIL v1 — OKX perpetual futures
+# SIX-AGENT EVIDENCE COUNCIL + QUANT2037 — OKX perpetual futures
+
+**New:** Seven additional quantitative systems actively filter the six-agent consensus, including robust jumps, entropy, variance ratios, 24h/24h value migration, depth fragility, order-flow acceleration and counterfactual voting robustness. See [QUANT2037.md](QUANT2037.md).
 
 The six components are **independent, deterministic quantitative agents**, not six independent LLMs. Their names convey roles, not supernatural powers. This public-data research workflow does **not** make trades, handle APIs keys, set margin or leverage, or guarantee profits.
 
@@ -18,7 +20,7 @@ Navigate to **Actions → OKX six-agent evidence council (public-data, NO TRADES
 Run locally with Python >=3.10 and no third-party dependencies:
 
 ```shell
-python3 trading/six_agent_council.py --top 6 --out reports/okx_six_agents.json
+python3 -m trading.six_agent_council --top 6 --out reports/okx_six_agents.json
 python3 -m unittest discover -s tests -v
 ```
 

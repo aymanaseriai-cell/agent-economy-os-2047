@@ -1,4 +1,4 @@
-name: OKX six-agent evidence council (public-data, NO TRADES)
+name: OKX 6 agents + QUANT2037 7 systems (NO TRADES)
 on:
   workflow_dispatch:
   schedule:
@@ -17,8 +17,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Run deterministic independent six-agent analysis
-        run: python3 trading/six_agent_council.py --top 6 --out reports/okx_six_agents.json
+      - name: Run six specialist agents plus seven independent quant filters
+        run: python3 -m trading.six_agent_council --top 6 --out reports/okx_six_agents.json
       - name: Archive full analysis evidence
         if: always()
         uses: actions/upload-artifact@v4

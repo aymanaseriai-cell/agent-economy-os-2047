@@ -48,7 +48,9 @@ jobs:
           root: .
 ```
 
-## 🧠 Six-Agent OKX Futures Council (research-only)
+## 🧠 Six-Agent OKX Futures Council
+**QUANT2037 update:** Six market-specialist agents are now cross-checked by seven additional numerical systems for jump risk, entropy, variance ratio, approximate profile migration, L2 depth fragility, aggressor-flow acceleration and counterfactual vote stability. The second stage may only **veto**, never force an entry. [Read the design and limitations](trading/QUANT2037.md). Analysis only, with no credentials or actual trading.
+ (research-only)
 
 [Run the six-agent public-market scanner](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/okx-six-agent-council.yml). Six auditable specialist analysis roles read OKX orderbook, recent trades, funding, open interest, completed 15m/1h/4h candles and an **approximate** 48-hour volume profile. Runs on a GitHub Actions schedule (which can be delayed) and uploads a JSON evidence report. **No credentials, trading permissions, buy/sell orders, funded account, claimed win rates or guaranteed returns.** [Technical details](trading/SIX_AGENTS.md).
 

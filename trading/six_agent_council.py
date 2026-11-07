@@ -14,6 +14,12 @@ import sys
 import time
 from datetime import datetime, timezone
 from pathlib import Path
+
+# Script and package invocation are both supported.
+if __package__:
+    from .quant2037 import evaluate_advanced
+else:
+    from quant2037 import evaluate_advanced
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -325,7 +331,7 @@ def analyze_market(ticker):
     bars15 = candles(grab(symbol, "/api/v5/market/candles", {"bar": "15m", "limit": "210"}))
     bars1h = candles(grab(symbol, "/api/v5/market/candles", {"bar": "1H", "limit": "80"}))
     bars4h = candles(grab(symbol, "/api/v5/market/candles", {"bar": "4H", "limit": "50"}))
-    if len(bars15) < 80 or len(bars1h) < 30 or len(bars4h) < 15:
+    if len(bars15) < 192 or len(bars1h) < 30 or len(bars4h) < 15:
         raise ValueError("Insufficient completed multi-timeframe candles")
     book_rows = grab(symbol, "/api/v5/market/books", {"sz": "50"})
     trade_rows = grab(symbol, "/api/v5/market/trades", {"limit": "200"})
@@ -343,6 +349,12 @@ def analyze_market(ticker):
     record = summarize_agents(ticker, bars15, bars1h, bars4h, book_rows[0], trade_rows,
                               funding_rows[0] if funding_rows else {},
                               oi_rows[0] if oi_rows else {}, mark_rows[0] if mark_rows else {})
+    # Seven quantitative diagnostic systems now validate the original six-agent consensus.
+    advanced = evaluate_advanced(bars15, book_rows[0], trade_rows, record)
+    record.update(advanced)
+    if derivatives_errors or not funding_rows or not oi_rows or not mark_rows:
+        record["advanced_veto_reasons"].append("missing_or_unavailable_derivatives_data")
+        record["signal"] = "WAIT"
     record["derivatives_data_warnings"] = derivatives_errors
     return record
 
@@ -364,7 +376,8 @@ def main():
                 errors.append({"symbol": market["symbol"], "reason": str(exc)[:160]})
             time.sleep(0.4)
         report = {"utc_timestamp": datetime.now(timezone.utc).isoformat(),
-                  "mode": "SIX_AGENT_PUBLIC_DATA_RESEARCH_ONLY", "genuine_llm_agents": 0,
+                  "mode": "SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY", "genuine_llm_agents": 0,
+                  "core_specialist_agents": 6, "advanced_quant_systems": 7,
                   "orders_placed": 0, "timeframe_main": "15m", "volume_profile_window": "48h_approx",
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
                   "markets_selected": len(pool), "markets_analyzed": len(results),
@@ -374,7 +387,7 @@ def main():
         path = Path(args.out)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-        print("SIX AGENTS: selected=", len(pool), "analyzed=", len(results),
+        print("SIX AGENTS + QUANT2037: selected=", len(pool), "analyzed=", len(results),
               "signals=", report["actionable_research_labels"], "errors=", len(errors))
         for x in results:
             print(x["symbol"], x["signal"], "bull=", x["ordinal_buy_points"],
