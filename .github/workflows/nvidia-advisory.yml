@@ -1,0 +1,38 @@
+name: NVIDIA Advisory Council Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      market_snapshot:
+        description: "Sanitized market snapshot JSON (no API keys, account data, or personal information)"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  nvidia-advisory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run NVIDIA council (advisory only)
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: nvidia/llama-3.3-nemotron-super-49b-v1.5
+          MARKET_SNAPSHOT: ${{ inputs.market_snapshot }}
+        run: |
+          python - <<'PY'
+          import json, os, pathlib
+          snapshot = json.loads(os.environ["MARKET_SNAPSHOT"])
+          pathlib.Path("/tmp/market_snapshot.json").write_text(
+              json.dumps(snapshot), encoding="utf-8"
+          )
+          PY
+          python -m trading.nvidia_agent_council --input-file /tmp/market_snapshot.json
