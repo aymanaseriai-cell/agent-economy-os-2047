@@ -1,0 +1,25 @@
+name: OKX + NVIDIA gate validation (PUBLIC DATA, NO ORDERS)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-ai-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run NVIDIA veto unit tests
+        run: python -m unittest discover -s tests -p 'test_nvidia*.py' -v
+      - name: Scan public OKX market only
+        run: python -m trading.six_agent_council --top 12 --out reports/okx_six_agents.json
+      - name: NVIDIA veto on fresh candidate, never submit orders
+        run: python -m trading.okx_ai_gate_probe --report reports/okx_six_agents.json
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}

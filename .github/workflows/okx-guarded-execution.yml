@@ -52,6 +52,8 @@ jobs:
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
