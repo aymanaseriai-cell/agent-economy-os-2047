@@ -5,6 +5,9 @@ from trading.nvidia_agent_council import AGENTS, CouncilError, _extract_json, ru
 class NvidiaCouncilTests(unittest.TestCase):
     def test_valid_json(self):
         self.assertEqual(_extract_json('{"direction":"BUY","confidence":0.8,"evidence":[],"risks":[]}')["direction"], "BUY")
+    def test_rejects_incomplete_model_response(self):
+        with self.assertRaises(CouncilError):
+            _extract_json('{"foo":"bar"}')
     def test_rejects_invalid_direction(self):
         with self.assertRaises(CouncilError):
             _extract_json('{"direction":"MOON","confidence":0.8,"evidence":[],"risks":[]}')
@@ -29,6 +32,11 @@ class NvidiaCouncilTests(unittest.TestCase):
         self.assertEqual(result["advisory"], "SELL")
         self.assertFalse(result["execution_authorized"])
 
+
+    @patch("trading.nvidia_agent_council.list_models", return_value=["nvidia/nemotron-3-super-120b-a12b", "nvidia/llama-3.1-nemotron-safety-guard-8b-v3", "meta/llama-3.3-70b-instruct"])
+    def test_filters_safety_guard_from_chat_fallbacks(self, models):
+        from trading.nvidia_agent_council import _fallback_models
+        self.assertNotIn("nvidia/llama-3.1-nemotron-safety-guard-8b-v3", _fallback_models("test","nvidia/nemotron-3-super-120b-a12b"))
 
     @patch("trading.nvidia_agent_council._fallback_models", return_value=["meta/llama-3.3-70b-instruct"])
     @patch("trading.nvidia_agent_council.select_model", return_value="unavailable-model")

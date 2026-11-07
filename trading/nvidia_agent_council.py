@@ -52,7 +52,9 @@ def _extract_json(content: str) -> dict[str, Any]:
         obj = json.loads(value[start:end + 1])
     except json.JSONDecodeError as exc:
         raise CouncilError("Model returned invalid JSON") from exc
-    direction = str(obj.get("direction", "WAIT")).upper()
+    if not isinstance(obj, dict) or not {"direction","confidence","evidence","risks"}.issubset(obj):
+        raise CouncilError("Model did not provide the complete decision schema")
+    direction = str(obj["direction"]).upper()
     confidence = float(obj.get("confidence", 0))
     evidence, risks = obj.get("evidence", []), obj.get("risks", [])
     if direction not in VALID_DIRECTIONS or not 0 <= confidence <= 1:
@@ -103,7 +105,8 @@ def _fallback_models(api_key: str, excluded: str) -> list[str]:
     ranked = [name for name in preferred if name in names]
     ranked += [name for name in names if "nemotron" in name.lower() and name not in ranked]
     ranked += [name for name in names if "instruct" in name.lower() and name not in ranked]
-    return [name for name in ranked if name != excluded][:7]
+    banned = ("safety", "guard", "embed", "rerank", "reward", "classify", "vision", "vlm", "asr", "tts")
+    return [name for name in ranked if name != excluded and not any(word in name.lower() for word in banned)][:10]
 
 
 def run_council(snapshot: dict[str, Any], api_key: str | None = None,
