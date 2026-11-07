@@ -8,7 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from trading.okx_live_executor import (
     MODE_ARM, OKX, ExecutionBlocked, check_mode, read_report, choose_signal,
-    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute,
+    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM,
 )
 
 
@@ -71,6 +71,36 @@ class TestLiveSafety(unittest.TestCase):
         i={'ctVal':'0.01','lotSz':'1','minSz':'1'}
         q=contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.02'))
         self.assertLessEqual(q*Decimal('0.01')*100*Decimal('0.02'),1000*Decimal('0.0025'))
+
+    def test_full_margin_requires_its_own_arm(self):
+        env={'OKX_EXECUTION_ARM':MODE_ARM['demo'],
+             'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST',
+             'OKX_CAPITAL_MODE':'full_margin'}
+        with self.assertRaisesRegex(ExecutionBlocked, 'separately armed'):
+            check_mode('demo', env)
+        env['OKX_FULL_MARGIN_ARM']=FULL_MARGIN_ARM
+        check_mode('demo', env)
+
+    def test_full_margin_uses_up_to_available_margin_at_10x(self):
+        inst={'ctVal':'1','lotSz':'1','minSz':'1'}
+        quantity=contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
+                               capital_mode='full_margin',exchange_max='1000')
+        self.assertEqual(quantity, Decimal('100'))  # $10k notional = 10x free USDT.
+        limited=contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
+                              capital_mode='full_margin',exchange_max='32')
+        self.assertEqual(limited,Decimal('32'))
+
+    def test_full_margin_veto_if_stop_risk_too_high(self):
+        inst={'ctVal':'1','lotSz':'1','minSz':'1'}
+        with self.assertRaisesRegex(ExecutionBlocked, 'over 10% equity'):
+            contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.03'),
+                          capital_mode='full_margin',exchange_max='1000')
+
+    def test_full_margin_requires_fresh_exchange_limit(self):
+        inst={'ctVal':'1','lotSz':'1','minSz':'1'}
+        with self.assertRaises(ExecutionBlocked):
+            contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
+                          capital_mode='full_margin')
 
     def test_report_fresh_required(self):
         sig=make_signal()

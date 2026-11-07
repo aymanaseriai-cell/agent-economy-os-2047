@@ -32,6 +32,9 @@ EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial sto
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
 MAX_DAILY_BOT_ORDERS = 2
+FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
+FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
+MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
 MAX_REPORT_AGE_S = 180
 MAX_CANDLE_AGE_MS = 25 * 60 * 1000
 
@@ -71,8 +74,13 @@ def tick_price(x, tick, rounding):
 def check_mode(mode, env):
     if mode not in ('dry_run', 'demo', 'live'):
         raise ExecutionBlocked('Unsupported execution mode')
+    capital_mode = env.get('OKX_CAPITAL_MODE', 'guarded').lower()
+    if capital_mode not in ('guarded', FULL_MARGIN_MODE):
+        raise ExecutionBlocked('Unsupported capital allocation mode')
     if mode == 'dry_run':
         return
+    if capital_mode == FULL_MARGIN_MODE and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
+        raise ExecutionBlocked('Full-margin allocation not separately armed')
     if env.get('OKX_EXECUTION_ARM') != MODE_ARM[mode]:
         raise ExecutionBlocked('Execution not armed: OKX_EXECUTION_ARM does not match selected mode')
     if mode == 'live' and env.get('OKX_ENABLE_REAL_TRADING') != 'YES':
@@ -303,12 +311,37 @@ def get_prices(signal,ticker,inst):
     return price,stop,target,delta
 
 
-def contract_size(inst, price, equity, stop_fraction):
+def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded', exchange_max=None):
+    """Determine contract quantity; full-margin mode needs an independently armed execution path.
+
+    Full-margin target is up to 100% of *available* USDT isolated margin at 10x,
+    subject to exchange max size, lot step, planned-stop budget and trading fees.
+    This is NOT a maximum-realized-loss guarantee.
+    """
     multiplier=dec(inst['ctVal'])
     lot=dec(inst['lotSz']); minimum=dec(inst['minSz'])
-    if multiplier<=0 or min(lot,minimum)<=0:
-        raise ExecutionBlocked('Invalid contract specifications')
+    price=dec(price); equity=dec(equity); stop_fraction=dec(stop_fraction)
+    if multiplier<=0 or min(lot,minimum)<=0 or min(price,equity,stop_fraction)<=0:
+        raise ExecutionBlocked('Invalid contract specifications or capital inputs')
     per_contract=multiplier*price
+    if capital_mode == FULL_MARGIN_MODE:
+        if exchange_max is None:
+            raise ExecutionBlocked('Full-margin mode requires fresh OKX max-size quote')
+        exchange_limit=dec(exchange_max)
+        if exchange_limit <= 0:
+            raise ExecutionBlocked('Exchange reports no available full-margin order capacity')
+        max_notional = equity * LEVERAGE
+        contracts = floor_step(min(max_notional / per_contract, exchange_limit), lot)
+        if contracts < minimum or contracts <= 0:
+            raise ExecutionBlocked('Full-margin quantity is below exchange minimum')
+        intended_stop_loss = contracts * per_contract * stop_fraction
+        if intended_stop_loss > equity * MAX_FULL_MARGIN_PLANNED_STOP_RISK:
+            raise ExecutionBlocked('Full-margin stop implies over 10% equity planned loss; refuse order')
+        if contracts * per_contract > equity * LEVERAGE:
+            raise ExecutionBlocked('Full-margin leverage invariant failed')
+        return contracts
+    if capital_mode != 'guarded':
+        raise ExecutionBlocked('Unknown capital allocation')
     max_notional=min(equity*EQUITY_RISK_FRACTION/stop_fraction,
                      equity*NOTIONAL_CAP_FRACTION,
                      equity*MARGIN_CAP_FRACTION*LEVERAGE)
@@ -406,7 +439,7 @@ def execute(report, client, mode, env, *, allow_post=True):
     if daily_order_limit(client,candidate_id=clordid)>=MAX_DAILY_BOT_ORDERS:
         raise ExecutionBlocked('Bot maximum of 2 orders in rolling 24h reached')
     price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
-    contracts=contract_size(inst,price,equity,stop_fraction)
+    capital_mode=env.get('OKX_CAPITAL_MODE','guarded').lower()
     # Verify OKX exchange size limit; leverage config changed only at last possible step.
     client.request('POST','/api/v5/account/set-leverage',body={
         'instId':signal['symbol'],'lever':str(LEVERAGE),'mgnMode':'isolated'})
@@ -415,6 +448,8 @@ def execute(report, client, mode, env, *, allow_post=True):
     if len(allowed)!=1:
         raise ExecutionBlocked('Max-size quote unavailable')
     max_side='maxBuy' if signal['signal']=='LONG' else 'maxSell'
+    contracts=contract_size(inst,price,equity,stop_fraction,
+        capital_mode=capital_mode,exchange_max=allowed[0].get(max_side,'0'))
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
