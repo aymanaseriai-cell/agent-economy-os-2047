@@ -527,10 +527,25 @@ def main():
         if args.verify_only:
             if not all(env.get(k) for k in ('OKX_API_KEY','OKX_SECRET_KEY','OKX_PASSPHRASE')):
                 raise ExecutionBlocked('Cannot verify: encrypted OKX API secrets are missing')
-            config=OKX(env).request('GET','/api/v5/account/config')
+            client=OKX(env)
+            config=client.request('GET','/api/v5/account/config')
             if len(config)!=1:
                 raise ExecutionBlocked('Unexpected account configuration response')
-            print('OKX connection verified; account mode:', config[0].get('posMode','unknown'), '; NO ORDERS')
+            # Verify the documented exchange-side exit-history feed without any trading rights.
+            history=client.request('GET','/api/v5/account/positions-history',
+                                   params={'instType':'SWAP','limit':'100'})
+            if not isinstance(history,list):
+                raise ExecutionBlocked('Position history unavailable: do not activate real orders')
+            try:
+                enforce_exit_cooldown(client)
+                reentry='ELIGIBLE_BY_EXIT_TIME_ONLY'
+            except ExecutionBlocked as exc:
+                if str(exc).startswith('Re-entry cooldown active'):
+                    reentry='COOLDOWN_ACTIVE'
+                else:
+                    raise
+            print('OKX connection verified; account mode:', config[0].get('posMode','unknown'),
+                  '; exit-history feed verified; re-entry:', reentry, '; NO ORDERS')
             return 0
         check_mode(args.mode,env)
         report=read_report(args.report)
