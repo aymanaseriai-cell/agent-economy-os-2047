@@ -19,6 +19,7 @@ BASE = "https://www.okx.com"
 MIN_VOLUME_USDT_EST = 20_000_000
 MAX_SPREAD_PCT = 0.25
 BAR = "15m"
+CRYPTO_BASES = frozenset(("BTC ETH SOL XRP DOGE ADA LINK AVAX DOT LTC TRX BCH ETC ATOM UNI APT ARB SUI NEAR HYPE ZEC PEPE SHIB WLD TON OP INJ TIA SEI XLM FIL JUP ENA AAVE TAO PYTH RENDER RENDER FET GRT LDO ONDO ICP ETHFI PENDLE WIF BONK BNB SKY UNI SAND MANA CRV COMP MKR GALA ENS RUNE FTM KAS").split())
 
 
 def market_get(path: str, params: dict) -> list:
@@ -74,7 +75,7 @@ def pick_liquid(tickers: list[dict], top: int) -> list[dict]:
     found = []
     for item in tickers:
         symbol = item.get("instId", "")
-        if not symbol.endswith("-USDT-SWAP"):
+        if not symbol.endswith("-USDT-SWAP") or symbol.split("-")[0] not in CRYPTO_BASES:
             continue
         try:
             price = float(item.get("last", 0))
