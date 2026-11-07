@@ -1,3 +1,7 @@
+# Main research mode: 6-agent quantitative council
+
+**The six-agent council is the scheduled system; this older EMA/RSI lab is retained for manual comparison only.** It includes six independent deterministic specialist modules: liquidity, volume profile (approximate VAL/POC/VAH), orderflow, derivatives, higher-timeframe structure, and a vetoing risk manager. See [SIX_AGENTS.md](SIX_AGENTS.md) and the [GitHub Actions workflow](../.github/workflows/okx-six-agent-council.yml). **No real trades are placed and there are no independent LLM model calls.**
+
 # OKX Futures Public Market Scanner — Research Lab
 
 **Automated, real GitHub Actions execution. No trading orders. No credentials. No profit guarantees.**

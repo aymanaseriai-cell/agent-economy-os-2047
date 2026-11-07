@@ -1,0 +1,29 @@
+name: OKX six-agent evidence council (public-data, NO TRADES)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '11,26,41,56 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: okx-six-agent-research
+  cancel-in-progress: true
+jobs:
+  six-agent-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run deterministic independent six-agent analysis
+        run: python3 trading/six_agent_council.py --top 6 --out reports/okx_six_agents.json
+      - name: Archive full analysis evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: six-agent-evidence-report
+          path: reports/okx_six_agents.json
+          if-no-files-found: warn
+          retention-days: 7

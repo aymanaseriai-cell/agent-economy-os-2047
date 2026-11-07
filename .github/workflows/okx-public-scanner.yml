@@ -1,7 +1,5 @@
-name: OKX Futures public-data 15m scanner (NO TRADES)
+name: Legacy OKX 15m scanner (manual only, NO TRADES)
 on:
-  schedule:
-    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
 permissions:
   contents: read

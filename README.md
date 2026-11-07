@@ -48,6 +48,10 @@ jobs:
           root: .
 ```
 
+## 🧠 Six-Agent OKX Futures Council (research-only)
+
+[Run the six-agent public-market scanner](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/okx-six-agent-council.yml). Six auditable specialist analysis roles read OKX orderbook, recent trades, funding, open interest, completed 15m/1h/4h candles and an **approximate** 48-hour volume profile. Runs on a GitHub Actions schedule (which can be delayed) and uploads a JSON evidence report. **No credentials, trading permissions, buy/sell orders, funded account, claimed win rates or guaranteed returns.** [Technical details](trading/SIX_AGENTS.md).
+
 ## 🤖 Other actual automations
 
 - **Inbound free audit → analysis → reply:** `.github/workflows/issue-router.yml` + `automation/issue_router.py`.
