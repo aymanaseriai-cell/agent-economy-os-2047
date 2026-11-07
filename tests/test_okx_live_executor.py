@@ -8,7 +8,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from trading.okx_live_executor import (
     MODE_ARM, OKX, ExecutionBlocked, check_mode, read_report, choose_signal,
-    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM,
+    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM, enforce_exit_cooldown,
 )
 
 
@@ -101,6 +101,53 @@ class TestLiveSafety(unittest.TestCase):
         with self.assertRaises(ExecutionBlocked):
             contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
                           capital_mode='full_margin')
+
+    def test_reentry_blocks_until_10_minutes_after_full_close(self):
+        class History:
+            def __init__(self, rows):
+                self.rows=rows
+            def request(self, method, path, params=None):
+                self_path='/api/v5/account/positions-history'
+                if method != 'GET' or path != self_path or params != {'instType':'SWAP','limit':'100'}:
+                    raise AssertionError('Unexpected API request')
+                return self.rows
+        clock=1_800_000_000_000
+        full={'instType':'SWAP','type':'2','uTime':str(clock-9*60*1000)}
+        with self.assertRaisesRegex(ExecutionBlocked, 'cooldown active'):
+            enforce_exit_cooldown(History([full]), now_ms=clock)
+        enforce_exit_cooldown(History([full]), now_ms=clock+60*1000)
+        enforce_exit_cooldown(History([]), now_ms=clock)
+
+    def test_liquidation_and_adl_closures_trigger_cooldown(self):
+        clock=1_800_000_000_000
+        class History:
+            def __init__(self, kind):
+                self.kind=kind
+            def request(self, method, path, params=None):
+                return [{'instType':'SWAP','type':self.kind,'uTime':str(clock-1000)}]
+        for kind in ('3','6'):
+            with self.assertRaises(ExecutionBlocked):
+                enforce_exit_cooldown(History(kind),now_ms=clock)
+
+    def test_partial_close_does_not_falsely_mark_full_exit(self):
+        clock=1_800_000_000_000
+        class History:
+            def request(self, method, path, params=None):
+                return [{'instType':'SWAP','type':'1','uTime':str(clock-1000)}]
+        enforce_exit_cooldown(History(),now_ms=clock)
+
+    def test_stale_or_unverifiable_history_fails_closed(self):
+        clock=1_800_000_000_000
+        class History:
+            def __init__(self, rows):
+                self.rows=rows
+            def request(self, method, path, params=None):
+                return self.rows
+        with self.assertRaises(ExecutionBlocked):
+            enforce_exit_cooldown(History([{'instType':'SWAP','type':'2','uTime':''}]),now_ms=clock)
+        many=[{'instType':'SWAP','type':'1','uTime':str(clock-2000)} for _ in range(100)]
+        with self.assertRaisesRegex(ExecutionBlocked, 'pagination'):
+            enforce_exit_cooldown(History(many),now_ms=clock)
 
     def test_report_fresh_required(self):
         sig=make_signal()

@@ -1,7 +1,7 @@
 name: OKX guarded execution (LIVE only after explicit arm)
 on:
   schedule:
-    - cron: '13,28,43,58 * * * *'
+    - cron: '2,7,12,17,22,27,32,37,42,47,52,57 * * * *'
   workflow_dispatch:
     inputs:
       purpose:

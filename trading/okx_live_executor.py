@@ -32,6 +32,7 @@ EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial sto
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
 MAX_DAILY_BOT_ORDERS = 2
+REENTRY_COOLDOWN_MS = 10 * 60 * 1000  # wait at least 10m after any fully closed SWAP position
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
@@ -286,6 +287,42 @@ def daily_order_limit(client, *, now_ms=None, candidate_id=None):
     raise ExecutionBlocked('Order history too long; refuse trade')
 
 
+def enforce_exit_cooldown(client, *, now_ms=None):
+    """Block all new entries for 10 minutes after a full SWAP close or liquidation.
+
+    Reads OKX's durable exchange-side position history, so a GitHub runner
+    restarting does not erase the cooldown. Never infer exits from an absent
+    open position or the order's creation time.
+    """
+    now_ms = int(time.time() * 1000) if now_ms is None else int(now_ms)
+    rows = client.request('GET', '/api/v5/account/positions-history',
+                          params={'instType': 'SWAP', 'limit': '100'})
+    if not isinstance(rows, list):
+        raise ExecutionBlocked('Cannot verify latest SWAP close time')
+    cutoff = now_ms - REENTRY_COOLDOWN_MS
+    seen_times = []
+    for row in rows:
+        if row.get('instType', 'SWAP') != 'SWAP':
+            continue
+        try:
+            updated = int(row.get('uTime') or '0')
+        except (ValueError, TypeError) as exc:
+            raise ExecutionBlocked('Invalid timestamp in SWAP position history') from exc
+        if updated <= 0 or updated > now_ms + 60_000:
+            raise ExecutionBlocked('Missing or future SWAP position-history timestamp')
+        seen_times.append(updated)
+        # 2 = fully closed; 3 = liquidation; 6 = ADL full close.
+        # Partial closes don't release the bot to enter a new coin.
+        if str(row.get('type')) in ('2', '3', '6') and updated > cutoff:
+            remaining = (updated + REENTRY_COOLDOWN_MS - now_ms + 999) // 1000
+            raise ExecutionBlocked('Re-entry cooldown active after SWAP exit; at least ' +
+                                   str(remaining) + ' seconds remain')
+    if len(rows) >= 100 and seen_times and min(seen_times) > cutoff:
+        # A full first page that does not cover the entire window is ambiguous.
+        raise ExecutionBlocked('Position-history pagination needed: cooldown status unverified')
+    return True
+
+
 def get_prices(signal,ticker,inst):
     last=dec(ticker['last'])
     tick=dec(inst['tickSz'])
@@ -435,6 +472,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         return 'DRY_RUN_SIGNAL_ONLY'
     ticker,inst=market_preflight(client,signal)
     equity=account_preflight(client)
+    enforce_exit_cooldown(client)
     clordid=client_order_id(signal)
     if daily_order_limit(client,candidate_id=clordid)>=MAX_DAILY_BOT_ORDERS:
         raise ExecutionBlocked('Bot maximum of 2 orders in rolling 24h reached')
@@ -459,6 +497,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         raise ExecutionBlocked('Position changed before order placement')
     if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
         raise ExecutionBlocked('Orders appeared before placement')
+    enforce_exit_cooldown(client)  # Re-check immediately before any live or demo order.
     if not allow_post:
         return 'PREPARED_BUT_NOT_SENT'
     payload={
