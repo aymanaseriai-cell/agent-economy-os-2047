@@ -22,7 +22,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Verify sample agent evidence
         run: python verifier.py evidence-manifest.json --root . --json-out evidence-report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: evidence-check-result
