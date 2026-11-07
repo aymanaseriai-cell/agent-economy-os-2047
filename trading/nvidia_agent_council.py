@@ -44,6 +44,8 @@ def select_model(api_key: str, preferred: str | None = None) -> str:
     raise CouncilError("NVIDIA key authenticated, but no Nemotron model is listed for this account")
 
 def _extract_json(content: str) -> dict[str, Any]:
+    if not isinstance(content, str) or not content.strip():
+        raise CouncilError("NVIDIA model returned no assistant text")
     value = re.sub(r"^\s*```(?:json)?\s*|\s*```\s*$", "", content.strip(), flags=re.I)
     start, end = value.find("{"), value.rfind("}")
     if start < 0 or end <= start:
@@ -73,7 +75,8 @@ def call_agent(name: str, role: str, snapshot: dict[str, Any],
     payload = {"model": model, "messages": [
         {"role": "system", "content": system},
         {"role": "user", "content": json.dumps(snapshot, separators=(",", ":"), ensure_ascii=False)}],
-        "temperature": 0.2, "max_tokens": 350, "stream": False}
+        "temperature": 1.0, "top_p": 0.95, "max_tokens": 1024,
+        "chat_template_kwargs": {"enable_thinking": False}, "stream": False}
     req = urllib.request.Request(API_BASE + "/chat/completions",
         data=json.dumps(payload).encode(),
         headers={"Authorization": "Bearer " + api_key, "Content-Type": "application/json"},
@@ -136,7 +139,8 @@ def run_council(snapshot: dict[str, Any], api_key: str | None = None,
                     break
                 except CouncilError as err:
                     model_attempts.append({"model": candidate, "error": str(err)})
-                    if not any(code in str(err) for code in ("HTTP 404", "HTTP 410")):
+                    if not any(code in str(err) for code in ("HTTP 404", "HTTP 410",
+                            "no assistant text", "complete decision schema", "no JSON object", "invalid JSON")):
                         break
         if not votes:
             errors.append({"agent": first_name, "error": "No usable inference model responded"})

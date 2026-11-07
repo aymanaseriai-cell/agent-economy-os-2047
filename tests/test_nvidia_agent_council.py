@@ -5,6 +5,9 @@ from trading.nvidia_agent_council import AGENTS, CouncilError, _extract_json, ru
 class NvidiaCouncilTests(unittest.TestCase):
     def test_valid_json(self):
         self.assertEqual(_extract_json('{"direction":"BUY","confidence":0.8,"evidence":[],"risks":[]}')["direction"], "BUY")
+    def test_rejects_missing_text_content(self):
+        with self.assertRaises(CouncilError):
+            _extract_json(None)
     def test_rejects_incomplete_model_response(self):
         with self.assertRaises(CouncilError):
             _extract_json('{"foo":"bar"}')
