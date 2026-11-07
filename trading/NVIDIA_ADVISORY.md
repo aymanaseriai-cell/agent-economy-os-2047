@@ -1,35 +1,15 @@
 # NVIDIA NIM advisory council
 
-This is a separate, **read-only advisory layer**. It does not connect to OKX, read exchange credentials, place orders, modify positions, or authorize execution.
+Read-only research layer: no OKX client, exchange credentials, order placement, position changes, or execution authorization.
 
 ## Configuration
-- Add `NVIDIA_API_KEY` in GitHub Actions repository secrets (never commit the value).
-- Optional override: set `NVIDIA_MODEL` in the workflow or environment. Current default in the workflow: `nvidia/nemotron-3-super-120b-a12b`.
-- NVIDIA NIM uses the OpenAI-compatible `https://integrate.api.nvidia.com/v1/chat/completions` endpoint.
+Add `NVIDIA_API_KEY` to GitHub Actions secrets. Optional GitHub Actions variable `NVIDIA_MODEL` can pin a model ID; otherwise the module reads the authenticated NVIDIA `/v1/models` catalog and selects an available Nemotron model. Never commit the key.
 
-## Run a validation
-Open Actions → NVIDIA Advisory Council Validation → Run workflow. Supply a sanitized JSON snapshot, for example:
-```json
-{
-  "symbol": "BTC-USDT-SWAP",
-  "timeframe": "1h",
-  "last_price": 67000,
-  "change_24h_pct": 1.2,
-  "turnover_24h_usd": 250000000,
-  "spread_bps": 2.1,
-  "orderbook_imbalance": 0.14,
-  "funding_rate": 0.0001,
-  "open_interest_change_pct": 3.2,
-  "technical_context": "Describe only signals already calculated by the quantitative scanner",
-  "news_context": "Optional timestamped headlines; omit if none"
-}
-```
+API base: `https://integrate.api.nvidia.com/v1`; model catalog: `GET /models`; inference: `POST /chat/completions`.
 
-The six specialist perspectives are trend, liquidity, tape/order-flow, derivatives, supplied news context, and adversarial risk review. The council returns WAIT if any agent fails, or if fewer than four valid votes align, or if aligned mean confidence is below 0.70. Even a directional result is labelled `ADVISORY_ONLY` and `execution_authorized: false`.
+## Run
+GitHub → Actions → NVIDIA Advisory Council Validation → Run workflow. Supply only sanitized market facts. Do not paste API keys, balances, exchange account IDs, or personal data.
 
-## Safety and limitations
-- The model output is untrusted; confidence is not a calibrated probability or proof of edge.
-- Never paste exchange keys, balances, account identifiers, or private information into the snapshot.
-- This workflow is manual and does not run on a schedule.
-- No live OKX workflow consumes these votes. Any future integration must be separately reviewed, backtested, paper-tested, and explicitly approved.
-- API errors and malformed model responses fail closed to WAIT.
+Six independent role prompts: trend, liquidity, tape/order-flow, derivatives, supplied news context, and adversarial risk critic. All six must respond, at least four must align, and aligned mean confidence must reach 0.70 for a directional advisory. Otherwise the result is WAIT. Even BUY/SELL remains `ADVISORY_ONLY`, with `execution_authorized: false`.
+
+Model output and confidence are not proof of a trading edge. This workflow is manual and is not consumed by any live OKX execution workflow. Any later live integration requires separate review, backtesting, paper trading, and explicit approval. API/model errors fail closed.

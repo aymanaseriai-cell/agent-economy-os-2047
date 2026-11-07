@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       market_snapshot:
-        description: "Sanitized market snapshot JSON (no API keys, account data, or personal information)"
+        description: "Sanitized market snapshot JSON only; never include API keys or account data"
         required: true
         type: string
 
@@ -14,25 +14,21 @@ permissions:
 jobs:
   nvidia-advisory:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run NVIDIA council (advisory only)
+      - name: Validate NVIDIA model access and run advisory council
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          NVIDIA_MODEL: nvidia/nemotron-3-super-120b-a12b
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
           MARKET_SNAPSHOT: ${{ inputs.market_snapshot }}
         run: |
           python - <<'PY'
           import json, os, pathlib
           snapshot = json.loads(os.environ["MARKET_SNAPSHOT"])
-          pathlib.Path("/tmp/market_snapshot.json").write_text(
-              json.dumps(snapshot), encoding="utf-8"
-          )
+          pathlib.Path("/tmp/market_snapshot.json").write_text(json.dumps(snapshot), encoding="utf-8")
           PY
           python -m trading.nvidia_agent_council --input-file /tmp/market_snapshot.json
