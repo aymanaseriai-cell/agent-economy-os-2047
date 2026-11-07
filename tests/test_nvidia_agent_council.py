@@ -29,4 +29,29 @@ class NvidiaCouncilTests(unittest.TestCase):
         self.assertEqual(result["advisory"], "SELL")
         self.assertFalse(result["execution_authorized"])
 
+
+    @patch("trading.nvidia_agent_council._fallback_models", return_value=["meta/llama-3.3-70b-instruct"])
+    @patch("trading.nvidia_agent_council.select_model", return_value="unavailable-model")
+    @patch("trading.nvidia_agent_council.call_agent")
+    def test_fallback_on_missing_inference_route(self, call, select, fallback):
+        def answer(name, role, snapshot, key, model):
+            if model == "unavailable-model":
+                raise CouncilError("NVIDIA inference HTTP 404")
+            return {"agent":name,"direction":"WAIT","confidence":0.9,"evidence":[],"risks":[]}
+        call.side_effect=answer
+        result=run_council({"symbol":"TEST"},api_key="test")
+        self.assertEqual(result["model"],"meta/llama-3.3-70b-instruct")
+        self.assertEqual(result["agents_responded"],len(AGENTS))
+        self.assertEqual(result["advisory"],"WAIT")
+        self.assertFalse(result["execution_authorized"])
+
+    @patch("trading.nvidia_agent_council._fallback_models", return_value=["second-model"])
+    @patch("trading.nvidia_agent_council.select_model", return_value="first-model")
+    @patch("trading.nvidia_agent_council.call_agent", side_effect=CouncilError("NVIDIA inference HTTP 404"))
+    def test_no_inference_route_is_fail_closed(self, call, select, fallback):
+        result=run_council({"symbol":"TEST"},api_key="test")
+        self.assertEqual(result["agents_responded"],0)
+        self.assertEqual(result["advisory"],"WAIT")
+        self.assertFalse(result["execution_authorized"])
+
 if __name__ == "__main__": unittest.main()

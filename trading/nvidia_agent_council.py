@@ -90,18 +90,59 @@ def call_agent(name: str, role: str, snapshot: dict[str, Any],
     result["agent"] = name
     return result
 
+
+def _fallback_models(api_key: str, excluded: str) -> list[str]:
+    """Catalog discovery is necessary but does not prove inference access."""
+    names = list_models(api_key)
+    preferred = (
+        "nvidia/nemotron-3-nano-30b-a3b",
+        "nvidia/llama-3.3-nemotron-super-49b-v1.5",
+        "nvidia/llama-3.1-nemotron-nano-8b-v1",
+        "meta/llama-3.3-70b-instruct",
+    )
+    ranked = [name for name in preferred if name in names]
+    ranked += [name for name in names if "nemotron" in name.lower() and name not in ranked]
+    ranked += [name for name in names if "instruct" in name.lower() and name not in ranked]
+    return [name for name in ranked if name != excluded][:7]
+
+
 def run_council(snapshot: dict[str, Any], api_key: str | None = None,
                 model: str | None = None) -> dict[str, Any]:
     key = api_key or os.getenv("NVIDIA_API_KEY")
     if not key:
         raise CouncilError("NVIDIA_API_KEY is not configured")
     selected = select_model(key, model or os.getenv("NVIDIA_MODEL"))
-    votes, errors = [], []
-    for name, role in AGENTS.items():
-        try:
-            votes.append(call_agent(name, role, snapshot, key, selected))
-        except CouncilError as exc:
-            errors.append({"agent": name, "error": str(exc)})
+    items = list(AGENTS.items())
+    first_name, first_role = items[0]
+    votes, errors, model_attempts = [], [], []
+    try:
+        votes.append(call_agent(first_name, first_role, snapshot, key, selected))
+    except CouncilError as exc:
+        model_attempts.append({"model": selected, "error": str(exc)})
+        if "HTTP 404" in str(exc) or "HTTP 410" in str(exc):
+            try:
+                fallback = _fallback_models(key, selected)
+            except CouncilError as catalog_error:
+                errors.append({"agent": first_name, "error": str(catalog_error)})
+                fallback = []
+            for candidate in fallback:
+                try:
+                    vote = call_agent(first_name, first_role, snapshot, key, candidate)
+                    votes.append(vote)
+                    selected = candidate
+                    break
+                except CouncilError as err:
+                    model_attempts.append({"model": candidate, "error": str(err)})
+                    if not any(code in str(err) for code in ("HTTP 404", "HTTP 410")):
+                        break
+        if not votes:
+            errors.append({"agent": first_name, "error": "No usable inference model responded"})
+    if votes:
+        for name, role in items[1:]:
+            try:
+                votes.append(call_agent(name, role, snapshot, key, selected))
+            except CouncilError as exc:
+                errors.append({"agent": name, "error": str(exc)})
     counts = {d: sum(v["direction"] == d for v in votes) for d in VALID_DIRECTIONS}
     direction = max(("BUY", "SELL"), key=lambda d: counts[d])
     aligned = [v for v in votes if v["direction"] == direction]
@@ -111,6 +152,7 @@ def run_council(snapshot: dict[str, Any], api_key: str | None = None,
     return {"mode": "ADVISORY_ONLY", "model": selected, "agents_expected": len(AGENTS),
       "agents_responded": len(votes), "vote_counts": counts, "advisory": advisory,
       "execution_authorized": False, "votes": votes, "errors": errors,
+      "model_attempts": model_attempts,
       "notice": "Untrusted AI research only. No order was placed or authorized."}
 
 def main() -> int:
