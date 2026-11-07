@@ -31,7 +31,6 @@ MAX_SPREAD_BP = Decimal('15')
 EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial stop, *not* guaranteed realised loss
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
-MAX_DAILY_BOT_ORDERS = 2
 REENTRY_COOLDOWN_MS = 10 * 60 * 1000  # wait at least 10m after any fully closed SWAP position
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
@@ -474,8 +473,9 @@ def execute(report, client, mode, env, *, allow_post=True):
     equity=account_preflight(client)
     enforce_exit_cooldown(client)
     clordid=client_order_id(signal)
-    if daily_order_limit(client,candidate_id=clordid)>=MAX_DAILY_BOT_ORDERS:
-        raise ExecutionBlocked('Bot maximum of 2 orders in rolling 24h reached')
+    # Check the latest 24h history for duplicate client order IDs, not a numeric trade limit.
+    # A second entry is only considered after the exchange-verified 10m exit cooldown.
+    daily_order_limit(client,candidate_id=clordid)
     price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
     capital_mode=env.get('OKX_CAPITAL_MODE','guarded').lower()
     # Verify OKX exchange size limit; leverage config changed only at last possible step.
@@ -491,8 +491,7 @@ def execute(report, client, mode, env, *, allow_post=True):
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
-    if daily_order_limit(client,candidate_id=clordid)>=MAX_DAILY_BOT_ORDERS:
-        raise ExecutionBlocked('Daily bot order cap triggered')
+    daily_order_limit(client,candidate_id=clordid)  # Duplicate guard remains active.
     if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
         raise ExecutionBlocked('Position changed before order placement')
     if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):

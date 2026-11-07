@@ -178,6 +178,20 @@ class TestLiveSafety(unittest.TestCase):
         self.assertEqual(client_order_id(a),client_order_id(a))
         self.assertLessEqual(len(client_order_id(a)),32)
 
+    def test_no_fixed_24h_bot_order_count_limit_but_duplicate_guard_remains(self):
+        import inspect
+        code=inspect.getsource(execute)
+        self.assertNotIn('MAX_DAILY_BOT_ORDERS',code)
+        self.assertEqual(code.count('daily_order_limit(client,candidate_id=clordid)'),2)
+        now=int(time.time()*1000)
+        class History:
+            def request(self,method,path,params=None):
+                return [{'ordId':str(i),'cTime':str(now),'clOrdId':'Q37DUP'+str(i)}
+                        for i in range(15)]
+        self.assertEqual(daily_order_limit(History()),15)
+        with self.assertRaisesRegex(ExecutionBlocked, 'Same client order'):
+            daily_order_limit(History(),candidate_id='Q37DUP9')
+
     def test_dry_run_performs_zero_http_calls(self):
         sig=make_signal()
         report={'results':[sig]}
