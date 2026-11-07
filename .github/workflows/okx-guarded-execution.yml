@@ -1,0 +1,63 @@
+name: OKX guarded execution (LIVE only after explicit arm)
+on:
+  schedule:
+    - cron: '13,28,43,58 * * * *'
+  workflow_dispatch:
+    inputs:
+      purpose:
+        description: 'Validate API credentials (read only) or execute configured mode once'
+        type: choice
+        options:
+          - validate
+          - run
+        default: validate
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: okx-guarded-execution-account
+  cancel-in-progress: false
+jobs:
+  execution:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate API connection without trading
+        if: github.event_name == 'workflow_dispatch' && inputs.purpose == 'validate'
+        run: python -m trading.okx_live_executor --verify-only
+        env:
+          OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
+          OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+      - name: Generate fresh 6-agent plus 7-system research report
+        if: github.event_name == 'schedule' || inputs.purpose == 'run'
+        run: python -m trading.six_agent_council --top 12 --out reports/okx_six_agents.json
+      - name: Execute only if all live safety gates and exchange checks pass
+        if: github.event_name == 'schedule' || inputs.purpose == 'run'
+        run: python -m trading.okx_live_executor --report reports/okx_six_agents.json
+        env:
+          OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
+          OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+      - name: Record public research evidence only (never private account/order data)
+        if: (github.event_name == 'schedule' || inputs.purpose == 'run') && always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-signal-research-only
+          path: reports/okx_six_agents.json
+          retention-days: 3
+          if-no-files-found: ignore

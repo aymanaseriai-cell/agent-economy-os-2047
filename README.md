@@ -48,6 +48,11 @@ jobs:
           root: .
 ```
 
+
+## 🔐 OKX guarded real-order executor (not activated)
+
+The existing six-agent + seven-quant-system scanner now has a **separate authenticated execution adapter** capable of sending *real* OKX USDT perpetual orders once securely configured and explicitly armed. It defaults to `dry_run` and **currently has no trading keys and places no real trades**. The scan requires an estimated 24-hour turnover ≥ **$15 million** (top 12 instruments). Safety gates include 10x isolated net-mode leverage, 0.25% planned equity-at-stop risk, 20% equity notional cap, 2 bot trades per rolling 24h, existing-position rejection, lot-size precision, exchange-native attached TP/SL, and a best-effort protective-order check/flatten. **These rules cannot guarantee a maximum realized loss or a profit.** See [setup, secret inputs and stop procedures](trading/LIVE_TRADING.md) and [the execution workflow](.github/workflows/okx-guarded-execution.yml).
+
 ## 🧠 Six-Agent OKX Futures Council
 **QUANT2037 update:** Six market-specialist agents are now cross-checked by seven additional numerical systems for jump risk, entropy, variance ratio, approximate profile migration, L2 depth fragility, aggressor-flow acceleration and counterfactual vote stability. The second stage may only **veto**, never force an entry. [Read the design and limitations](trading/QUANT2037.md). Analysis only, with no credentials or actual trading.
  (research-only)

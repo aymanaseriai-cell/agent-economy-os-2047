@@ -29,3 +29,7 @@ python3 -m unittest discover -s tests -v
 Before anyone connects trading permissions: separately verified historical trades/orderbook/funding datasets, out-of-sample and walk-forward backtests with real maker/taker fees and funding, realistic slippage, paper trading with persisted state, exchange-native protective stops, per-order ≤0.5% account risk, maximum daily drawdown, bounded gross leverage, deployment to stable always-on host with IP-bound credentials, emergency kill switch and manual approval for first live order. Never upload OKX or NVIDIA secrets to public GitHub or logs.
 
 References: [OKX API v5](https://www.okx.com/docs-v5/en/) | [GitHub schedule timing](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule).
+
+## Live execution adapter (disabled by default)
+
+The market scanner's minimum **estimated** 24h USDT turnover is now **15,000,000**. A separately armed execution adapter exists at [okx_live_executor.py](okx_live_executor.py) with full security controls in [LIVE_TRADING.md](LIVE_TRADING.md). Six specialist agents and seven numerical systems still generate research-only evidence; **they do not themselves place orders**. No profitable edge, full protection against loss, or stable 24/7 production monitoring is established.
