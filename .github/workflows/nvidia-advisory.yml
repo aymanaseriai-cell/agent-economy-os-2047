@@ -25,7 +25,7 @@ jobs:
       - name: Run NVIDIA council (advisory only)
         env:
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
-          NVIDIA_MODEL: nvidia/llama-3.3-nemotron-super-49b-v1.5
+          NVIDIA_MODEL: nvidia/nemotron-3-super-120b-a12b
           MARKET_SNAPSHOT: ${{ inputs.market_snapshot }}
         run: |
           python - <<'PY'

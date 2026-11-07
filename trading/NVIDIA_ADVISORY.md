@@ -4,7 +4,7 @@ This is a separate, **read-only advisory layer**. It does not connect to OKX, re
 
 ## Configuration
 - Add `NVIDIA_API_KEY` in GitHub Actions repository secrets (never commit the value).
-- Optional repository variable: `NVIDIA_MODEL`. Default: `nvidia/llama-3.3-nemotron-super-49b-v1.5`.
+- Optional override: set `NVIDIA_MODEL` in the workflow or environment. Current default in the workflow: `nvidia/nemotron-3-super-120b-a12b`.
 - NVIDIA NIM uses the OpenAI-compatible `https://integrate.api.nvidia.com/v1/chat/completions` endpoint.
 
 ## Run a validation
