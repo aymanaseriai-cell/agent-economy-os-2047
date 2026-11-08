@@ -1,0 +1,106 @@
+import subprocess
+import unittest
+
+from trading.okx_five_second_worker import loop
+
+def done(cmd, status=None, code=0):
+    output=("OKX EXECUTION RESULT: "+status+"\n") if status else ""
+    return subprocess.CompletedProcess(cmd,code,output,"")
+
+class FiveSecondWorkerTests(unittest.TestCase):
+    def test_five_second_pause_after_every_completed_no_consensus(self):
+        calls=[];pauses=[]; now=[0.]
+        def run(args,timeout):
+            calls.append((args,timeout))
+            return done(args,"NO_CONSENSUS") if args[2]=="trading.okx_live_executor" else done(args)
+        def sleep(seconds):
+            pauses.append(seconds);now[0]+=seconds
+        self.assertEqual(loop(max_cycles=4,run=run,
+                              clock=lambda:now[0],sleep=sleep),0)
+        self.assertEqual(len(calls),8)
+        self.assertEqual(pauses,[5,5,5])
+        self.assertEqual(sum(x[0][2]=="trading.six_agent_council" for x in calls),4)
+
+    def test_dry_run_signal_continues_research_without_order(self):
+        calls=[]; pauses=[]
+        def run(args,timeout):
+            calls.append(args)
+            return done(args,"DRY_RUN_SIGNAL_ONLY") if args[2]=="trading.okx_live_executor" else done(args)
+        self.assertEqual(loop(max_cycles=3,run=run,
+                              clock=lambda:0.,sleep=pauses.append),0)
+        self.assertEqual(pauses,[5,5])
+        self.assertEqual(len(calls),6)
+
+    def test_any_order_outcome_stops_to_prevent_duplicates(self):
+        calls=[]; pauses=[]
+        def run(args,timeout):
+            calls.append(args)
+            return done(args,"FILLED_PROTECTED") if args[2]=="trading.okx_live_executor" else done(args)
+        self.assertEqual(loop(max_cycles=10,run=run,
+                              clock=lambda:0.,sleep=pauses.append),0)
+        self.assertEqual(len(calls),2)
+        self.assertEqual(pauses,[])
+
+    def test_exchange_error_never_retries_order(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args)
+            return done(args,code=2) if args[2]=="trading.okx_live_executor" else done(args)
+        self.assertEqual(loop(max_cycles=10,run=run,clock=lambda:0.,
+                              sleep=lambda _:None),2)
+        self.assertEqual(len(calls),2)
+
+    def test_failed_market_data_stops_before_executor(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args)
+            return done(args,code=124)
+        self.assertEqual(loop(max_cycles=10,run=run,clock=lambda:0.,
+                              sleep=lambda _:None),2)
+        self.assertEqual(len(calls),1)
+
+    def test_ambiguous_and_missing_status_fail_closed(self):
+        for stdout in ("", "OKX EXECUTION RESULT: NO_CONSENSUS\nOKX EXECUTION RESULT: NO_CONSENSUS\n"):
+            calls=[]
+            def run(args,timeout):
+                calls.append(args)
+                if args[2]=="trading.okx_live_executor":
+                    return subprocess.CompletedProcess(args,0,stdout,"")
+                return done(args)
+            self.assertEqual(loop(max_cycles=10,run=run,clock=lambda:0.,
+                                  sleep=lambda _:None),3)
+            self.assertEqual(len(calls),2)
+
+    def test_bounded_job_window(self):
+        calls=[];now=[0.];pauses=[]
+        def run(args,timeout):
+            calls.append(args)
+            if args[2]=="trading.six_agent_council":
+                now[0]+=40
+                return done(args)
+            return done(args,"NO_CONSENSUS")
+        def sleep(n):pauses.append(n);now[0]+=n
+        self.assertEqual(loop(max_runtime_seconds=100,run=run,clock=lambda:now[0],sleep=sleep),0)
+        self.assertEqual(sum(x[2]=="trading.six_agent_council" for x in calls),2)
+        self.assertEqual(pauses,[5])
+
+    def test_refuse_faster_than_five_seconds(self):
+        with self.assertRaises(ValueError):loop(interval_seconds=1)
+        with self.assertRaises(ValueError):loop(interval_seconds=10)
+        with self.assertRaises(ValueError):loop(top=13)
+        with self.assertRaises(ValueError):loop(max_cycles=-1)
+        with self.assertRaises(ValueError):loop(max_runtime_seconds=-1)
+
+    def test_every_tick_uses_full_original_council_and_original_guarded_executor(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args)
+            if args[2]=="trading.okx_live_executor": return done(args,"NO_CONSENSUS")
+            return done(args)
+        self.assertEqual(loop(max_cycles=1,top=6,
+                              run=run,clock=lambda:0.,sleep=lambda _:None),0)
+        self.assertEqual(calls[0][2:6],["trading.six_agent_council","--top","6","--out"])
+        self.assertEqual(calls[1][2],"trading.okx_live_executor")
+
+if __name__=="__main__":
+    unittest.main()

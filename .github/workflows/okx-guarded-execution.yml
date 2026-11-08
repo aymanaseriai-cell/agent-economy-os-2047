@@ -41,9 +41,9 @@ jobs:
           OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
           OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
           OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
-      - name: Bounded full rescans (five second pause after NO_CONSENSUS)
+      - name: Five-second continuous worker within bounded GitHub job
         if: github.event_name == 'schedule' || inputs.purpose == 'run'
-        run: python -m trading.okx_retry_runner --max-cycles 8 --delay-seconds 5 --window-seconds 245 --report reports/okx_six_agents.json
+        run: python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
