@@ -1,0 +1,40 @@
+name: OKX NVIDIA independent research opinions (NO TRADES)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '3,18,33,48 * * * *'
+permissions:
+  contents: read
+concurrency:
+  group: okx-nvidia-public-research
+  cancel-in-progress: true
+jobs:
+  advisory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Collect independent OKX PUBLIC data only (no secrets)
+        run: python -m trading.six_agent_council --top 12 --out reports/okx_nvidia_input.json
+      - name: NVIDIA opinion only — never authorizes or vetoes trades
+        continue-on-error: true
+        timeout-minutes: 4
+        env:
+          NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+          NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
+        run: python -m trading.okx_nvidia_advisory --report reports/okx_nvidia_input.json --out reports/nvidia_advisory.json
+      - name: Publish only public market research and sanitized NVIDIA opinions
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: nvidia-advisory-read-only
+          path: |
+            reports/okx_nvidia_input.json
+            reports/nvidia_advisory.json
+          if-no-files-found: ignore
+          retention-days: 3

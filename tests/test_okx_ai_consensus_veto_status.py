@@ -1,19 +1,14 @@
+"""Regression tests: NVIDIA opinion must not determine whether live quant trades execute."""
 import contextlib
 import io
 import os
-import subprocess
 import sys
 import unittest
 from unittest.mock import patch
 
 from tests.test_nvidia_execution_gate import fixture, council_factory
-from trading.nvidia_execution_gate import (
-    GateRejected, GateConsensusVeto, require_nvidia_veto_pass,
-)
-from trading.okx_live_executor import (
-    ExecutionBlocked, ExecutionNoTrade, execute, main,
-)
-from trading.okx_five_second_worker import loop
+from trading.nvidia_execution_gate import GateConsensusVeto, require_nvidia_veto_pass
+from trading.okx_live_executor import ExecutionBlocked, execute, main
 
 
 def live_fixture_env():
@@ -22,20 +17,14 @@ def live_fixture_env():
         "OKX_ENABLE_REAL_TRADING": "YES",
         "OKX_EXECUTION_ARM": "I_ACCEPT_REAL_MONEY_LOSS",
         "OKX_CAPITAL_MODE": "guarded",
-        "NVIDIA_API_KEY": "fake-key-test-only",
         "OKX_API_KEY": "fake-key-test-only",
         "OKX_SECRET_KEY": "fake-secret-test-only",
         "OKX_PASSPHRASE": "fake-passphrase-test-only",
     }
 
 
-class NoExchangeClient:
-    def request(self, *args, **kwargs):
-        raise AssertionError("An explicit AI veto must not query OKX")
-
-
-class ExplicitNvidiaVetoTests(unittest.TestCase):
-    def test_valid_critic_veto_is_consensus_veto(self):
+class NvidiaDetachedFromExecutionTests(unittest.TestCase):
+    def test_legacy_research_veto_still_reports_critic_disagreement(self):
         report, signal = fixture()
         with self.assertRaises(GateConsensusVeto):
             require_nvidia_veto_pass(
@@ -43,7 +32,7 @@ class ExplicitNvidiaVetoTests(unittest.TestCase):
                 council_fn=council_factory(critic="WAIT"),
             )
 
-    def test_valid_opposing_vote_is_consensus_veto(self):
+    def test_legacy_research_veto_reports_opposing_vote(self):
         report, signal = fixture()
         with self.assertRaises(GateConsensusVeto):
             require_nvidia_veto_pass(
@@ -51,52 +40,38 @@ class ExplicitNvidiaVetoTests(unittest.TestCase):
                 council_fn=council_factory(opposite=True),
             )
 
-    def test_missing_key_still_hard_rejected(self):
+    def test_live_executor_has_no_nvidia_dependency(self):
         report, signal = fixture()
-        with self.assertRaises(GateRejected) as err:
-            require_nvidia_veto_pass(report, signal, None)
-        self.assertNotIsInstance(err.exception, GateConsensusVeto)
+        with patch("trading.nvidia_agent_council.run_council",
+                   side_effect=RuntimeError("NVIDIA unavailable")) as nvidia:
+            with patch("trading.okx_live_executor.market_preflight",
+                       side_effect=ExecutionBlocked("Exchange spread veto")) as exchange:
+                with self.assertRaisesRegex(ExecutionBlocked, "Exchange spread veto"):
+                    execute(report, object(), "live", live_fixture_env())
+        nvidia.assert_not_called()
+        exchange.assert_called_once()
 
-    def test_explicit_ai_veto_blocks_all_private_exchange_calls(self):
+    def test_live_executor_keeps_quant_signal_requirement(self):
         report, signal = fixture()
-        with patch("trading.okx_live_executor.require_nvidia_veto_pass",
-                   side_effect=GateConsensusVeto("NVIDIA consensus or risk critic vetoed this trade")):
-            with self.assertRaises(ExecutionNoTrade):
-                execute(report, NoExchangeClient(), "live", live_fixture_env())
+        signal["advanced_veto_reasons"] = ["high_jump_risk"]
+        with patch("trading.okx_live_executor.market_preflight",
+                   side_effect=AssertionError("No qualifying quant signal")):
+            self.assertEqual(execute(report, object(), "live", live_fixture_env()),
+                             "NO_CONSENSUS")
 
-    def test_invalid_model_data_remains_hard_failure(self):
-        report, signal = fixture()
-        with patch("trading.okx_live_executor.require_nvidia_veto_pass",
-                   side_effect=GateRejected("Unverified NVIDIA council response")):
-            with self.assertRaises(ExecutionBlocked) as err:
-                execute(report, NoExchangeClient(), "live", live_fixture_env())
-        self.assertNotIsInstance(err.exception, ExecutionNoTrade)
-
-    def test_cli_distinguishes_veto_from_failure(self):
+    def test_cli_exchange_failure_remains_blocked(self):
         out, errs = io.StringIO(), io.StringIO()
-        with (patch.dict(os.environ,live_fixture_env()),
-              patch.object(sys,"argv",["okx_live_executor","--mode","live"]),
-              patch("trading.okx_live_executor.read_report",return_value=fixture()[0]),
-              patch("trading.okx_live_executor.OKX",return_value=NoExchangeClient()),
-              patch("trading.okx_live_executor.execute",side_effect=ExecutionNoTrade("explicit veto")),
+        with (patch.dict(os.environ, live_fixture_env()),
+              patch.object(sys, "argv", ["okx_live_executor", "--mode", "live"]),
+              patch("trading.okx_live_executor.read_report", return_value=fixture()[0]),
+              patch("trading.okx_live_executor.execute",
+                    side_effect=ExecutionBlocked("Exchange spread veto")),
               contextlib.redirect_stdout(out), contextlib.redirect_stderr(errs)):
-            code=main()
-        self.assertEqual(code,0)
-        self.assertIn("OKX EXECUTION RESULT: AI_VETO_NO_ORDER",out.getvalue())
-        self.assertIn("NO ORDER",errs.getvalue())
-
-    def test_worker_stops_without_retry_after_ai_veto(self):
-        calls=[]
-        def run(args,timeout):
-            calls.append(args[2])
-            if args[2]=="trading.okx_live_executor":
-                return subprocess.CompletedProcess(args,0,"OKX EXECUTION RESULT: AI_VETO_NO_ORDER\n","")
-            return subprocess.CompletedProcess(args,0,"","")
-        code=loop(max_cycles=8,run=run,clock=lambda:0.0,
-                  sleep=lambda _n:self.fail("Risk veto must not retry"))
-        self.assertEqual(code,0)
-        self.assertEqual(calls,["trading.six_agent_council","trading.okx_live_executor"])
+            code = main()
+        self.assertEqual(code, 2)
+        self.assertNotIn("AI_VETO", out.getvalue())
+        self.assertIn("Exchange spread veto", errs.getvalue())
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     unittest.main()

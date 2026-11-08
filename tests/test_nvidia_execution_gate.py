@@ -114,7 +114,7 @@ class TestNvidiaExecutionGate(unittest.TestCase):
         with self.assertRaises(GateRejected):
             require_nvidia_veto_pass(report, signal, "test", council_fn=offline)
 
-    def test_live_will_not_call_exchange_without_nvidia_key(self):
+    def test_live_reaches_independent_exchange_checks_without_nvidia_key(self):
         report, signal = fixture()
         env = {
             "OKX_EXECUTION_ARM": "I_ACCEPT_REAL_MONEY_LOSS",
@@ -124,16 +124,19 @@ class TestNvidiaExecutionGate(unittest.TestCase):
         }
         class Never:
             def request(self, *args, **kwargs):
-                raise AssertionError("Exchange request preceded NVIDIA veto")
-        with self.assertRaisesRegex(ExecutionBlocked, "AI pre-trade veto"):
-            execute(report, Never(), "live", env)
+                raise AssertionError("Expected market preflight to be mocked")
+        with patch("trading.okx_live_executor.market_preflight",
+                   side_effect=ExecutionBlocked("Spread exceeds hard limit")) as preflight:
+            with self.assertRaisesRegex(ExecutionBlocked, "Spread exceeds hard limit"):
+                execute(report, Never(), "live", env)
+        preflight.assert_called_once()
 
     def test_dry_run_will_not_request_nvidia_or_exchange(self):
         report, signal = fixture()
         class Never:
             def request(self, *args, **kwargs):
                 raise AssertionError("Unexpected OKX call")
-        with patch("trading.okx_live_executor.require_nvidia_veto_pass",
+        with patch("trading.nvidia_execution_gate.run_council",
                    side_effect=AssertionError("Unexpected NVIDIA call")):
             self.assertEqual(execute(report, Never(), "dry_run", {}), "DRY_RUN_SIGNAL_ONLY")
 

@@ -21,7 +21,7 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from trading.nvidia_execution_gate import GateRejected, GateConsensusVeto, require_nvidia_veto_pass, _fresh_report
+from trading.nvidia_execution_gate import GateRejected, _fresh_report
 
 ALLOWED_DOMAINS = {'https://www.okx.com', 'https://eea.okx.com', 'https://us.okx.com'}
 MODE_ARM = {'demo': 'CONFIRM_DEMO_ORDER', 'live': 'I_ACCEPT_REAL_MONEY_LOSS'}
@@ -45,14 +45,6 @@ MAX_AGE_SINCE_CANDLE_CLOSE_MS = 15 * 60 * 1000
 
 class ExecutionBlocked(RuntimeError):
     pass
-
-
-class ExecutionNoTrade(ExecutionBlocked):
-    """An explicit, valid AI risk veto before all private OKX API calls.
-
-    Expected no-order decision, unlike operational failures or uncertainty.
-    Live trading stays blocked and the worker still stops this job.
-    """
 
 
 def dec(x):
@@ -513,17 +505,9 @@ def execute(report, client, mode, env, *, allow_post=True):
     # For a dry run, never access any private endpoint or submit any order.
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
-    # AI cannot select coins, sizes, stops, or place orders; it can only veto
-    # deterministic qualifying signals. Missing/failed AI blocks both demo/live.
-    try:
-        require_nvidia_veto_pass(report, signal, env.get('NVIDIA_API_KEY'),
-                                 env.get('NVIDIA_MODEL') or None)
-    except GateConsensusVeto as exc:
-        # Only an explicit, validated AI consensus veto gets the non-error
-        # "no trade" result. Incomplete/inaccessible AI still fails closed.
-        raise ExecutionNoTrade('AI consensus/risk critic rejected signal') from exc
-    except GateRejected as exc:
-        raise ExecutionBlocked('AI pre-trade veto: ' + str(exc)) from exc
+    # NVIDIA research is isolated in okx-nvidia-advisory.yml: never imported,
+    # queried, or evaluated in the execution/order path. Quantitative signals
+    # and mandatory exchange-side risk controls remain the only entry gates.
     ticker,inst=market_preflight(client,signal)
     equity=account_preflight(client)
     enforce_exit_cooldown(client)
@@ -553,7 +537,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         raise ExecutionBlocked('Orders appeared before placement')
     enforce_exit_cooldown(client)  # Re-check immediately before any live or demo order.
     # Never place an order using research that expired while private OKX
-    # preflight checks or NVIDIA review were running.
+    # preflight checks were running.
     try:
         _fresh_report(report)
     except GateRejected as exc:
@@ -612,12 +596,6 @@ def main():
         status=execute(report,OKX(env),args.mode,env)
         # Do not print balances, keys, client order ids or exact position sizes in public Actions logs.
         print('OKX EXECUTION RESULT:',status)
-        return 0
-    except ExecutionNoTrade:
-        # Readable status for an expected, validated risk veto. The caller
-        # deliberately STOPS rather than repeating the same trade candidate.
-        print('OKX EXECUTION RESULT: AI_VETO_NO_ORDER')
-        print('OKX AI RISK VETO: valid council did not approve; NO ORDER',file=sys.stderr)
         return 0
     except ExecutionBlocked as exc:
         print('OKX EXECUTION BLOCKED:',str(exc),file=sys.stderr)
