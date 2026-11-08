@@ -1,0 +1,696 @@
+{
+  "generated_utc": "2026-11-08T01:16:38.839962+00:00",
+  "source": "OKX public /api/v5/market/history-candles",
+  "mode": "OFFLINE_RESEARCH_NO_ORDERS",
+  "days_requested": 60,
+  "strategies": [
+    "ema_rsi",
+    "breakout"
+  ],
+  "train_split": 0.6,
+  "execution_assumptions": {
+    "enter": "next_15m_candle_open",
+    "exit": "stop_then_target_if_ambiguous",
+    "fees_taker_per_side": 0.0005,
+    "slippage_per_side": 0.0003,
+    "funding_model_per_8h": 0.0001,
+    "initial_equity_per_symbol_usd": 1000.0,
+    "notional_cap_fraction_of_equity": 0.2,
+    "planned_stop_risk_fraction": 0.0025,
+    "max_holding_bars": 24
+  },
+  "limitations": [
+    "Not the 6-agent live bot: historical L2, flows and NVIDIA snapshots are absent",
+    "Fees are assumptions, not user account maker/taker tier",
+    "Funding is an explicit cost estimate, not OKX funding history",
+    "OHLC cannot tell true intrabar sequence; stop wins ambiguities",
+    "No true orderbook execution, liquidations, venue outage, or latency model",
+    "Do not choose strategy from holdout then claim unbiased out-of-sample",
+    "Multiple symbols are evaluated separately, not a runnable portfolio"
+  ],
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -7.245,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 287,
+            "win_rate_pct": 30.66,
+            "return_pct": -8.873,
+            "max_drawdown_pct": 8.991,
+            "profit_factor": 0.4486,
+            "gross_usd": -32.3747,
+            "fees_usd": 54.9158,
+            "funding_model_usd": 1.439,
+            "net_usd": -88.7295,
+            "ending_equity_usd": 911.2705
+          },
+          "holdout": {
+            "trades": 193,
+            "win_rate_pct": 35.75,
+            "return_pct": -5.7774,
+            "max_drawdown_pct": 5.8793,
+            "profit_factor": 0.4613,
+            "gross_usd": -19.2726,
+            "fees_usd": 37.5028,
+            "funding_model_usd": 0.9985,
+            "net_usd": -57.7739,
+            "ending_equity_usd": 942.2261
+          },
+          "holdout_stress": {
+            "trades": 237,
+            "win_rate_pct": 20.68,
+            "return_pct": -15.2538,
+            "max_drawdown_pct": 15.2538,
+            "profit_factor": 0.155,
+            "gross_usd": -81.678,
+            "fees_usd": 69.9691,
+            "funding_model_usd": 0.891,
+            "net_usd": -152.538,
+            "ending_equity_usd": 847.4619
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 185,
+            "win_rate_pct": 41.08,
+            "return_pct": 0.7398,
+            "max_drawdown_pct": 1.1057,
+            "profit_factor": 1.1069,
+            "gross_usd": 7.3975,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 7.3975,
+            "ending_equity_usd": 1007.3975
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 108,
+            "win_rate_pct": 35.19,
+            "return_pct": -2.6412,
+            "max_drawdown_pct": 2.8673,
+            "profit_factor": 0.5844,
+            "gross_usd": -4.6354,
+            "fees_usd": 21.3118,
+            "funding_model_usd": 0.4645,
+            "net_usd": -26.4117,
+            "ending_equity_usd": 973.5883
+          },
+          "holdout": {
+            "trades": 66,
+            "win_rate_pct": 31.82,
+            "return_pct": -2.2172,
+            "max_drawdown_pct": 2.345,
+            "profit_factor": 0.4952,
+            "gross_usd": -8.8795,
+            "fees_usd": 13.0249,
+            "funding_model_usd": 0.2675,
+            "net_usd": -22.1718,
+            "ending_equity_usd": 977.8282
+          },
+          "holdout_stress": {
+            "trades": 68,
+            "win_rate_pct": 17.65,
+            "return_pct": -5.6624,
+            "max_drawdown_pct": 5.6624,
+            "profit_factor": 0.1393,
+            "gross_usd": -35.2493,
+            "fees_usd": 21.1235,
+            "funding_model_usd": 0.2511,
+            "net_usd": -56.6239,
+            "ending_equity_usd": 943.3761
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 68,
+            "win_rate_pct": 35.29,
+            "return_pct": -0.1965,
+            "max_drawdown_pct": 1.0849,
+            "profit_factor": 0.9399,
+            "gross_usd": -1.965,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": -1.965,
+            "ending_equity_usd": 998.035
+          }
+        }
+      }
+    },
+    "ETH-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -7.511,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 259,
+            "win_rate_pct": 35.14,
+            "return_pct": -6.3201,
+            "max_drawdown_pct": 6.8391,
+            "profit_factor": 0.6418,
+            "gross_usd": -11.6055,
+            "fees_usd": 50.1472,
+            "funding_model_usd": 1.4479,
+            "net_usd": -63.2007,
+            "ending_equity_usd": 936.7993
+          },
+          "holdout": {
+            "trades": 185,
+            "win_rate_pct": 35.14,
+            "return_pct": -5.3637,
+            "max_drawdown_pct": 6.1263,
+            "profit_factor": 0.6019,
+            "gross_usd": -16.3974,
+            "fees_usd": 36.2274,
+            "funding_model_usd": 1.0122,
+            "net_usd": -53.637,
+            "ending_equity_usd": 946.363
+          },
+          "holdout_stress": {
+            "trades": 202,
+            "win_rate_pct": 28.71,
+            "return_pct": -12.85,
+            "max_drawdown_pct": 13.274,
+            "profit_factor": 0.3189,
+            "gross_usd": -66.7707,
+            "fees_usd": 60.7966,
+            "funding_model_usd": 0.9328,
+            "net_usd": -128.5001,
+            "ending_equity_usd": 871.4999
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 183,
+            "win_rate_pct": 42.62,
+            "return_pct": 0.4395,
+            "max_drawdown_pct": 2.1656,
+            "profit_factor": 1.0429,
+            "gross_usd": 4.3945,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 4.3945,
+            "ending_equity_usd": 1004.3945
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 98,
+            "win_rate_pct": 35.71,
+            "return_pct": -2.5092,
+            "max_drawdown_pct": 2.8207,
+            "profit_factor": 0.6773,
+            "gross_usd": -5.3547,
+            "fees_usd": 19.3233,
+            "funding_model_usd": 0.4143,
+            "net_usd": -25.0923,
+            "ending_equity_usd": 974.9077
+          },
+          "holdout": {
+            "trades": 64,
+            "win_rate_pct": 45.31,
+            "return_pct": -0.3106,
+            "max_drawdown_pct": 1.7928,
+            "profit_factor": 0.9398,
+            "gross_usd": 9.8812,
+            "fees_usd": 12.7185,
+            "funding_model_usd": 0.2689,
+            "net_usd": -3.1062,
+            "ending_equity_usd": 996.8938
+          },
+          "holdout_stress": {
+            "trades": 63,
+            "win_rate_pct": 39.68,
+            "return_pct": -3.0327,
+            "max_drawdown_pct": 3.4991,
+            "profit_factor": 0.5349,
+            "gross_usd": -10.2757,
+            "fees_usd": 19.7905,
+            "funding_model_usd": 0.2613,
+            "net_usd": -30.3275,
+            "ending_equity_usd": 969.6725
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 67,
+            "win_rate_pct": 46.27,
+            "return_pct": 1.4776,
+            "max_drawdown_pct": 1.1874,
+            "profit_factor": 1.3412,
+            "gross_usd": 14.7759,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 14.7759,
+            "ending_equity_usd": 1014.7759
+          }
+        }
+      }
+    },
+    "SOL-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -14.276,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 258,
+            "win_rate_pct": 35.66,
+            "return_pct": -8.2834,
+            "max_drawdown_pct": 8.3063,
+            "profit_factor": 0.6171,
+            "gross_usd": -32.0589,
+            "fees_usd": 49.3619,
+            "funding_model_usd": 1.4132,
+            "net_usd": -82.834,
+            "ending_equity_usd": 917.166
+          },
+          "holdout": {
+            "trades": 186,
+            "win_rate_pct": 37.1,
+            "return_pct": -5.138,
+            "max_drawdown_pct": 5.6543,
+            "profit_factor": 0.675,
+            "gross_usd": -13.8796,
+            "fees_usd": 36.4263,
+            "funding_model_usd": 1.0743,
+            "net_usd": -51.3803,
+            "ending_equity_usd": 948.6197
+          },
+          "holdout_stress": {
+            "trades": 198,
+            "win_rate_pct": 29.8,
+            "return_pct": -13.1252,
+            "max_drawdown_pct": 13.3573,
+            "profit_factor": 0.3643,
+            "gross_usd": -70.8159,
+            "fees_usd": 59.4334,
+            "funding_model_usd": 1.003,
+            "net_usd": -131.2524,
+            "ending_equity_usd": 868.7476
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 188,
+            "win_rate_pct": 39.89,
+            "return_pct": 0.2888,
+            "max_drawdown_pct": 2.3808,
+            "profit_factor": 1.0221,
+            "gross_usd": 2.8881,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 2.8881,
+            "ending_equity_usd": 1002.8881
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 108,
+            "win_rate_pct": 35.19,
+            "return_pct": -3.2807,
+            "max_drawdown_pct": 4.1866,
+            "profit_factor": 0.6901,
+            "gross_usd": -11.3637,
+            "fees_usd": 21.016,
+            "funding_model_usd": 0.4271,
+            "net_usd": -32.8068,
+            "ending_equity_usd": 967.1932
+          },
+          "holdout": {
+            "trades": 67,
+            "win_rate_pct": 31.34,
+            "return_pct": -3.1731,
+            "max_drawdown_pct": 3.1731,
+            "profit_factor": 0.5138,
+            "gross_usd": -18.4095,
+            "fees_usd": 13.0149,
+            "funding_model_usd": 0.3071,
+            "net_usd": -31.7314,
+            "ending_equity_usd": 968.2686
+          },
+          "holdout_stress": {
+            "trades": 65,
+            "win_rate_pct": 21.54,
+            "return_pct": -5.5576,
+            "max_drawdown_pct": 5.5576,
+            "profit_factor": 0.3003,
+            "gross_usd": -35.324,
+            "fees_usd": 19.9734,
+            "funding_model_usd": 0.2784,
+            "net_usd": -55.5759,
+            "ending_equity_usd": 944.4241
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 67,
+            "win_rate_pct": 32.84,
+            "return_pct": -1.4097,
+            "max_drawdown_pct": 1.4309,
+            "profit_factor": 0.7382,
+            "gross_usd": -14.0974,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": -14.0974,
+            "ending_equity_usd": 985.9026
+          }
+        }
+      }
+    },
+    "XRP-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -12.396,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 259,
+            "win_rate_pct": 37.84,
+            "return_pct": -5.0725,
+            "max_drawdown_pct": 5.5864,
+            "profit_factor": 0.7803,
+            "gross_usd": 0.3045,
+            "fees_usd": 49.6199,
+            "funding_model_usd": 1.4096,
+            "net_usd": -50.725,
+            "ending_equity_usd": 949.2751
+          },
+          "holdout": {
+            "trades": 181,
+            "win_rate_pct": 38.12,
+            "return_pct": -3.1713,
+            "max_drawdown_pct": 4.2308,
+            "profit_factor": 0.7617,
+            "gross_usd": 4.9712,
+            "fees_usd": 35.638,
+            "funding_model_usd": 1.0466,
+            "net_usd": -31.7134,
+            "ending_equity_usd": 968.2866
+          },
+          "holdout_stress": {
+            "trades": 206,
+            "win_rate_pct": 29.13,
+            "return_pct": -12.6258,
+            "max_drawdown_pct": 13.0186,
+            "profit_factor": 0.3694,
+            "gross_usd": -63.7005,
+            "fees_usd": 61.6038,
+            "funding_model_usd": 0.9537,
+            "net_usd": -126.258,
+            "ending_equity_usd": 873.742
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 180,
+            "win_rate_pct": 42.22,
+            "return_pct": 2.4329,
+            "max_drawdown_pct": 1.9735,
+            "profit_factor": 1.2348,
+            "gross_usd": 24.3291,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 24.3291,
+            "ending_equity_usd": 1024.3291
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 109,
+            "win_rate_pct": 38.53,
+            "return_pct": -2.3892,
+            "max_drawdown_pct": 2.9317,
+            "profit_factor": 0.7829,
+            "gross_usd": -2.2594,
+            "fees_usd": 21.1831,
+            "funding_model_usd": 0.4492,
+            "net_usd": -23.8917,
+            "ending_equity_usd": 976.1083
+          },
+          "holdout": {
+            "trades": 68,
+            "win_rate_pct": 35.29,
+            "return_pct": -1.9937,
+            "max_drawdown_pct": 2.8121,
+            "profit_factor": 0.6706,
+            "gross_usd": -6.219,
+            "fees_usd": 13.3814,
+            "funding_model_usd": 0.3361,
+            "net_usd": -19.9366,
+            "ending_equity_usd": 980.0634
+          },
+          "holdout_stress": {
+            "trades": 69,
+            "win_rate_pct": 28.99,
+            "return_pct": -5.5214,
+            "max_drawdown_pct": 5.7848,
+            "profit_factor": 0.327,
+            "gross_usd": -33.5415,
+            "fees_usd": 21.3714,
+            "funding_model_usd": 0.3013,
+            "net_usd": -55.2142,
+            "ending_equity_usd": 944.7858
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 67,
+            "win_rate_pct": 44.78,
+            "return_pct": 1.0029,
+            "max_drawdown_pct": 1.1371,
+            "profit_factor": 1.2236,
+            "gross_usd": 10.0292,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 10.0292,
+            "ending_equity_usd": 1010.0292
+          }
+        }
+      }
+    },
+    "DOGE-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -12.609,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 253,
+            "win_rate_pct": 38.74,
+            "return_pct": -4.0422,
+            "max_drawdown_pct": 5.1866,
+            "profit_factor": 0.8196,
+            "gross_usd": 9.0864,
+            "fees_usd": 48.0905,
+            "funding_model_usd": 1.4175,
+            "net_usd": -40.4216,
+            "ending_equity_usd": 959.5784
+          },
+          "holdout": {
+            "trades": 183,
+            "win_rate_pct": 34.43,
+            "return_pct": -5.9211,
+            "max_drawdown_pct": 6.145,
+            "profit_factor": 0.6208,
+            "gross_usd": -22.7803,
+            "fees_usd": 35.3987,
+            "funding_model_usd": 1.0324,
+            "net_usd": -59.2115,
+            "ending_equity_usd": 940.7885
+          },
+          "holdout_stress": {
+            "trades": 193,
+            "win_rate_pct": 27.98,
+            "return_pct": -13.6211,
+            "max_drawdown_pct": 13.7792,
+            "profit_factor": 0.3362,
+            "gross_usd": -78.0261,
+            "fees_usd": 57.2326,
+            "funding_model_usd": 0.9526,
+            "net_usd": -136.2113,
+            "ending_equity_usd": 863.7887
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 181,
+            "win_rate_pct": 38.67,
+            "return_pct": 0.1498,
+            "max_drawdown_pct": 1.7625,
+            "profit_factor": 1.0122,
+            "gross_usd": 1.4979,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": 1.4979,
+            "ending_equity_usd": 1001.4979
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 102,
+            "win_rate_pct": 37.25,
+            "return_pct": -2.7034,
+            "max_drawdown_pct": 3.1026,
+            "profit_factor": 0.7425,
+            "gross_usd": -7.0764,
+            "fees_usd": 19.5522,
+            "funding_model_usd": 0.4057,
+            "net_usd": -27.0342,
+            "ending_equity_usd": 972.9658
+          },
+          "holdout": {
+            "trades": 71,
+            "win_rate_pct": 32.39,
+            "return_pct": -3.7445,
+            "max_drawdown_pct": 3.9411,
+            "profit_factor": 0.4797,
+            "gross_usd": -23.3284,
+            "fees_usd": 13.8263,
+            "funding_model_usd": 0.2898,
+            "net_usd": -37.4445,
+            "ending_equity_usd": 962.5555
+          },
+          "holdout_stress": {
+            "trades": 70,
+            "win_rate_pct": 27.14,
+            "return_pct": -5.7737,
+            "max_drawdown_pct": 5.9422,
+            "profit_factor": 0.3216,
+            "gross_usd": -35.8717,
+            "fees_usd": 21.5879,
+            "funding_model_usd": 0.2778,
+            "net_usd": -57.7373,
+            "ending_equity_usd": 942.2627
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 71,
+            "win_rate_pct": 35.21,
+            "return_pct": -1.1063,
+            "max_drawdown_pct": 1.9653,
+            "profit_factor": 0.8026,
+            "gross_usd": -11.0625,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": -11.0625,
+            "ending_equity_usd": 988.9375
+          }
+        }
+      }
+    },
+    "SUI-USDT-SWAP": {
+      "candles": 5759,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00",
+      "holdout_start_utc": "2026-10-15T01:00:00+00:00",
+      "holdout_price_change_pct": -16.025,
+      "strategies": {
+        "ema_rsi": {
+          "train": {
+            "trades": 282,
+            "win_rate_pct": 35.11,
+            "return_pct": -13.0416,
+            "max_drawdown_pct": 13.2427,
+            "profit_factor": 0.6576,
+            "gross_usd": -79.829,
+            "fees_usd": 49.3194,
+            "funding_model_usd": 1.2676,
+            "net_usd": -130.4161,
+            "ending_equity_usd": 869.5839
+          },
+          "holdout": {
+            "trades": 196,
+            "win_rate_pct": 32.14,
+            "return_pct": -10.0903,
+            "max_drawdown_pct": 10.6678,
+            "profit_factor": 0.5554,
+            "gross_usd": -63.1921,
+            "fees_usd": 36.7276,
+            "funding_model_usd": 0.9836,
+            "net_usd": -100.9033,
+            "ending_equity_usd": 899.0966
+          },
+          "holdout_stress": {
+            "trades": 202,
+            "win_rate_pct": 29.7,
+            "return_pct": -16.3091,
+            "max_drawdown_pct": 16.6111,
+            "profit_factor": 0.3867,
+            "gross_usd": -103.5531,
+            "fees_usd": 58.6087,
+            "funding_model_usd": 0.9291,
+            "net_usd": -163.0908,
+            "ending_equity_usd": 836.9092
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 192,
+            "win_rate_pct": 34.38,
+            "return_pct": -3.769,
+            "max_drawdown_pct": 5.0689,
+            "profit_factor": 0.799,
+            "gross_usd": -37.69,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": -37.69,
+            "ending_equity_usd": 962.31
+          }
+        },
+        "breakout": {
+          "train": {
+            "trades": 96,
+            "win_rate_pct": 44.79,
+            "return_pct": 1.0483,
+            "max_drawdown_pct": 2.2584,
+            "profit_factor": 1.0853,
+            "gross_usd": 27.8171,
+            "fees_usd": 16.9964,
+            "funding_model_usd": 0.3374,
+            "net_usd": 10.4833,
+            "ending_equity_usd": 1010.4833
+          },
+          "holdout": {
+            "trades": 71,
+            "win_rate_pct": 36.62,
+            "return_pct": -3.1331,
+            "max_drawdown_pct": 3.3485,
+            "profit_factor": 0.6434,
+            "gross_usd": -17.4448,
+            "fees_usd": 13.5989,
+            "funding_model_usd": 0.2874,
+            "net_usd": -31.3311,
+            "ending_equity_usd": 968.6689
+          },
+          "holdout_stress": {
+            "trades": 70,
+            "win_rate_pct": 34.29,
+            "return_pct": -5.3371,
+            "max_drawdown_pct": 5.4858,
+            "profit_factor": 0.4637,
+            "gross_usd": -31.9106,
+            "fees_usd": 21.2096,
+            "funding_model_usd": 0.2511,
+            "net_usd": -53.3713,
+            "ending_equity_usd": 946.6287
+          },
+          "holdout_frictionless_diagnostic": {
+            "trades": 71,
+            "win_rate_pct": 36.62,
+            "return_pct": -1.053,
+            "max_drawdown_pct": 2.1005,
+            "profit_factor": 0.8606,
+            "gross_usd": -10.5301,
+            "fees_usd": 0.0,
+            "funding_model_usd": 0.0,
+            "net_usd": -10.5301,
+            "ending_equity_usd": 989.4699
+          }
+        }
+      }
+    }
+  },
+  "data_mode": "OFFLINE_FROZEN_SNAPSHOT",
+  "data_sha256": {
+    "BTC-USDT-SWAP": "bf65647003d278a97fb0d941a6fc34f11d67e00e869ddc5557f8c3e4fcd2efc1",
+    "ETH-USDT-SWAP": "af4d54643679f09c1b7b510c67b83c9c5132150f58c59c45df842938043b8e82",
+    "SOL-USDT-SWAP": "3e04faeae18ada0f941835f35738b5068eeb2285bda5ecbbbb5cd0a9d6c2a7d8",
+    "XRP-USDT-SWAP": "70200cb62576e9e8f2b374a0951381eb5a2a9105940824ed82ff3335a75de3de",
+    "DOGE-USDT-SWAP": "fafea5e9febd2c998fe6ed8919c287d5660f2232a1f9bd849ebef9ad1170df62",
+    "SUI-USDT-SWAP": "720b8202ed8e4d541c74b516b062ad9304bf56af8a27eb2ce956a5079029d167"
+  }
+}

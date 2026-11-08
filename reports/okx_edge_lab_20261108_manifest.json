@@ -1,0 +1,68 @@
+{
+  "data_origin": "OKX public API /api/v5/market/history-candles",
+  "dataset_selection": "six predefined symbols; 15-minute complete candles; 60 days",
+  "retrieved_as_public_data_only": true,
+  "symbols": {
+    "BTC-USDT-SWAP": {
+      "file": "BTC-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "bf65647003d278a97fb0d941a6fc34f11d67e00e869ddc5557f8c3e4fcd2efc1",
+      "sha256_gzip": "3ba08f9f978a98222949634fae485264b1210d48cd81c6ae7de15281b4add820",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    },
+    "ETH-USDT-SWAP": {
+      "file": "ETH-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "af4d54643679f09c1b7b510c67b83c9c5132150f58c59c45df842938043b8e82",
+      "sha256_gzip": "43e4fbdfa8f140353e8e7f88f2760fd69e1958382473f7575d563e80e4d4fef6",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    },
+    "SOL-USDT-SWAP": {
+      "file": "SOL-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "3e04faeae18ada0f941835f35738b5068eeb2285bda5ecbbbb5cd0a9d6c2a7d8",
+      "sha256_gzip": "3f19064ad83e0db71920d16fdb29c01d29e70347f752b305c9ad11ca479fa984",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    },
+    "XRP-USDT-SWAP": {
+      "file": "XRP-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "70200cb62576e9e8f2b374a0951381eb5a2a9105940824ed82ff3335a75de3de",
+      "sha256_gzip": "67da7ccf34a214165f34f56a32c7289674662c9c838f4010fcae928d150424a0",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    },
+    "DOGE-USDT-SWAP": {
+      "file": "DOGE-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "fafea5e9febd2c998fe6ed8919c287d5660f2232a1f9bd849ebef9ad1170df62",
+      "sha256_gzip": "09aec07bb512bace7119e839214734fb0dfb7956d1068693bf0f88466a3c8492",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    },
+    "SUI-USDT-SWAP": {
+      "file": "SUI-USDT-SWAP.candles.json.gz",
+      "row_count": 5759,
+      "sha256_uncompressed": "720b8202ed8e4d541c74b516b062ad9304bf56af8a27eb2ce956a5079029d167",
+      "sha256_gzip": "b79fc89392a4771a5ff06c82e62c6292290d3159630df7ec678ae72df76a26bb",
+      "first_open_ms": 1788916500000,
+      "last_open_ms": 1794098700000,
+      "first_utc": "2026-09-09T01:15:00+00:00",
+      "last_utc": "2026-11-08T00:45:00+00:00"
+    }
+  },
+  "total_candles": 34554
+}

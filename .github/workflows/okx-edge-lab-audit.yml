@@ -1,0 +1,40 @@
+name: OKX historical edge lab audit (OFFLINE, NO TRADES)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run standalone backtest engine unit tests
+        run: python -m unittest discover -s tests -p test_edge_lab.py -v
+      - name: Reproduce research from public frozen snapshots
+        run: python -m trading.edge_lab --days 60 --offline-dir reports --out reports/replay.json
+      - name: Verify deterministic research evidence
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          frozen=json.loads(Path('reports/okx_edge_lab_20261108.json').read_text())
+          replay=json.loads(Path('reports/replay.json').read_text())
+          assert frozen['symbols']==replay['symbols'], 'Historical backtest metrics changed'
+          assert frozen['data_sha256']==replay['data_sha256'], 'History dataset SHA mismatch'
+          assert all(v['trades'] >= 0 for s in replay['symbols'].values()
+                     for m in s['strategies'].values()
+                     for v in (m['train'],m['holdout'],m['holdout_stress']))
+          print('AUDIT PASS: frozen OHLC data and every holdout result reproduced')
+          PY
+      - name: Publish read-only replay artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: okx-public-edge-lab-replay
+          path: reports/replay.json
+          retention-days: 14
