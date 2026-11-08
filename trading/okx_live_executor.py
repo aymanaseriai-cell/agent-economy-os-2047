@@ -47,6 +47,14 @@ class ExecutionBlocked(RuntimeError):
     pass
 
 
+class ReentryCooldownActive(ExecutionBlocked):
+    """Verified exchange-side 10m wait; no trade may be submitted yet.
+
+    Distinct from unknown OKX status, missing history, or other execution
+    failures, which must still stop the worker rather than auto-retry.
+    """
+
+
 def dec(x):
     try:
         d = Decimal(str(x))
@@ -322,8 +330,8 @@ def enforce_exit_cooldown(client, *, now_ms=None):
         # Partial closes don't release the bot to enter a new coin.
         if str(row.get('type')) in ('2', '3', '6') and updated > cutoff:
             remaining = (updated + REENTRY_COOLDOWN_MS - now_ms + 999) // 1000
-            raise ExecutionBlocked('Re-entry cooldown active after SWAP exit; at least ' +
-                                   str(remaining) + ' seconds remain')
+            raise ReentryCooldownActive('Re-entry cooldown active after SWAP exit; at least ' +
+                                        str(remaining) + ' seconds remain')
     if len(rows) >= 100 and seen_times and min(seen_times) > cutoff:
         # A full first page that does not cover the entire window is ambiguous.
         raise ExecutionBlocked('Position-history pagination needed: cooldown status unverified')
@@ -513,7 +521,15 @@ def execute(report, client, mode, env, *, allow_post=True):
     # and mandatory exchange-side risk controls remain the only entry gates.
     ticker,inst=market_preflight(client,signal)
     equity=account_preflight(client)
-    enforce_exit_cooldown(client)
+    try:
+        enforce_exit_cooldown(client)
+    except ReentryCooldownActive:
+        # This is a verified no-order wait, NOT an order failure. Only the
+        # separately armed recurring worker may continue polling; do not ever
+        # treat other ExecutionBlocked/network/history errors as recoverable.
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'REENTRY_COOLDOWN_NO_ORDER'
+        raise
     clordid=client_order_id(signal)
     # Check the latest 24h history for duplicate client order IDs, not a numeric trade limit.
     # A second entry is only considered after the exchange-verified 10m exit cooldown.
@@ -538,7 +554,12 @@ def execute(report, client, mode, env, *, allow_post=True):
         raise ExecutionBlocked('Position changed before order placement')
     if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
         raise ExecutionBlocked('Orders appeared before placement')
-    enforce_exit_cooldown(client)  # Re-check immediately before any live or demo order.
+    try:
+        enforce_exit_cooldown(client)  # Re-check immediately before any live or demo order.
+    except ReentryCooldownActive:
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'REENTRY_COOLDOWN_NO_ORDER'
+        raise
     # Never place an order using research that expired while private OKX
     # preflight checks were running.
     try:
@@ -586,11 +607,8 @@ def main():
             try:
                 enforce_exit_cooldown(client)
                 reentry='ELIGIBLE_BY_EXIT_TIME_ONLY'
-            except ExecutionBlocked as exc:
-                if str(exc).startswith('Re-entry cooldown active'):
-                    reentry='COOLDOWN_ACTIVE'
-                else:
-                    raise
+            except ReentryCooldownActive:
+                reentry='COOLDOWN_ACTIVE'
             print('OKX connection verified; account mode:', config[0].get('posMode','unknown'),
                   '; exit-history feed verified; re-entry:', reentry, '; NO ORDERS')
             return 0

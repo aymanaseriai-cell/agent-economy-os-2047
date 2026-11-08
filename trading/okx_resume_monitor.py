@@ -11,7 +11,7 @@ import os
 import sys
 
 from trading.okx_live_executor import (
-    OKX, ExecutionBlocked, check_mode, dec, enforce_exit_cooldown,
+    OKX, ExecutionBlocked, ReentryCooldownActive, check_mode, dec, enforce_exit_cooldown,
 )
 
 STATES = frozenset(("FLAT_ELIGIBLE", "POSITION_OPEN_PROTECTED", "COOLDOWN_ACTIVE"))
@@ -47,10 +47,8 @@ def inspect_account_state(client) -> str:
         raise ExecutionBlocked('Monitor: orphaned SWAP algo orders; inspect OKX')
     try:
         enforce_exit_cooldown(client)
-    except ExecutionBlocked as exc:
-        if str(exc).startswith('Re-entry cooldown active'):
-            return 'COOLDOWN_ACTIVE'
-        raise
+    except ReentryCooldownActive:
+        return 'COOLDOWN_ACTIVE'
     return 'FLAT_ELIGIBLE'
 
 

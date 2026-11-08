@@ -8,7 +8,7 @@ from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from trading.okx_live_executor import (
-    MODE_ARM, OKX, ExecutionBlocked, check_mode, read_report, choose_signal,
+    MODE_ARM, OKX, ExecutionBlocked, ReentryCooldownActive, check_mode, read_report, choose_signal,
     floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM, enforce_exit_cooldown, inspect_after_submit,
 )
 
@@ -386,3 +386,91 @@ class AutoReentrySizingTests(unittest.TestCase):
         self.assertEqual(cooldown.call_count,2)
         self.assertEqual(sizing.call_args.kwargs["capital_mode"],"full_margin")
         self.assertFalse(any(p=="/api/v5/trade/order" for _,p in client.paths))
+
+class CooldownRaceSafetyTests(unittest.TestCase):
+    """A late exchange-history update must pause, never kill the chain or trade."""
+
+    @staticmethod
+    def env(autoreentry="YES"):
+        return {"OKX_EXECUTION_MODE":"live",
+                "OKX_EXECUTION_ARM":MODE_ARM["live"],
+                "OKX_ENABLE_REAL_TRADING":"YES",
+                "OKX_API_KEY":"test","OKX_SECRET_KEY":"test",
+                "OKX_PASSPHRASE":"test","OKX_CAPITAL_MODE":"guarded",
+                "OKX_AUTOREENTRY_ENABLED":autoreentry}
+
+    def test_cooldown_exception_is_distinct_from_other_exchange_failures(self):
+        self.assertTrue(issubclass(ReentryCooldownActive,ExecutionBlocked))
+        clock=1_800_000_000_000
+        class History:
+            def request(self,method,path,params=None):
+                return [{"instType":"SWAP","type":"2","uTime":str(clock-30_000)}]
+        with self.assertRaises(ReentryCooldownActive):
+            enforce_exit_cooldown(History(),now_ms=clock)
+
+    def test_newly_reported_cooldown_before_private_order_is_nonfatal_no_order(self):
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],
+                "utc_timestamp":datetime.now(timezone.utc).isoformat()}
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({"last":"100"},{ "tickSz":"0.1"})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown",
+                    side_effect=ReentryCooldownActive("wait")) as cooldown):
+            self.assertEqual(execute(report,object(),"live",self.env()),
+                             "REENTRY_COOLDOWN_NO_ORDER")
+            cooldown.assert_called_once()
+
+    def test_unarmed_mode_still_blocks_same_cooldown(self):
+        report={"results":[make_signal()]}
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({},{})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown",
+                    side_effect=ReentryCooldownActive("wait"))):
+            with self.assertRaises(ReentryCooldownActive):
+                execute(report,object(),"live",self.env("NO"))
+
+    def test_invalid_history_still_aborts_recurring_executor(self):
+        report={"results":[make_signal()]}
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({},{})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown",
+                    side_effect=ExecutionBlocked("history pagination unverified"))):
+            with self.assertRaisesRegex(ExecutionBlocked,"pagination"):
+                execute(report,object(),"live",self.env())
+
+    def test_cooldown_detected_on_last_exchange_check_prevents_order(self):
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],
+                "utc_timestamp":datetime.now(timezone.utc).isoformat()}
+        class Client:
+            def __init__(self):self.calls=[]
+            def request(self,method,path,params=None,body=None):
+                self.calls.append((method,path))
+                if path=="/api/v5/account/set-leverage":return [{"lever":"10"}]
+                if path=="/api/v5/account/max-size":return [{"maxBuy":"100"}]
+                if path in ("/api/v5/account/positions","/api/v5/trade/orders-pending"):
+                    return []
+                raise AssertionError("unexpected API endpoint: "+path)
+        client=Client()
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({"last":"100"},{ "tickSz":"0.1"})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.daily_order_limit",
+                    return_value=0),
+              patch("trading.okx_live_executor.get_prices",
+                    return_value=(Decimal("100"),Decimal("99"),Decimal("102"),Decimal("0.01"))),
+              patch("trading.okx_live_executor.contract_size",
+                    return_value=Decimal("10")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown",
+                    side_effect=[True,ReentryCooldownActive("late close")]) as cooldown):
+            self.assertEqual(execute(report,client,"live",self.env()),
+                             "REENTRY_COOLDOWN_NO_ORDER")
+        self.assertEqual(cooldown.call_count,2)
+        self.assertNotIn(("POST","/api/v5/trade/order"),client.calls)

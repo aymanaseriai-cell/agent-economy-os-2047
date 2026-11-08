@@ -125,8 +125,8 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             print("TITAN public research window ended after scan; "
                   "no executor started, no orders",flush=True)
             return 0
-        # The existing guarded executor refuses live access unless all original
-        # independent arm tokens, configured risk checks and NVIDIA veto pass.
+        # The guarded executor requires independent live/full-margin arming and
+        # exchange-side safety checks. NVIDIA is detached, research-only.
         # Even in dry_run, no private OKX endpoint or order is called.
         result=run([sys.executable,"-m","trading.okx_live_executor",
                     "--report",report],timeout=120)
@@ -142,6 +142,22 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                   file=sys.stderr,flush=True)
             return 3
         status=statuses[0]
+        if status=="REENTRY_COOLDOWN_NO_ORDER":
+            if not resume_after_protected_fill:
+                print("TITAN unexpected cooldown status without recurring authorization; stop",
+                      file=sys.stderr,flush=True)
+                return 3
+            # The monitor's earlier snapshot can precede the appearance of a
+            # freshly closed OKX position in positions-history. The executor's
+            # second check remains authoritative. Do NOT enter; poll again.
+            pause=30
+            if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
+                print("TITAN bounded runtime reached",flush=True)
+                return 0
+            print("TITAN executor verified 10m exit cooldown; no order; "
+                  "returning to read-only monitoring after 30s",flush=True)
+            sleep(pause)
+            continue
         if status=="FILLED_PROTECTED" and resume_after_protected_fill:
             print("TITAN protected entry verified; switching to exchange-state monitoring",
                   flush=True)

@@ -231,3 +231,53 @@ class AutoResumeWorkerTests(unittest.TestCase):
                                     "OKX_CAPITAL_MODE":"Full_margin"}):
             with self.assertRaisesRegex(ValueError,"explicit"):
                 loop(resume_after_protected_fill=True)
+
+class CooldownRacingMonitorTests(unittest.TestCase):
+    def test_cooldown_after_flat_monitor_continues_and_rechecks(self):
+        # Monitor sees FLAT before the closure reaches OKX history; executor
+        # discovers new 10m cooldown. No order is attempted; chain survives.
+        now=[0.0]; calls=[]; pauses=[]
+        states=iter(("FLAT_ELIGIBLE","COOLDOWN_ACTIVE","FLAT_ELIGIBLE"))
+        outcomes=iter(("REENTRY_COOLDOWN_NO_ORDER","NO_CONSENSUS"))
+        def fake_run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(cmd,0,
+                       "OKX MONITOR RESULT: "+next(states)+"\\n".replace("\\n","\n"),"")
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,next(outcomes))
+            return done(cmd)
+        def fake_sleep(seconds):
+            pauses.append(seconds); now[0]+=seconds
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
+                                    "OKX_CAPITAL_MODE":"full_margin"}):
+            result=loop(max_cycles=2,resume_after_protected_fill=True,
+                        run=fake_run,clock=lambda:now[0],sleep=fake_sleep)
+        self.assertEqual(result,0)
+        self.assertEqual(calls.count("trading.okx_resume_monitor"),3)
+        self.assertEqual(calls.count("trading.six_agent_council"),2)
+        self.assertEqual(calls.count("trading.okx_live_executor"),2)
+        self.assertEqual(pauses,[30,30])
+
+    def test_no_recurring_opt_in_cannot_accept_cooldown_status(self):
+        def fake_run(cmd,timeout):
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,"REENTRY_COOLDOWN_NO_ORDER")
+            return done(cmd)
+        self.assertEqual(loop(max_cycles=3,run=fake_run,
+                              clock=lambda:0.0),3)
+
+    def test_other_executor_errors_still_stop_without_retries(self):
+        calls=[]
+        def fake_run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(cmd,0,
+                       "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,code=2)
+            return done(cmd)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            self.assertEqual(loop(resume_after_protected_fill=True,run=fake_run,
+                                  clock=lambda:0.0),2)
+        self.assertEqual(calls.count("trading.okx_live_executor"),1)

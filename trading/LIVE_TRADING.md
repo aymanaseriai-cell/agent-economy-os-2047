@@ -73,3 +73,20 @@ In this mode the worker queries **only authenticated GET endpoints** before each
 **Recurring entry configuration:** There is now **no fixed limit of two entries per day**. When `OKX_CAPITAL_MODE=full_margin` and `OKX_FULL_MARGIN_ARM=I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK` are separately configured, auto re-entry is allowed to plan **up to 100% of currently available isolated USDT margin per fresh trade** with 10x leverage. Exact usage is constrained by OKX max-size, contract rounding, fees and the existing rejection if planned initial-stop risk exceeds 10% of equity. It never stacks entries during an open position, never re-enters before the exchange-verified 10-minute full-exit cooldown, and never bypasses exchange checks, TP/SL verification, signal vetoes, duplicate order protection or shutdown on uncertain status. **Full-margin repeated trading can rapidly liquidate the account**; there is **no persistent realized daily-loss kill switch**. Unlimited permission does not mean guaranteed entries or continuous uptime. Never reuse exposed keys. For stopping: set GitHub variable `OKX_STOP_CONTINUOUS=YES`, `OKX_ENABLE_REAL_TRADING=NO` and check open positions and stops directly in OKX.
 
 This feature does NOT force a trade; it permits the next approved trade only if all independent conditions pass, and cannot run permanently if GitHub queues or runners stop.
+
+## 2026-11-08: Exchange cooldown history races (fixed in code)
+
+OKX can mark a SWAP position flat before the full close appears in its
+`positions-history` feed. A monitor may briefly return `FLAT_ELIGIBLE`
+while the subsequent executor sees the new closure and the full ten-minute
+cooldown. For **separately armed recurring sessions only**, this specific
+verified cooldown is reported as `REENTRY_COOLDOWN_NO_ORDER` (successful
+no-order outcome). The worker sleeps 30 seconds and rechecks the authenticated
+read-only OKX monitor. The session chain continues across normal bounded
+GitHub Actions handoffs. **The executor never bypasses or shortens the
+cooldown; both pre-order cooldown validations remain in place.**
+
+Any other exchange block, ambiguous or stale history, failed protection, missing
+position information, model/signal error or uncertain POST status still stops
+the worker. This is a code-and-unit-test fix only: recurring real execution,
+GitHub queue continuity, and profitability are not guaranteed.
