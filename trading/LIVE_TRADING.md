@@ -130,3 +130,15 @@ whose status cannot be verified, missing TP/SL protection, or any other unknown
 failure **still stop the worker** to avoid duplicate or unprotected orders.
 GitHub Actions does not guarantee permanent 24/7 runners; no test suite can
 guarantee that future API changes or outages never occur.
+
+
+## Bounded runner and unknown-status hardening
+
+When a **recurring** GitHub session has insufficient time remaining for the
+last public market scan, a deadline-shortened public scan timeout is a clean
+**no-order** handoff to the next session, rather than a false execution failure.
+A full 90-second market scan timeout, account/monitor failure, private executor
+timeout or unknown order state remains fatal. A confirmed one-off
+`FILLED_PROTECTED` entry stops cleanly; any *unknown successful* executor status
+now explicitly fails the GitHub job instead of silently marking it green while
+abandoning the chain. The exchange-facing decision and order checks are intact.

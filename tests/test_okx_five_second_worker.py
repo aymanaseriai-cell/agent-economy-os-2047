@@ -369,7 +369,7 @@ class CandidateVetoResilienceTests(unittest.TestCase):
             with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
                 result=loop(resume_after_protected_fill=True,run=run,
                             clock=lambda:0.)
-            self.assertNotEqual(result,0) if code else self.assertEqual(result,0)
+            self.assertEqual(result, code if code else 3)
             self.assertEqual(seen.count("trading.okx_live_executor"),1)
 
     def test_no_opt_in_never_accepts_any_skip_status(self):
@@ -377,3 +377,53 @@ class CandidateVetoResilienceTests(unittest.TestCase):
             def run(cmd,timeout):
                 return done(cmd,status if cmd[2]=="trading.okx_live_executor" else None)
             self.assertEqual(loop(max_cycles=2,run=run,clock=lambda:0.),3)
+
+
+class BoundedSessionAndStatusSafetyTests(unittest.TestCase):
+    def test_live_bounded_partial_public_scan_cleans_up_for_handoff(self):
+        now=[0.0]; calls=[]; timeouts=[]
+        def run(args,timeout):
+            calls.append(args[2]);timeouts.append(timeout)
+            if args[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(args,0,
+                    "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if args[2]=="trading.six_agent_council":
+                if calls.count("trading.six_agent_council")==1:
+                    now[0]+=40
+                    return done(args)
+                # Only the last PUBLIC scan exceeded its remaining bounded
+                # window. It has no authority to submit orders.
+                self.assertLess(timeout,90)
+                now[0]+=timeout
+                return done(args,code=124)
+            return done(args,"NO_CONSENSUS")
+        def sleep(seconds): now[0]+=seconds
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            result=loop(max_runtime_seconds=100,run=run,
+                        clock=lambda:now[0],sleep=sleep,
+                        resume_after_protected_fill=True)
+        self.assertEqual(result,0)
+        self.assertEqual(calls.count("trading.six_agent_council"),2)
+        self.assertEqual(calls.count("trading.okx_live_executor"),1)
+
+    def test_full_public_scan_timeout_remains_fatal(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append((args[2],timeout))
+            if args[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(args,0,
+                    "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            return done(args,code=124)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            code=loop(max_runtime_seconds=245,run=run,
+                      clock=lambda:0.,resume_after_protected_fill=True)
+        self.assertEqual(code,2)
+        self.assertEqual(calls[-1],("trading.six_agent_council",90))
+
+    def test_unexpected_success_status_is_explicit_failure_not_silent_stop(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args[2])
+            return done(args,"UNCLASSIFIED_STATUS") if args[2]=="trading.okx_live_executor" else done(args)
+        self.assertEqual(loop(max_cycles=3,run=run,clock=lambda:0.),3)
+        self.assertEqual(calls.count("trading.okx_live_executor"),1)

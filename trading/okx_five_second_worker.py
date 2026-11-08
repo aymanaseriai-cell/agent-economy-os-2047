@@ -119,6 +119,14 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                 print("TITAN public research window ended during an incomplete final scan; "
                       "no orders, previous completed scans retained",flush=True)
                 return 0
+            if (resume_after_protected_fill and max_runtime_seconds
+                    and scan.returncode==124 and scan_timeout<90):
+                # Only the public scanner was interrupted by the known bounded
+                # GitHub session deadline; no private executor or order began.
+                # Treat as clean handoff, never as a successful scan or trade.
+                print("TITAN bounded runtime reached; no new market scan started",
+                      flush=True)
+                return 0
             print("TITAN market scan failed; stop without orders",file=sys.stderr,flush=True)
             return 2
         if graceful_public_deadline and clock()+10 >= start+max_runtime_seconds:
@@ -185,12 +193,19 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                 return 0
             sleep(INTERVAL_SECONDS)
             continue
-        if status not in ALLOWED_NONORDER_STATUSES:
-            # Never auto-repeat ambiguous or unprotected submissions, failed
-            # protection, risk veto, unknown order state or unexpected output.
-            print("TITAN executor outcome: "+status+
-                  "; stop to prevent duplicate or rejected orders",flush=True)
+        if status=="FILLED_PROTECTED":
+            # One-off run: the order was verified, stop cleanly after the fill.
+            # Recurring mode handled FILLED_PROTECTED above with read-only polling.
+            print("TITAN one-off protected fill; stop without duplicate orders",
+                  flush=True)
             return 0
+        if status not in ALLOWED_NONORDER_STATUSES:
+            # Unknown results and any new post-submit statuses are NOT a clean
+            # bounded handoff. Surface CI failure so the chain cannot hide it.
+            print("TITAN unexpected executor outcome: "+status+
+                  "; fail closed, manual review required",
+                  file=sys.stderr,flush=True)
+            return 3
         if max_cycles and scans>=max_cycles:
             return 0
         if max_runtime_seconds and clock()+interval_seconds+15>start+max_runtime_seconds:
