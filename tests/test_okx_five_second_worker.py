@@ -184,7 +184,7 @@ class AutoResumeWorkerTests(unittest.TestCase):
             calls.append(cmd[2])
             if cmd[2]=="trading.okx_resume_monitor":
                 return subprocess.CompletedProcess(cmd,0,
-                       "OKX MONITOR RESULT: "+next(monitor_states)+"\\n","")
+                       "OKX MONITOR RESULT: "+next(monitor_states)+"\n","")
             if cmd[2]=="trading.okx_live_executor":
                 return done(cmd,next(results))
             return done(cmd)
