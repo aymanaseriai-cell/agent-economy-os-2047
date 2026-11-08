@@ -415,6 +415,25 @@ def emergency_flatten(client, signal, clordid):
     return 'EMERGENCY_CLOSE_REQUESTED'
 
 
+def _abort_uncertain_post_submit(client, signal, clordid, reason):
+    """Attempt a reduce-only emergency close if post-submit state is uncertain.
+
+    Never assume an unconfirmed fill has disappeared. A closure is best-effort
+    and must be inspected on the exchange; this function never claims success.
+    It is called only AFTER the original entry order was submitted.
+    """
+    try:
+        outcome = emergency_flatten(client, signal, clordid)
+    except Exception as exc:
+        raise ExecutionBlocked(
+            'URGENT: ' + reason + '; emergency close could not be verified; inspect OKX immediately'
+        ) from exc
+    raise ExecutionBlocked(
+        'URGENT: ' + reason + '; emergency recovery=' + outcome +
+        '; inspect OKX position and protective orders immediately'
+    )
+
+
 def inspect_after_submit(client,signal,clordid):
     """Check that position appears and native protective orders exist; fail closed.
 
@@ -425,13 +444,18 @@ def inspect_after_submit(client,signal,clordid):
     order_detail=None
     for _ in range(4):
         time.sleep(1)
-        order_list=client.request('GET','/api/v5/trade/order',params={'instId':symbol,'clOrdId':clordid})
+        try:
+            order_list=client.request('GET','/api/v5/trade/order',params={'instId':symbol,'clOrdId':clordid})
+        except Exception:
+            _abort_uncertain_post_submit(client, signal, clordid,
+                                         'Entry order status could not be read')
         if order_list:
             order_detail=order_list[0]
             if order_detail.get('state') in ('filled','canceled'):
                 break
     if order_detail is None:
-        raise ExecutionBlocked('Order submitted but confirmation unavailable: inspect OKX manually')
+        _abort_uncertain_post_submit(client, signal, clordid,
+                                     'Entry order confirmation unavailable')
     if order_detail.get('state') != 'filled':
         # A market order may be partially filled. Cancel any outstanding remainder,
         # then attempt to flatten the actual position instead of assuming zero exposure.
@@ -445,8 +469,12 @@ def inspect_after_submit(client,signal,clordid):
         raise ExecutionBlocked('Market order not completely filled; emergency flatten attempted, inspect OKX')
     protected=False
     for _ in range(4):
-        algo_rows=client.request('GET','/api/v5/trade/orders-algo-pending',params={'ordType':'oco'})
-        algo_rows+=client.request('GET','/api/v5/trade/orders-algo-pending',params={'ordType':'conditional'})
+        try:
+            algo_rows=client.request('GET','/api/v5/trade/orders-algo-pending',params={'ordType':'oco'})
+            algo_rows+=client.request('GET','/api/v5/trade/orders-algo-pending',params={'ordType':'conditional'})
+        except Exception:
+            _abort_uncertain_post_submit(client, signal, clordid,
+                                         'Protective order status could not be read')
         for row in algo_rows:
             if row.get('instId')==symbol and row.get('slTriggerPx') and row.get('tpTriggerPx'):
                 protected=True

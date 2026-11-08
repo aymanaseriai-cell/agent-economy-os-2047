@@ -3,12 +3,13 @@ import hmac
 import json
 import time
 import unittest
+from unittest.mock import patch
 from decimal import Decimal
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from trading.okx_live_executor import (
     MODE_ARM, OKX, ExecutionBlocked, check_mode, read_report, choose_signal,
-    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM, enforce_exit_cooldown,
+    floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM, enforce_exit_cooldown, inspect_after_submit,
 )
 
 
@@ -191,6 +192,96 @@ class TestLiveSafety(unittest.TestCase):
         self.assertEqual(daily_order_limit(History()),15)
         with self.assertRaisesRegex(ExecutionBlocked, 'Same client order'):
             daily_order_limit(History(),candidate_id='Q37DUP9')
+
+    def test_uncertain_entry_status_attempts_reduce_only_close(self):
+        sig=make_signal()
+        class Uncertain:
+            def __init__(self):self.closes=[]
+            def request(self,method,path,params=None,body=None):
+                if path=='/api/v5/trade/order' and method=='GET':
+                    raise ExecutionBlocked('Transport unavailable')
+                if path=='/api/v5/account/positions':
+                    return [{'pos':'2'}]
+                if path=='/api/v5/trade/order' and method=='POST':
+                    self.closes.append(body)
+                    return [{'sCode':'0'}]
+                raise AssertionError((method,path))
+        c=Uncertain()
+        with patch('trading.okx_live_executor.time.sleep',return_value=None):
+            with self.assertRaisesRegex(ExecutionBlocked, 'URGENT: Entry order status'):
+                inspect_after_submit(c,sig,'Q37TEST')
+        self.assertEqual(len(c.closes),1)
+        self.assertTrue(c.closes[0]['reduceOnly'])
+        self.assertEqual(c.closes[0]['side'],'sell')
+        self.assertEqual(c.closes[0]['sz'],'2')
+
+    def test_missing_order_confirmation_attempts_emergency_close(self):
+        sig=make_signal()
+        class Missing:
+            def __init__(self):self.closes=[]
+            def request(self,method,path,params=None,body=None):
+                if path=='/api/v5/trade/order' and method=='GET':
+                    return []
+                if path=='/api/v5/account/positions':
+                    return [{'pos':'1'}]
+                if path=='/api/v5/trade/order' and method=='POST':
+                    self.closes.append(body)
+                    return [{'sCode':'0'}]
+                raise AssertionError((method,path))
+        c=Missing()
+        with patch('trading.okx_live_executor.time.sleep',return_value=None):
+            with self.assertRaisesRegex(ExecutionBlocked,'URGENT: Entry order confirmation'):
+                inspect_after_submit(c,sig,'Q37TEST')
+        self.assertEqual(len(c.closes),1)
+        self.assertTrue(c.closes[0]['reduceOnly'])
+
+    def test_unverifiable_stop_protection_attempts_emergency_close(self):
+        sig=make_signal()
+        class Unreadable:
+            def __init__(self):self.closes=[]
+            def request(self,method,path,params=None,body=None):
+                if path=='/api/v5/trade/order' and method=='GET':
+                    return [{'state':'filled'}]
+                if path=='/api/v5/trade/orders-algo-pending':
+                    raise ExecutionBlocked('Protection unavailable')
+                if path=='/api/v5/account/positions':
+                    return [{'pos':'3'}]
+                if path=='/api/v5/trade/order' and method=='POST':
+                    self.closes.append(body)
+                    return [{'sCode':'0'}]
+                raise AssertionError((method,path))
+        c=Unreadable()
+        with patch('trading.okx_live_executor.time.sleep',return_value=None):
+            with self.assertRaisesRegex(ExecutionBlocked,'URGENT: Protective order status'):
+                inspect_after_submit(c,sig,'Q37TEST')
+        self.assertEqual(len(c.closes),1)
+        self.assertEqual(c.closes[0]['sz'],'3')
+        self.assertTrue(c.closes[0]['reduceOnly'])
+
+    def test_uncertain_entry_and_failed_close_requires_manual_inspection(self):
+        sig=make_signal()
+        class Bad:
+            def request(self,method,path,params=None,body=None):
+                raise ExecutionBlocked('Exchange unreachable')
+        with patch('trading.okx_live_executor.time.sleep',return_value=None):
+            with self.assertRaisesRegex(ExecutionBlocked,'emergency close could not be verified'):
+                inspect_after_submit(Bad(),sig,'Q37TEST')
+
+    def test_verified_protection_never_sends_close(self):
+        sig=make_signal()
+        class Protected:
+            def __init__(self):self.posts=0
+            def request(self,method,path,params=None,body=None):
+                if method=='GET' and path=='/api/v5/trade/order':
+                    return [{'state':'filled'}]
+                if method=='GET' and path=='/api/v5/trade/orders-algo-pending':
+                    return [{'instId':'BTC-USDT-SWAP','slTriggerPx':'98','tpTriggerPx':'104'}] if params['ordType']=='oco' else []
+                if method=='POST':self.posts+=1
+                raise AssertionError((method,path))
+        c=Protected()
+        with patch('trading.okx_live_executor.time.sleep',return_value=None):
+            self.assertEqual(inspect_after_submit(c,sig,'Q37TEST'),'FILLED_PROTECTED')
+        self.assertEqual(c.posts,0)
 
     def test_dry_run_performs_zero_http_calls(self):
         sig=make_signal()
