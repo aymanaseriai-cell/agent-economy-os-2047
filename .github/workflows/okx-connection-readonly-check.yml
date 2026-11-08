@@ -16,6 +16,10 @@ jobs:
       OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
       OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
       OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+      NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
+      OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
+      OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
+      OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
       OKX_API_DOMAIN: https://www.okx.com
     steps:
       - uses: actions/checkout@v4
@@ -26,3 +30,25 @@ jobs:
           python-version: '3.12'
       - name: Verify account authentication, position mode and exit history by GET only
         run: python -m trading.okx_live_executor --verify-only
+      - name: Check secret arming flags without showing secret values or placing orders
+        run: |
+          python - <<'PY'
+          import os
+          from trading.okx_live_executor import MODE_ARM, FULL_MARGIN_ARM
+          live_arm=os.environ.get("OKX_EXECUTION_ARM")==MODE_ARM["live"]
+          full_arm=os.environ.get("OKX_FULL_MARGIN_ARM")==FULL_MARGIN_ARM
+          nvidia=bool(os.environ.get("NVIDIA_API_KEY"))
+          cap=os.environ.get("OKX_CAPITAL_MODE","guarded").lower()
+          mode=os.environ.get("OKX_EXECUTION_MODE")
+          enable=os.environ.get("OKX_ENABLE_REAL_TRADING")
+          print("EXCHANGE_CREDENTIALS_VERIFIED_BY_PREVIOUS_READ_ONLY_STEP")
+          print("LIVE_EXECUTION_ARM_MATCHES_EXPECTED:",live_arm)
+          print("FULL_MARGIN_ARM_MATCHES_EXPECTED:",full_arm)
+          print("NVIDIA_KEY_SECRET_CONFIGURED:",nvidia)
+          print("CAPITAL_MODE_VALID:",cap in ("guarded","full_margin"))
+          print("NO_LIVE_TRADING_IN_THIS_JOB:",mode=="dry_run" and enable=="NO")
+          assert mode=="dry_run" and enable=="NO"
+          assert cap in ("guarded","full_margin")
+          # Not asserting arm: report missing/mismatch fact without
+          # misleadingly claiming that protected secrets can be read.
+          PY
