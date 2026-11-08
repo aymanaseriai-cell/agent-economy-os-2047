@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import math
+import re
 from datetime import datetime, timezone
 from typing import Any, Callable
 
@@ -20,6 +21,53 @@ MIN_CONFIDENCE = 0.70
 
 class GateRejected(RuntimeError):
     """Conservative veto: no new exchange order may be attempted."""
+
+
+def _nvidia_failure_category(message: object) -> str:
+    """Classify only known provider failure patterns; NEVER log raw model text."""
+    if not isinstance(message, str):
+        return "UNKNOWN"
+    code = re.search(r"\bHTTP\s+([1-5][0-9]{2})\b", message, re.I)
+    if code:
+        return "HTTP_" + code.group(1)
+    if "No usable inference model responded" in message:
+        return "NO_USABLE_MODEL"
+    if "model catalog" in message.lower():
+        return "MODEL_CATALOG"
+    if "inference request failed" in message.lower():
+        return "NETWORK"
+    if any(term in message.lower() for term in ("invalid json", "no json object",
+          "no assistant text", "complete decision schema", "missing assistant content")):
+        return "INVALID_MODEL_OUTPUT"
+    return "UNKNOWN"
+
+
+def safe_nvidia_error_summary(response: object) -> str:
+    """Expose only counts / controlled categories for a rejected AI council.
+
+    Model output can contain arbitrary untrusted text. Do not print errors,
+    prompts, keys, provider responses, or raw vote evidence to action logs.
+    """
+    if not isinstance(response, dict):
+        return "response_type_invalid"
+    responded = response.get("agents_responded")
+    if type(responded) is not int or not 0 <= responded <= len(AGENTS):
+        responded_label = "unknown"
+    else:
+        responded_label = str(responded)
+    errors = response.get("errors")
+    if not isinstance(errors, list):
+        return "roles=" + responded_label + "/" + str(len(AGENTS)) + "; error_list_invalid"
+    categories = sorted({_nvidia_failure_category(err.get("error"))
+                         for err in errors if isinstance(err, dict)})
+    errors_label = str(min(len(errors), 100))
+    if not categories and len(errors):
+        categories = ["UNKNOWN"]
+    if not categories and responded != len(AGENTS):
+        categories = ["MISSING_ROLES"]
+    return ("roles=" + responded_label + "/" + str(len(AGENTS)) +
+            "; errors=" + errors_label +
+            "; categories=" + (",".join(categories) if categories else "NONE"))
 
 
 def _fresh_report(report: dict[str, Any], now: datetime | None = None) -> None:
@@ -112,7 +160,8 @@ def require_nvidia_veto_pass(report: dict[str, Any], signal: dict[str, Any],
             or response.get("errors") != []
             or not isinstance(response.get("model"), str)
             or not response["model"]):
-        raise GateRejected("Unverified NVIDIA council response")
+        raise GateRejected("Unverified NVIDIA council response: " +
+                           safe_nvidia_error_summary(response))
 
     votes = response.get("votes")
     if (not isinstance(votes, list) or len(votes) != len(AGENTS)
