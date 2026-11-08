@@ -5,6 +5,15 @@ on:
     # Offset from :00 to reduce scheduler contention.
     - cron: '3-58/5 * * * *'
   workflow_dispatch:
+    inputs:
+      runtime_seconds:
+        description: 'Public research test window (scheduled runs always use 270s)'
+        type: choice
+        options:
+          - '95'
+          - '270'
+        default: '270'
+        required: true
 permissions:
   contents: read
 concurrency:
@@ -42,7 +51,7 @@ jobs:
       - name: Full OKX 6-agent + 7-quant market scans with 5-second between-cycle pause
         run: |
           # Normal end-of-job timeout is not a market-data failure:
-          python -u -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 270 --top 12 --graceful-public-deadline --report reports/okx_24h_public_observatory.json
+          python -u -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds ${{ inputs.runtime_seconds || '270' }} --top 12 --graceful-public-deadline --report reports/okx_24h_public_observatory.json
       - name: Archive latest public market research report
         if: always()
         uses: actions/upload-artifact@v4
