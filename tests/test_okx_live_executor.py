@@ -347,7 +347,8 @@ class AutoReentrySizingTests(unittest.TestCase):
             execute(report,object(),"live",env)
 
     def test_armed_auto_reentry_full_margin_has_no_daily_count_cap(self):
-        report={"results":[make_signal()]}
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],"utc_timestamp":datetime.now(timezone.utc).isoformat()}
         env={"OKX_EXECUTION_MODE":"live","OKX_EXECUTION_ARM":MODE_ARM["live"],
              "OKX_ENABLE_REAL_TRADING":"YES","OKX_API_KEY":"fake",
              "OKX_SECRET_KEY":"fake","OKX_PASSPHRASE":"fake",
