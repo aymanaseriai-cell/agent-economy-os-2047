@@ -42,3 +42,16 @@ Switch repository variable `OKX_ENABLE_REAL_TRADING` to `NO` and/or `OKX_EXECUTI
 Current v1 does **not** have a fully independently reconciled realized-PnL daily drawdown monitor, transaction-proof persistence across crashes, guaranteed protection-order reconciliation across all OKX account modes, stable-IP secret allowlisting, or historical profitable performance. It deliberately caps bot order count and size and fails closed on unfamiliar conditions, but this does not cap all possible monetary losses. Test with isolated demo credentials before using live.
 
 API references: https://www.okx.com/docs-v5/en/ | https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions
+
+
+## Opt-in chained GitHub sessions (20-second handoff)
+
+The `okx-guarded-execution.yml` workflow supports an **optional** chained session mode. In **Actions → OKX guarded execution → Run workflow**, choose `purpose=run`, check `confirm_live`, `continuous` and `confirm_continuous_live`. The new controls are off by default, so a previous **one-off** manual confirmation cannot silently become unlimited live trading. Set `OKX_EXECUTION_MODE=dry_run` first to validate the mechanism without placing orders. Real trading requires the separate account and secret arm checks described above.
+
+Each worker session has a **245-second** bounded runtime. Only when the worker exits **successfully due to the normal time limit**, the workflow sleeps **20 seconds** and requests a fresh `workflow_dispatch` using the repository-scoped `GITHUB_TOKEN`. A repository-level concurrency group prevents overlapping execution jobs. GitHub queue time, runner startup, and service availability mean **20 seconds is the delay before requesting the next run, not a guaranteed time to execution**. GitHub Actions is not an always-on host and the chain can be interrupted.
+
+**Fail-closed:** No automatic re-dispatch on market scanner / NVIDIA / executor errors, ambiguous order state, a placed order, protective-order concerns, or an early risk-veto stop. These cases need manual investigation rather than blind retries. A valid trade signal and 10-minute exchange-side re-entry cooldown are still required. The 20-second job handoff is **not** a 20-second trading cooldown.
+
+**Stop:** In `Settings → Secrets and variables → Actions → Variables`, set `OKX_STOP_CONTINUOUS=YES` to prevent a clean worker from scheduling its next run. Also set `OKX_ENABLE_REAL_TRADING=NO` or `OKX_EXECUTION_MODE=dry_run` to block all new live orders; then review any open OKX positions and exchange-native TP/SL manually. To resume the chain, remove the stop flag or set it to `NO` and manually initiate a new, explicitly confirmed workflow run.
+
+Continuous hosted sessions can exhaust usage quotas and accumulate losses. Production trading requires an always-on risk service, circuit breakers, reconciliation, stable IP and monitored loss limits; none is supplied by GitHub Actions chaining.

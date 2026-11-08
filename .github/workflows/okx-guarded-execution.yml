@@ -11,12 +11,23 @@ on:
         default: validate
         required: true
       confirm_live:
-        description: 'I explicitly authorize this ONE manual live run, including real-money loss risk'
+        description: 'I explicitly authorize this live run, including real-money loss risk'
+        type: boolean
+        default: false
+        required: true
+      continuous:
+        description: 'Chain the next session 20 seconds after a clean bounded session'
+        type: boolean
+        default: false
+        required: true
+      confirm_continuous_live:
+        description: 'I authorize repeated live sessions and understand cumulative loss risk'
         type: boolean
         default: false
         required: true
 permissions:
   contents: read
+  actions: write
 concurrency:
   group: okx-guarded-execution-account
   cancel-in-progress: false
@@ -50,8 +61,11 @@ jobs:
           echo "::error::LIVE TRADING NOT STARTED. Choose purpose=run and check confirm_live=true."
           exit 1
       - name: Five-second continuous worker within bounded GitHub job
+        id: worker
         if: inputs.purpose == 'run' && inputs.confirm_live == true
-        run: python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json
+        run: |
+          set -euo pipefail
+          python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json | tee "$RUNNER_TEMP/okx_worker.log"
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
@@ -72,3 +86,27 @@ jobs:
           path: reports/okx_six_agents.json
           retention-days: 3
           if-no-files-found: ignore
+      - name: Chain another session after 20 seconds (clean bounded exit only)
+        if: >-
+          ${{ inputs.purpose == 'run' && inputs.confirm_live == true && inputs.continuous == true && inputs.confirm_continuous_live == true && steps.worker.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'NO' }}
+        run: |
+          set -euo pipefail
+          if [[ "$OKX_STOP_CONTINUOUS" == 'YES' ]]; then
+            echo 'Continuous mode stopped by OKX_STOP_CONTINUOUS=YES'
+            exit 0
+          fi
+          if ! tail -n 1 "$RUNNER_TEMP/okx_worker.log" | grep -Eq '^TITAN bounded runtime reached(; no new market scan started)?$'; then
+            echo 'Worker ended early after order, veto, or uncertain status; no blind automatic replay.'
+            exit 0
+          fi
+          echo 'Clean session complete. Waiting 20 seconds before requesting the next run.'
+          sleep 20
+          gh api --method POST "repos/$GITHUB_REPOSITORY/actions/workflows/okx-guarded-execution.yml/dispatches" \
+            -f ref="$GITHUB_REF_NAME" \
+            -f 'inputs[purpose]=run' \
+            -f 'inputs[confirm_live]=true' \
+            -f 'inputs[continuous]=true' \
+            -f 'inputs[confirm_continuous_live]=true'
