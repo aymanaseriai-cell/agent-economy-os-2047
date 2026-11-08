@@ -38,7 +38,9 @@ FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
 MAX_REPORT_AGE_S = 180
-MAX_CANDLE_AGE_MS = 25 * 60 * 1000
+# OKX candle timestamps identify the OPEN of the 15-minute interval, not its close.
+CANDLE_INTERVAL_MS = 15 * 60 * 1000
+MAX_AGE_SINCE_CANDLE_CLOSE_MS = 15 * 60 * 1000
 
 
 class ExecutionBlocked(RuntimeError):
@@ -176,7 +178,11 @@ def choose_signal(report, now_ms=None):
         if price <= 0:
             continue
         ms = int(x.get('last_complete_15m_candle_ms') or 0)
-        if not ms or not 0 <= now_ms-ms <= MAX_CANDLE_AGE_MS:
+        # A newly completed 15m candle was opened 15-30 minutes ago.
+        # Rejecting candles 25m after OPEN spuriously vetoed signals in the
+        # final five minutes of every 15m window.
+        candle_close_ms = ms + CANDLE_INTERVAL_MS
+        if not ms or not 0 <= now_ms-candle_close_ms <= MAX_AGE_SINCE_CANDLE_CLOSE_MS:
             continue
         symbol=x.get('symbol','')
         if not symbol.endswith('-USDT-SWAP'):

@@ -17,7 +17,7 @@ def make_signal():
     now=int(time.time()*1000)
     return {
       'symbol':'BTC-USDT-SWAP','quote_price':100.0,'signal':'LONG',
-      'last_complete_15m_candle_ms':now-60*1000,
+      'last_complete_15m_candle_ms':now-16*60*1000,
       'advanced_system_count':7, 'advanced_confirmations':2,
       'advanced_veto_reasons':[], 'derivatives_data_warnings':[],
       'execution':'DISABLED','order_count':0,
@@ -165,6 +165,37 @@ class TestLiveSafety(unittest.TestCase):
         self.assertEqual(choose_signal(report)['symbol'],'BTC-USDT-SWAP')
         sig['advanced_veto_reasons']=['jump']
         self.assertIsNone(choose_signal(report))
+
+    def test_real_uni_nov8_signal_not_rejected_due_to_candle_open_age(self):
+        # Actual no-consensus run: 23:45 candle opened, closed 00:00;
+        # 00:13:41 UTC was 28m41s after OPEN but only 13m41s after CLOSE.
+        signal=make_signal()
+        signal['symbol']='UNI-USDT-SWAP'
+        signal['quote_price']=7.218
+        signal['agents'][-1]['evidence']={
+            'indicative_stop_not_an_order':7.092,
+            'indicative_target_not_an_order':7.47}
+        signal['last_complete_15m_candle_ms']=1794095100000
+        now=1794096821975
+        self.assertIsNotNone(choose_signal({'results':[signal]},now_ms=now))
+
+    def test_reject_candle_that_has_not_closed(self):
+        signal=make_signal()
+        now=1_800_000_000_000
+        signal['last_complete_15m_candle_ms']=now-10*60*1000
+        self.assertIsNone(choose_signal({'results':[signal]},now_ms=now))
+
+    def test_reject_candle_older_than_one_full_period_after_close(self):
+        signal=make_signal()
+        now=1_800_000_000_000
+        signal['last_complete_15m_candle_ms']=now-31*60*1000
+        self.assertIsNone(choose_signal({'results':[signal]},now_ms=now))
+
+    def test_15m_candle_just_closed_is_eligible(self):
+        signal=make_signal()
+        now=1_800_000_000_000
+        signal['last_complete_15m_candle_ms']=now-15*60*1000
+        self.assertIsNotNone(choose_signal({'results':[signal]},now_ms=now))
 
     def test_price_rounding_and_stop(self):
         sig=make_signal()
