@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """NVIDIA NIM advisory council. Read-only; no exchange or execution capability."""
 from __future__ import annotations
-import argparse, json, os, re, sys, urllib.error, urllib.request
+import argparse, json, os, re, sys, time, urllib.error, urllib.request
 from statistics import mean
 from typing import Any
 
@@ -57,7 +57,10 @@ def _extract_json(content: str) -> dict[str, Any]:
     if not isinstance(obj, dict) or not {"direction","confidence","evidence","risks"}.issubset(obj):
         raise CouncilError("Model did not provide the complete decision schema")
     direction = str(obj["direction"]).upper()
-    confidence = float(obj.get("confidence", 0))
+    try:
+        confidence = float(obj.get("confidence", 0))
+    except (ValueError, TypeError, OverflowError) as exc:
+        raise CouncilError("Invalid direction or confidence") from exc
     evidence, risks = obj.get("evidence", []), obj.get("risks", [])
     if direction not in VALID_DIRECTIONS or not 0 <= confidence <= 1:
         raise CouncilError("Invalid direction or confidence")
@@ -96,6 +99,37 @@ def call_agent(name: str, role: str, snapshot: dict[str, Any],
     return result
 
 
+def _is_transient_inference_error(exc: CouncilError) -> bool:
+    """Only temporary provider/network or malformed assistant-output errors.
+
+    Authentication errors, unknown HTTP codes, lack of market evidence,
+    risk vetoes and order failures must never be retried by this helper.
+    """
+    message = str(exc)
+    if any(f"HTTP {code}" in message for code in (408, 409, 429, 500, 502, 503, 504)):
+        return True
+    return any(phrase in message for phrase in (
+        "NVIDIA inference request failed",
+        "Model returned invalid JSON",
+        "Model response contained no JSON object",
+        "NVIDIA model returned no assistant text",
+        "Model did not provide the complete decision schema",
+        "NVIDIA response missing assistant content",
+    ))
+
+
+def call_agent_with_one_safe_retry(name: str, role: str, snapshot: dict[str, Any],
+                                   api_key: str, model: str) -> dict[str, Any]:
+    """Bounded inference-only retry; never interacts with the exchange."""
+    try:
+        return call_agent(name, role, snapshot, api_key, model)
+    except CouncilError as exc:
+        if not _is_transient_inference_error(exc):
+            raise
+        time.sleep(0.6)
+        return call_agent(name, role, snapshot, api_key, model)
+
+
 def _fallback_models(api_key: str, excluded: str) -> list[str]:
     """Catalog discovery is necessary but does not prove inference access."""
     names = list_models(api_key)
@@ -109,7 +143,7 @@ def _fallback_models(api_key: str, excluded: str) -> list[str]:
     ranked += [name for name in names if "nemotron" in name.lower() and name not in ranked]
     ranked += [name for name in names if "instruct" in name.lower() and name not in ranked]
     banned = ("safety", "guard", "embed", "rerank", "reward", "classify", "vision", "vlm", "asr", "tts")
-    return [name for name in ranked if name != excluded and not any(word in name.lower() for word in banned)][:10]
+    return [name for name in ranked if name != excluded and not any(word in name.lower() for word in banned)][:4]
 
 
 def run_council(snapshot: dict[str, Any], api_key: str | None = None,
@@ -122,7 +156,7 @@ def run_council(snapshot: dict[str, Any], api_key: str | None = None,
     first_name, first_role = items[0]
     votes, errors, model_attempts = [], [], []
     try:
-        votes.append(call_agent(first_name, first_role, snapshot, key, selected))
+        votes.append(call_agent_with_one_safe_retry(first_name, first_role, snapshot, key, selected))
     except CouncilError as exc:
         model_attempts.append({"model": selected, "error": str(exc)})
         if "HTTP 404" in str(exc) or "HTTP 410" in str(exc):
@@ -133,7 +167,7 @@ def run_council(snapshot: dict[str, Any], api_key: str | None = None,
                 fallback = []
             for candidate in fallback:
                 try:
-                    vote = call_agent(first_name, first_role, snapshot, key, candidate)
+                    vote = call_agent_with_one_safe_retry(first_name, first_role, snapshot, key, candidate)
                     votes.append(vote)
                     selected = candidate
                     break
@@ -147,7 +181,7 @@ def run_council(snapshot: dict[str, Any], api_key: str | None = None,
     if votes:
         for name, role in items[1:]:
             try:
-                votes.append(call_agent(name, role, snapshot, key, selected))
+                votes.append(call_agent_with_one_safe_retry(name, role, snapshot, key, selected))
             except CouncilError as exc:
                 errors.append({"agent": name, "error": str(exc)})
     counts = {d: sum(v["direction"] == d for v in votes) for d in VALID_DIRECTIONS}

@@ -69,6 +69,13 @@ def safe_nvidia_error_summary(response: object) -> str:
     categories = sorted({_nvidia_failure_category(err.get("error"))
                          for err in errors if isinstance(err, dict)})
     errors_label = str(min(len(errors), 100))
+    # A generic NO_USABLE_MODEL error can hide the actual HTTP/schema fault.
+    # Only known error categories are surfaced, not model output or private data.
+    attempts = response.get("model_attempts")
+    if isinstance(attempts, list):
+        categories.extend(_nvidia_failure_category(item.get("error"))
+                          for item in attempts[:8] if isinstance(item, dict))
+    categories = sorted(set(categories))
     if not categories and len(errors):
         categories = ["UNKNOWN"]
     if not categories and responded != len(AGENTS):
