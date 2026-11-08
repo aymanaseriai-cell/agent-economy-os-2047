@@ -55,13 +55,20 @@ class ReentryCooldownActive(ExecutionBlocked):
     """
 
 
-class OpportunityRiskRejected(ExecutionBlocked):
-    """This candidate fails a local PRE-ORDER sizing limit; never submit it.
+class CandidateRejected(ExecutionBlocked):
+    """Deterministic pre-submit rejection; no /trade/order was attempted.
 
-    A risk veto is not an API outage or unknown order state. Only the
-    separately authorized recurring worker may skip this candidate and scan
-    again. All other ExecutionBlocked failures still halt the live worker.
+    Never use this for API/network errors, uncertain orders, unexpected
+    account state, missing history, or post-submit protection failures.
     """
+
+
+class OpportunityRiskRejected(CandidateRejected):
+    """The local planned-loss invariant makes this candidate ineligible."""
+
+
+class DuplicateCandidateRejected(CandidateRejected):
+    """Exchange history confirms this exact client order id already exists."""
 
 
 def dec(x):
@@ -232,23 +239,23 @@ def market_preflight(client, signal):
         raise ExecutionBlocked('Instrument information unavailable')
     t,inst=ticker[0],instruments[0]
     if t.get('instId')!=symbol or inst.get('instId')!=symbol or inst.get('state')!='live':
-        raise ExecutionBlocked('Instrument inactive or mismatched')
+        raise CandidateRejected('Instrument inactive or mismatched')
     if inst.get('ctType') != 'linear' or inst.get('settleCcy') != 'USDT' or inst.get('ctValCcy') != symbol.split('-')[0]:
-        raise ExecutionBlocked('Unsupported contract multiplier currency or derivative type')
+        raise CandidateRejected('Unsupported contract multiplier currency or derivative type')
     last,bid,ask=dec(t['last']),dec(t['bidPx']),dec(t['askPx'])
     if min(last,bid,ask)<=0 or bid>ask:
-        raise ExecutionBlocked('Invalid or crossed market')
+        raise CandidateRejected('Invalid or crossed market')
     if estimate_turnover(t) < MIN_24H_TURNOVER_USDT:
-        raise ExecutionBlocked('Market turnover under 15,000,000 USD estimated')
+        raise CandidateRejected('Market turnover under 15,000,000 USD estimated')
     spread_bp=Decimal(10000)*(ask-bid)/((ask+bid)/2)
     if spread_bp > MAX_SPREAD_BP:
-        raise ExecutionBlocked('Spread too wide')
+        raise CandidateRejected('Spread too wide')
     stamp=int(t.get('ts') or 0)
     if not stamp or not 0 <= int(time.time()*1000)-stamp <= 30_000:
-        raise ExecutionBlocked('Ticker stale')
+        raise CandidateRejected('Ticker stale')
     scan_price=dec(signal['quote_price'])
     if abs(last/scan_price - 1)>Decimal('0.005'):
-        raise ExecutionBlocked('Price moved >0.5% since analysis')
+        raise CandidateRejected('Price moved >0.5% since analysis')
     return t,inst
 
 
@@ -299,7 +306,7 @@ def daily_order_limit(client, *, now_ms=None, candidate_id=None):
             created=int(row.get('cTime') or row.get('uTime') or 0)
             if created>=cutoff:
                 if candidate_id and row.get('clOrdId')==candidate_id:
-                    raise ExecutionBlocked('Same client order ID already exists in 24h history')
+                    raise DuplicateCandidateRejected('Same client order ID already exists in 24h history')
                 if str(row.get('clOrdId','')).startswith(CLIENT_PREFIX):
                     bot_orders.add(row.get('clOrdId'))
         oldest=min(int(z.get('cTime') or z.get('uTime') or 0) for z in rows)
@@ -358,17 +365,17 @@ def get_prices(signal,ticker,inst):
         stop=tick_price(proposed_stop,tick,ROUND_DOWN)
         target=tick_price(proposed_target,tick,ROUND_UP)
         if not (stop < last < target and stop<price<target):
-            raise ExecutionBlocked('Invalid LONG stop/target after price refresh')
+            raise CandidateRejected('Invalid LONG stop/target after price refresh')
         delta=(price-stop)/price
     else:
         price=dec(ticker['bidPx'])
         stop=tick_price(proposed_stop,tick,ROUND_UP)
         target=tick_price(proposed_target,tick,ROUND_DOWN)
         if not (target < last < stop and target<price<stop):
-            raise ExecutionBlocked('Invalid SHORT stop/target after price refresh')
+            raise CandidateRejected('Invalid SHORT stop/target after price refresh')
         delta=(stop-price)/price
     if not Decimal('0.001') <= delta <= Decimal('0.035'):
-        raise ExecutionBlocked('Stop outside approved 0.1% to 3.5% distance')
+        raise CandidateRejected('Stop outside approved 0.1% to 3.5% distance')
     return price,stop,target,delta
 
 
@@ -394,7 +401,7 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
         max_notional = equity * LEVERAGE
         contracts = floor_step(min(max_notional / per_contract, exchange_limit), lot)
         if contracts < minimum or contracts <= 0:
-            raise ExecutionBlocked('Full-margin quantity is below exchange minimum')
+            raise CandidateRejected('Full-margin quantity is below exchange minimum')
         intended_stop_loss = contracts * per_contract * stop_fraction
         if intended_stop_loss > equity * MAX_FULL_MARGIN_PLANNED_STOP_RISK:
             raise OpportunityRiskRejected('Full-margin stop implies over 10% equity planned loss; refuse order')
@@ -408,7 +415,7 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
                      equity*MARGIN_CAP_FRACTION*LEVERAGE)
     contracts=floor_step(max_notional/per_contract,lot)
     if contracts<minimum or contracts<=0:
-        raise ExecutionBlocked('Risk budget smaller than minimum exchange contract; do not oversize')
+        raise CandidateRejected('Risk budget smaller than minimum exchange contract; do not oversize')
     if contracts*per_contract*stop_fraction>equity*EQUITY_RISK_FRACTION:
         raise ExecutionBlocked('Risk invariant failed')
     return contracts
@@ -528,7 +535,12 @@ def execute(report, client, mode, env, *, allow_post=True):
     # NVIDIA research is isolated in okx-nvidia-advisory.yml: never imported,
     # queried, or evaluated in the execution/order path. Quantitative signals
     # and mandatory exchange-side risk controls remain the only entry gates.
-    ticker,inst=market_preflight(client,signal)
+    try:
+        ticker,inst=market_preflight(client,signal)
+    except CandidateRejected:
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'CANDIDATE_REJECTED_NO_ORDER'
+        raise
     equity=account_preflight(client)
     try:
         enforce_exit_cooldown(client)
@@ -542,8 +554,18 @@ def execute(report, client, mode, env, *, allow_post=True):
     clordid=client_order_id(signal)
     # Check the latest 24h history for duplicate client order IDs, not a numeric trade limit.
     # A second entry is only considered after the exchange-verified 10m exit cooldown.
-    daily_order_limit(client,candidate_id=clordid)  # Duplicate/replay guard; not a daily count cap.
-    price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
+    try:
+        daily_order_limit(client,candidate_id=clordid)  # Exchange-confirmed anti-replay.
+    except DuplicateCandidateRejected:
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'CANDIDATE_REJECTED_NO_ORDER'
+        raise
+    try:
+        price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
+    except CandidateRejected:
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'CANDIDATE_REJECTED_NO_ORDER'
+        raise
     capital_mode=env.get('OKX_CAPITAL_MODE','guarded').lower()
     # Verify OKX exchange size limit; leverage config changed only at last possible step.
     client.request('POST','/api/v5/account/set-leverage',body={
@@ -556,17 +578,22 @@ def execute(report, client, mode, env, *, allow_post=True):
     try:
         contracts=contract_size(inst,price,equity,stop_fraction,
             capital_mode=capital_mode,exchange_max=allowed[0].get(max_side,'0'))
-    except OpportunityRiskRejected:
-        # Refuse the candidate without submitting /trade/order. Full-margin
-        # risk limit is NEVER reduced or worked around. Only a separately
-        # armed repeating session is allowed to scan for another opportunity.
+    except CandidateRejected as exc:
+        # Only deterministic candidate vetoes are skippable. Never reduce the
+        # allocated risk/stop limits or reuse a rejected order in this scan.
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
-            return 'RISK_REJECTED_NO_ORDER'
+            return ('RISK_REJECTED_NO_ORDER' if isinstance(exc,OpportunityRiskRejected)
+                    else 'CANDIDATE_REJECTED_NO_ORDER')
         raise
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
-    daily_order_limit(client,candidate_id=clordid)  # Re-check duplicate guard; no order-count cap.
+    try:
+        daily_order_limit(client,candidate_id=clordid)  # Final anti-replay, before POST.
+    except DuplicateCandidateRejected:
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'CANDIDATE_REJECTED_NO_ORDER'
+        raise
     if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
         raise ExecutionBlocked('Position changed before order placement')
     if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
@@ -582,6 +609,11 @@ def execute(report, client, mode, env, *, allow_post=True):
     try:
         _fresh_report(report)
     except GateRejected as exc:
+        # An expired but well-formed report can be replaced with a fresh scan.
+        # Malformed/missing timestamps remain fatal; never guess freshness.
+        if (env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
+                and str(exc) == 'Market report expired during NVIDIA review'):
+            return 'STALE_SIGNAL_NO_ORDER'
         raise ExecutionBlocked('Freshness veto: ' + str(exc)) from exc
     if not allow_post:
         return 'PREPARED_BUT_NOT_SENT'

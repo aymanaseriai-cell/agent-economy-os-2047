@@ -530,3 +530,133 @@ class FullMarginRiskVetoRecoveryTests(unittest.TestCase):
             contract_size({"ctVal":"1","lotSz":"1","minSz":"1"},
                           Decimal("100"),Decimal("1000"),Decimal("0.02"),
                           capital_mode="full_margin",exchange_max="1000")
+
+
+
+class ComprehensivePreOrderVetoTests(unittest.TestCase):
+    """Regression matrix for safe skip versus fatal exchange uncertainty."""
+
+    @staticmethod
+    def env(armed="YES"):
+        return {"OKX_EXECUTION_MODE":"live",
+                "OKX_EXECUTION_ARM":MODE_ARM["live"],
+                "OKX_ENABLE_REAL_TRADING":"YES",
+                "OKX_API_KEY":"test", "OKX_SECRET_KEY":"test",
+                "OKX_PASSPHRASE":"test","OKX_CAPITAL_MODE":"guarded",
+                "OKX_AUTOREENTRY_ENABLED":armed}
+
+    def test_local_stop_and_target_rejection_matrix_has_no_order(self):
+        from trading.okx_live_executor import CandidateRejected, get_prices
+        # Both LONG and SHORT; reject stops too near, too far, or targets
+        # crossing the live market. These are candidate failures, not outages.
+        ticker={"last":"100","askPx":"100.1","bidPx":"99.9"}
+        inst={"tickSz":"0.1"}
+        for direction,stop,target in [
+            ("LONG","100.09","103"), ("LONG","96","103"),
+            ("LONG","99","99"), ("SHORT","99.95","97"),
+            ("SHORT","104","97"), ("SHORT","101","101")
+        ]:
+            signal={"signal":direction,"agents":[{"evidence":{
+                "indicative_stop_not_an_order":stop,
+                "indicative_target_not_an_order":target}}]}
+            with self.subTest(direction=direction,stop=stop,target=target):
+                with self.assertRaises(CandidateRejected):
+                    get_prices(signal,ticker,inst)
+
+    def test_executor_skips_precisely_classified_preorder_errors(self):
+        from trading.okx_live_executor import CandidateRejected
+        report={"results":[make_signal()]}
+        # Exercise preflight (market) and late local stop checks independently.
+        for failure_phase in ("market","prices"):
+            with self.subTest(failure_phase=failure_phase):
+                def market(*args,**kwargs):
+                    if failure_phase=="market":
+                        raise CandidateRejected("spread too wide")
+                    return ({},{})
+                with (patch("trading.okx_live_executor.market_preflight",
+                            side_effect=market),
+                      patch("trading.okx_live_executor.account_preflight",
+                            return_value=Decimal("100")),
+                      patch("trading.okx_live_executor.enforce_exit_cooldown"),
+                      patch("trading.okx_live_executor.daily_order_limit",
+                            return_value=0),
+                      patch("trading.okx_live_executor.get_prices",
+                            side_effect=CandidateRejected("invalid stop"))):
+                    self.assertEqual(execute(report,object(),"live",self.env()),
+                                     "CANDIDATE_REJECTED_NO_ORDER")
+                    with self.assertRaises(CandidateRejected):
+                        execute(report,object(),"live",self.env("NO"))
+
+    def test_exact_duplicate_is_safe_candidate_skip_not_a_new_order(self):
+        from trading.okx_live_executor import DuplicateCandidateRejected
+        report={"results":[make_signal()]}
+        with (patch("trading.okx_live_executor.market_preflight",return_value=({},{})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("100")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown"),
+              patch("trading.okx_live_executor.daily_order_limit",
+                    side_effect=DuplicateCandidateRejected("replay"))):
+            self.assertEqual(execute(report,object(),"live",self.env()),
+                             "CANDIDATE_REJECTED_NO_ORDER")
+
+    def test_any_exchange_error_still_fails_closed(self):
+        report={"results":[make_signal()]}
+        with patch("trading.okx_live_executor.market_preflight",
+                   side_effect=ExecutionBlocked("network error")):
+            with self.assertRaisesRegex(ExecutionBlocked,"network"):
+                execute(report,object(),"live",self.env())
+
+    def test_freshness_expired_only_is_rescannable(self):
+        from trading.nvidia_execution_gate import GateRejected
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],
+                "utc_timestamp":datetime.now(timezone.utc).isoformat()}
+        class NoTrade:
+            def __init__(self):self.calls=[]
+            def request(self,method,path,params=None,body=None):
+                self.calls.append((method,path))
+                if path=="/api/v5/account/set-leverage":return [{"lever":"10"}]
+                if path=="/api/v5/account/max-size":return [{"maxBuy":"500"}]
+                if path in ("/api/v5/account/positions","/api/v5/trade/orders-pending"):
+                    return []
+                raise AssertionError("Unexpected request "+path)
+        client=NoTrade()
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({},{})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown"),
+              patch("trading.okx_live_executor.daily_order_limit",return_value=0),
+              patch("trading.okx_live_executor.get_prices",
+                    return_value=(Decimal("100"),Decimal("99"),Decimal("103"),Decimal("0.01"))),
+              patch("trading.okx_live_executor.contract_size",return_value=Decimal("10")),
+              patch("trading.okx_live_executor._fresh_report",
+                    side_effect=GateRejected("Market report expired during NVIDIA review"))):
+            self.assertEqual(execute(report,client,"live",self.env()),
+                             "STALE_SIGNAL_NO_ORDER")
+        self.assertNotIn(("POST","/api/v5/trade/order"),client.calls)
+
+    def test_malformed_report_does_not_become_safe_skip(self):
+        from trading.nvidia_execution_gate import GateRejected
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],
+                "utc_timestamp":datetime.now(timezone.utc).isoformat()}
+        class Preflight:
+            def request(self,method,path,params=None,body=None):
+                if path=="/api/v5/account/set-leverage":return [{"lever":"10"}]
+                if path=="/api/v5/account/max-size":return [{"maxBuy":"500"}]
+                if path in ("/api/v5/account/positions","/api/v5/trade/orders-pending"):
+                    return []
+                raise AssertionError(path)
+        with (patch("trading.okx_live_executor.market_preflight",return_value=({},{})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown"),
+              patch("trading.okx_live_executor.daily_order_limit",return_value=0),
+              patch("trading.okx_live_executor.get_prices",
+                    return_value=(Decimal("100"),Decimal("99"),Decimal("103"),Decimal("0.01"))),
+              patch("trading.okx_live_executor.contract_size",return_value=Decimal("10")),
+              patch("trading.okx_live_executor._fresh_report",
+                    side_effect=GateRejected("Market report timestamp unavailable"))):
+            with self.assertRaisesRegex(ExecutionBlocked,"timestamp unavailable"):
+                execute(report,Preflight(),"live",self.env())

@@ -328,3 +328,52 @@ class FullMarginRiskVetoContinueTests(unittest.TestCase):
             self.assertEqual(loop(run=run,clock=lambda:0.,
                                   resume_after_protected_fill=True),2)
         self.assertEqual(seen.count("trading.okx_live_executor"),1)
+
+
+
+class CandidateVetoResilienceTests(unittest.TestCase):
+    def test_all_explicit_preorder_rejections_are_rescanned(self):
+        kinds=("CANDIDATE_REJECTED_NO_ORDER","RISK_REJECTED_NO_ORDER",
+               "STALE_SIGNAL_NO_ORDER","NO_CONSENSUS")
+        seen=[]; sleeps=[]; now=[0.]
+        index=[0]
+        def run(cmd,timeout):
+            seen.append(cmd[2])
+            if cmd[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(cmd,0,
+                     "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if cmd[2]=="trading.okx_live_executor":
+                code=kinds[index[0]]
+                index[0]+=1
+                return done(cmd,code)
+            return done(cmd)
+        def sleep(n):sleeps.append(n);now[0]+=n
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            self.assertEqual(loop(max_cycles=len(kinds),
+                                  resume_after_protected_fill=True,
+                                  run=run,clock=lambda:now[0],sleep=sleep),0)
+        self.assertEqual(seen.count("trading.six_agent_council"),4)
+        self.assertEqual(sleeps,[5,5,5])
+
+    def test_unknown_and_execution_failed_status_never_reenter(self):
+        for code,out in ((0,"STRANGE_SUCCESS"),(2,""),(124,"")):
+            seen=[]
+            def run(cmd,timeout):
+                seen.append(cmd[2])
+                if cmd[2]=="trading.okx_resume_monitor":
+                    return subprocess.CompletedProcess(cmd,0,
+                        "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+                if cmd[2]=="trading.okx_live_executor":
+                    return done(cmd,out or None,code)
+                return done(cmd)
+            with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+                result=loop(resume_after_protected_fill=True,run=run,
+                            clock=lambda:0.)
+            self.assertNotEqual(result,0) if code else self.assertEqual(result,0)
+            self.assertEqual(seen.count("trading.okx_live_executor"),1)
+
+    def test_no_opt_in_never_accepts_any_skip_status(self):
+        for status in ("CANDIDATE_REJECTED_NO_ORDER","STALE_SIGNAL_NO_ORDER"):
+            def run(cmd,timeout):
+                return done(cmd,status if cmd[2]=="trading.okx_live_executor" else None)
+            self.assertEqual(loop(max_cycles=2,run=run,clock=lambda:0.),3)

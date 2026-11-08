@@ -107,3 +107,26 @@ filled order; repeated scans do not guarantee a future eligible signal.
 This prevents *this specific observed fatal workflow stop*, not all future
 outages. The existing live workflow must be explicitly restarted after a
 failed job; code commits alone cannot restart a failed live chain.
+
+
+## General pre-order rejection classification and regression matrix
+
+The recurring executor now differentiates **known, verified no-order candidate
+rejections** from exchange/account/execution failures. Valid reasons include:
+instrument inactive/unsupported, crossed or stale market, low liquidity turnover,
+excessive spread, changed price after a scan, invalid LONG/SHORT stop/target,
+initial stop outside 0.1%–3.5%, an impossible contract minimum under the existing
+risk budget, excessive planned full-margin stop risk, or a *verified identical*
+client order ID already present in exchange order history. Each is a hard veto
+on that candidate. They return `CANDIDATE_REJECTED_NO_ORDER` or the pre-existing
+`RISK_REJECTED_NO_ORDER`, and **only explicitly armed recurring mode** goes back
+to fresh public scans. A valid report that simply expires during private
+preflight yields `STALE_SIGNAL_NO_ORDER`; malformed timestamp reports still
+fail closed. This does not change leverage, full-margin risk, TP/SL, or the
+mandatory 10-minute cooldown. It cannot force trades.
+
+Outages, missing account/position history, unexplained API responses, orders
+whose status cannot be verified, missing TP/SL protection, or any other unknown
+failure **still stop the worker** to avoid duplicate or unprotected orders.
+GitHub Actions does not guarantee permanent 24/7 runners; no test suite can
+guarantee that future API changes or outages never occur.
