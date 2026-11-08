@@ -19,6 +19,16 @@ jobs:
           python-version: '3.11'
       - name: Run six specialist agents plus seven independent quant filters
         run: python3 -m trading.six_agent_council --top 6 --out reports/okx_six_agents.json
+      - name: Precommit every market verdict, including WAIT and vetoes
+        run: python3 -m trading.shadow_observatory capture --scan reports/okx_six_agents.json --out reports/quant2037_snapshot.json
+      - name: Archive all market decision evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quant2037-shadow-evidence
+          path: reports/quant2037_snapshot.json
+          if-no-files-found: warn
+          retention-days: 30
       - name: Archive full analysis evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -26,4 +36,4 @@ jobs:
           name: six-agent-evidence-report
           path: reports/okx_six_agents.json
           if-no-files-found: warn
-          retention-days: 7
+          retention-days: 30

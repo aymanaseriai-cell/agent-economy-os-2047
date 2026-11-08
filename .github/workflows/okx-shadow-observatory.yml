@@ -1,0 +1,39 @@
+name: QUANT2037 Shadow Observatory - prospective evidence only
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '08 */3 * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: quant2037-shadow-observatory
+  cancel-in-progress: true
+jobs:
+  shadow-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test causal proof and snapshot format
+        run: python -m unittest discover -s tests -p 'test_shadow_*.py' -v
+      - name: Download preselected historic public research artifacts only
+        run: python -m trading.shadow_archive_pull --outdir reports/shadow_archive
+      - name: Measure future outcomes only after horizons close
+        run: python -m trading.shadow_observatory audit --archive-dir reports/shadow_archive --out reports/quant2037_shadow_outcomes.json
+      - name: Upload prequential decision evidence and outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quant2037-shadow-outcomes
+          path: reports/quant2037_shadow_outcomes.json
+          if-no-files-found: warn
+          retention-days: 30
