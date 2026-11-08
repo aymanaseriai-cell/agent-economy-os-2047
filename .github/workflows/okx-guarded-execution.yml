@@ -26,12 +26,12 @@ on:
         default: false
         required: true
       resume_after_exit:
-        description: 'After a PROTECTED fill, monitor OKX and seek another trade no sooner than 10m after full exit (guarded margin only)'
+        description: 'After a PROTECTED fill, monitor OKX and seek a fresh trade >=10m after full exit (guarded/full_margin)'
         type: boolean
         default: false
         required: true
       confirm_repeat_entries:
-        description: 'I separately authorize up to TWO new entries in rolling 24h, guarded sizing only'
+        description: 'I authorize recurring entries with NO fixed daily count; full_margin can liquidate my account'
         type: boolean
         default: false
         required: true
@@ -70,22 +70,19 @@ jobs:
         run: |
           echo "::error::LIVE TRADING NOT STARTED. Choose purpose=run and check confirm_live=true."
           exit 1
-      - name: Refuse unconfirmed or full-margin automatic repeat trading
+      - name: Refuse unconfirmed recurring live execution
         if: inputs.purpose == 'run' && inputs.resume_after_exit == true
         env:
-          CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           CONTINUOUS: ${{ inputs.continuous }}
           CONTINUOUS_CONFIRM: ${{ inputs.confirm_continuous_live }}
           REPEAT_CONFIRM: ${{ inputs.confirm_repeat_entries }}
         run: |
           if [[ "$CONTINUOUS" != "true" || "$CONTINUOUS_CONFIRM" != "true" || "$REPEAT_CONFIRM" != "true" ]]; then
-            echo "::error::Auto re-entry requires all independent repeat-entry confirmations."
+            echo "::error::Recurring entries require all independent confirmations."
             exit 1
           fi
-          if [[ "${CAPITAL_MODE,,}" != "guarded" ]]; then
-            echo "::error::Auto re-entry prohibited in full_margin. Set OKX_CAPITAL_MODE=guarded before enabling."
-            exit 1
-          fi
+          # Explicit full-margin arming remains mandatory within check_mode
+          # before any private execution path can submit an OKX order.
       - name: Five-second continuous worker within bounded GitHub job
         id: worker
         if: inputs.purpose == 'run' && inputs.confirm_live == true

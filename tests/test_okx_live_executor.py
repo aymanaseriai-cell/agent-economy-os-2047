@@ -336,8 +336,17 @@ class TestLiveSafety(unittest.TestCase):
 if __name__=='__main__': unittest.main()
 
 class AutoReentrySizingTests(unittest.TestCase):
-    def test_auto_reentry_never_uses_full_margin(self):
-        from tests.test_okx_live_executor import make_signal
+    def test_unarmed_full_margin_still_rejected(self):
+        report={"results":[make_signal()]}
+        env={"OKX_EXECUTION_MODE":"live","OKX_EXECUTION_ARM":MODE_ARM["live"],
+             "OKX_ENABLE_REAL_TRADING":"YES","OKX_API_KEY":"fake",
+             "OKX_SECRET_KEY":"fake","OKX_PASSPHRASE":"fake",
+             "OKX_CAPITAL_MODE":"full_margin",
+             "OKX_AUTOREENTRY_ENABLED":"YES"}
+        with self.assertRaisesRegex(ExecutionBlocked,"separately armed"):
+            execute(report,object(),"live",env)
+
+    def test_armed_auto_reentry_full_margin_has_no_daily_count_cap(self):
         report={"results":[make_signal()]}
         env={"OKX_EXECUTION_MODE":"live","OKX_EXECUTION_ARM":MODE_ARM["live"],
              "OKX_ENABLE_REAL_TRADING":"YES","OKX_API_KEY":"fake",
@@ -345,5 +354,34 @@ class AutoReentrySizingTests(unittest.TestCase):
              "OKX_CAPITAL_MODE":"full_margin",
              "OKX_FULL_MARGIN_ARM":FULL_MARGIN_ARM,
              "OKX_AUTOREENTRY_ENABLED":"YES"}
-        with self.assertRaisesRegex(ExecutionBlocked,"guarded"):
-            execute(report,object(),"live",env)
+        class FakeExchange:
+            def __init__(self):
+                self.paths=[]
+            def request(self, method, path, params=None, body=None):
+                self.paths.append((method,path))
+                if path=="/api/v5/account/max-size":
+                    return [{"maxBuy":"200","maxSell":"200"}]
+                if path in ("/api/v5/account/positions","/api/v5/trade/orders-pending"):
+                    return []
+                if path=="/api/v5/account/set-leverage":
+                    return [{"lever":"10"}]
+                raise AssertionError("Unexpected exchange request: "+path)
+        client=FakeExchange()
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({"last":"100","bidPx":"99.9","askPx":"100.1"},
+                                  {"tickSz":"0.1","lotSz":"1","ctVal":"1"})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown") as cooldown,
+              patch("trading.okx_live_executor.daily_order_limit",
+                    return_value=999) as history,
+              patch("trading.okx_live_executor.get_prices",
+                    return_value=(Decimal("100"),Decimal("99"),Decimal("103"),Decimal("0.01"))),
+              patch("trading.okx_live_executor.contract_size",
+                    return_value=Decimal("100")) as sizing):
+            self.assertEqual(execute(report,client,"live",env,allow_post=False),
+                             "PREPARED_BUT_NOT_SENT")
+        self.assertEqual(history.call_count,2)
+        self.assertEqual(cooldown.call_count,2)
+        self.assertEqual(sizing.call_args.kwargs["capital_mode"],"full_margin")
+        self.assertFalse(any(p=="/api/v5/trade/order" for _,p in client.paths))

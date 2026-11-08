@@ -60,8 +60,6 @@ def main() -> int:
         mode=env.get('OKX_EXECUTION_MODE','dry_run')
         if env.get('OKX_AUTOREENTRY_ENABLED')!='YES':
             raise ExecutionBlocked('Monitor is not separately armed')
-        if env.get('OKX_CAPITAL_MODE','guarded').lower()!='guarded':
-            raise ExecutionBlocked('Auto re-entry requires guarded sizing; full_margin is forbidden')
         if mode=='dry_run':
             print('OKX MONITOR RESULT: FLAT_ELIGIBLE',flush=True)
             return 0

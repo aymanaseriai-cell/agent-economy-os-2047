@@ -55,8 +55,6 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
     """
     if resume_after_protected_fill and os.getenv("OKX_AUTOREENTRY_ENABLED")!="YES":
         raise ValueError("Auto re-entry requires explicit OKX_AUTOREENTRY_ENABLED=YES")
-    if resume_after_protected_fill and os.getenv("OKX_CAPITAL_MODE","guarded").lower()!="guarded":
-        raise ValueError("Auto re-entry refuses full_margin; use guarded capital mode")
     if interval_seconds!=INTERVAL_SECONDS:
         raise ValueError("TITAN 5-second cadence is fixed at 5 seconds")
     if not 1<=top<=12:

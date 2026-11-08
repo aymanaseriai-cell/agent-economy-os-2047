@@ -210,12 +210,24 @@ class AutoResumeWorkerTests(unittest.TestCase):
                                   clock=lambda:0.0),2)
         self.assertEqual(calls,["trading.okx_resume_monitor"])
 
-    def test_auto_repeat_cannot_run_full_margin_or_without_opt_in(self):
+    def test_auto_repeat_accepts_armed_full_margin_worker_mode(self):
+        calls=[]
+        def fake_run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(cmd,0,"OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,"NO_CONSENSUS")
+            return done(cmd)
         with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
                                     "OKX_CAPITAL_MODE":"Full_margin"}):
-            with self.assertRaisesRegex(ValueError,"full_margin"):
-                loop(resume_after_protected_fill=True)
+            self.assertEqual(loop(max_cycles=1,resume_after_protected_fill=True,
+                                  run=fake_run,clock=lambda:0.0),0)
+        self.assertEqual(calls,["trading.okx_resume_monitor","trading.six_agent_council",
+                                "trading.okx_live_executor"])
+
+    def test_auto_repeat_still_requires_independent_opt_in(self):
         with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"NO",
-                                    "OKX_CAPITAL_MODE":"guarded"}):
+                                    "OKX_CAPITAL_MODE":"Full_margin"}):
             with self.assertRaisesRegex(ValueError,"explicit"):
                 loop(resume_after_protected_fill=True)
