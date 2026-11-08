@@ -1,0 +1,40 @@
+name: Audit original six-agent plus seven-quant evidence (OFFLINE only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test no-lookahead and conservative outcomes
+        run: python -m unittest discover -s tests -p test_council_forward_audit.py -v
+      - name: Deterministically replay actual historical council labels
+        run: python -m trading.council_forward_audit --base reports --out reports/replay_actual_council.json
+      - name: Compare immutable audit with replay
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root=Path('reports')
+          saved=json.loads((root/'actual_council_forward_20261108.json').read_text())
+          replay=json.loads((root/'replay_actual_council.json').read_text())
+          assert saved==replay, 'Frozen council signal audit mismatch'
+          q=saved['summary']['outcomes']['60']
+          assert q['matured_count']==6 and q['positive_count']==0 and q['negative_count']==6
+          assert saved['summary']['no_nvidia_approvals_recorded']
+          print('AUDIT PASS: original council candidates all reproduced, six negative 1h results')
+          PY
+      - name: Archive research-only replay
+        uses: actions/upload-artifact@v4
+        with:
+          name: original-council-signal-proof-no-trades
+          path: reports/replay_actual_council.json
+          retention-days: 14

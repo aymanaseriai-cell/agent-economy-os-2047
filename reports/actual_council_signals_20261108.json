@@ -1,0 +1,173 @@
+{
+  "source": "GitHub Actions six-agent-council original research-only JSON artifacts; plus one live-path research-only scan before order preflight",
+  "read_only_workflow_run_count": 11,
+  "original_council_runs": [
+    {
+      "run_id": 42433184546,
+      "utc_timestamp": "2026-11-08T01:12:07.318501+00:00",
+      "signal_count": 0,
+      "artifact_id": 13598273222,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42433184546"
+    },
+    {
+      "run_id": 42428089304,
+      "utc_timestamp": "2026-11-08T00:04:50.453589+00:00",
+      "signal_count": 1,
+      "artifact_id": 13595514563,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304"
+    },
+    {
+      "run_id": 42425194489,
+      "utc_timestamp": "2026-11-07T23:25:56.443438+00:00",
+      "signal_count": 0,
+      "artifact_id": 13595600394,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42425194489"
+    },
+    {
+      "run_id": 42422261628,
+      "utc_timestamp": "2026-11-07T22:47:59.235016+00:00",
+      "signal_count": 1,
+      "artifact_id": 13593293855,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628"
+    },
+    {
+      "run_id": 42419200803,
+      "utc_timestamp": "2026-11-07T22:08:58.552910+00:00",
+      "signal_count": 1,
+      "artifact_id": 13593125320,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803"
+    },
+    {
+      "run_id": 42415801779,
+      "utc_timestamp": "2026-11-07T21:25:53.423661+00:00",
+      "signal_count": 2,
+      "artifact_id": 13590929930,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779"
+    },
+    {
+      "run_id": 42412507511,
+      "utc_timestamp": "2026-11-07T20:44:57.796611+00:00",
+      "signal_count": 0,
+      "artifact_id": 13588999996,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42412507511"
+    },
+    {
+      "run_id": 42409366281,
+      "utc_timestamp": "2026-11-07T20:06:03.288923+00:00",
+      "signal_count": 0,
+      "artifact_id": 13588274493,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42409366281"
+    },
+    {
+      "run_id": 42406033138,
+      "utc_timestamp": "2026-11-07T19:24:29.515571+00:00",
+      "signal_count": 0,
+      "artifact_id": 13587825381,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42406033138"
+    },
+    {
+      "run_id": 42401456444,
+      "utc_timestamp": "2026-11-07T18:28:41.185892+00:00",
+      "signal_count": 0,
+      "artifact_id": 13585324279,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42401456444"
+    },
+    {
+      "run_id": 42400171887,
+      "utc_timestamp": "2026-11-07T18:13:32.534957+00:00",
+      "signal_count": 0,
+      "artifact_id": 13585490177,
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42400171887"
+    }
+  ],
+  "excluded_legacy_run": {
+    "run_id": 42398269044,
+    "reason": "Older core six agents without seven QUANT2037 filters; excluded from this analysis."
+  },
+  "signals": [
+    {
+      "published_utc": "2026-11-07T21:25:53.423661+00:00",
+      "run_id": 42415801779,
+      "artifact_id": 13590929930,
+      "symbol": "ZEC-USDT-SWAP",
+      "side": "SHORT",
+      "quote": 1242.87,
+      "stop": 1268.14,
+      "target": 1176.73,
+      "advanced_confirmations": 1,
+      "signal_source": "scheduled_public_council",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779"
+    },
+    {
+      "published_utc": "2026-11-07T21:25:53.423661+00:00",
+      "run_id": 42415801779,
+      "artifact_id": 13590929930,
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "quote": 4.8184e-06,
+      "stop": 4.875e-06,
+      "target": 4.697e-06,
+      "advanced_confirmations": 1,
+      "signal_source": "scheduled_public_council",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779"
+    },
+    {
+      "published_utc": "2026-11-07T22:08:58.552910+00:00",
+      "run_id": 42419200803,
+      "artifact_id": 13593125320,
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "quote": 4.8126e-06,
+      "stop": 4.87e-06,
+      "target": 4.713e-06,
+      "advanced_confirmations": 1,
+      "signal_source": "scheduled_public_council",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803"
+    },
+    {
+      "published_utc": "2026-11-07T22:47:59.235016+00:00",
+      "run_id": 42422261628,
+      "artifact_id": 13593293855,
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "quote": 4.8277e-06,
+      "stop": 4.851e-06,
+      "target": 4.786e-06,
+      "advanced_confirmations": 2,
+      "signal_source": "scheduled_public_council",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628"
+    },
+    {
+      "published_utc": "2026-11-08T00:04:50.453589+00:00",
+      "run_id": 42428089304,
+      "artifact_id": 13595514563,
+      "symbol": "ZEC-USDT-SWAP",
+      "side": "SHORT",
+      "quote": 1258.21,
+      "stop": 1267.239,
+      "target": 1246.812,
+      "advanced_confirmations": 2,
+      "signal_source": "scheduled_public_council",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304"
+    },
+    {
+      "published_utc": "2026-11-08T00:13:41.889389+00:00",
+      "run_id": 42428551777,
+      "artifact_id": 13596476978,
+      "symbol": "UNI-USDT-SWAP",
+      "side": "LONG",
+      "quote": 7.187,
+      "stop": 7.092,
+      "target": 7.47,
+      "advanced_confirmations": 2,
+      "signal_source": "additional_live_path_readonly_scan",
+      "source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428551777"
+    }
+  ],
+  "caveats": [
+    "Past signals selected from all available core+seven archived reports, not from a guaranteed representative sample.",
+    "No saved NVIDIA advisory vote or exchange order attached to these signals.",
+    "Three PEPE signals and two ZEC signals overlap; they are NOT independent trades.",
+    "Raw research artifacts are preserved at their exact GitHub run links."
+  ]
+}

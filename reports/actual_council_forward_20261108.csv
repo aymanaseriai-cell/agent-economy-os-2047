@@ -1,0 +1,13 @@
+run_id,published_utc,symbol,side,horizon_minutes,status,outcome,net_unlevered_notional_pct,entry_ts,exit_end_ts,source_url
+42415801779,2026-11-07T21:25:53.423661+00:00,ZEC-USDT-SWAP,SHORT,60,matured,horizon_close,-0.98596,1794087000000,1794090600000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+42415801779,2026-11-07T21:25:53.423661+00:00,ZEC-USDT-SWAP,SHORT,240,matured,horizon_close,-0.96314,1794087000000,1794101400000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+42415801779,2026-11-07T21:25:53.423661+00:00,PEPE-USDT-SWAP,SHORT,60,matured,horizon_close,-0.55655,1794087000000,1794090600000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+42415801779,2026-11-07T21:25:53.423661+00:00,PEPE-USDT-SWAP,SHORT,240,matured,horizon_close,-0.58111,1794087000000,1794101400000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+42419200803,2026-11-07T22:08:58.552910+00:00,PEPE-USDT-SWAP,SHORT,60,matured,horizon_close,-1.04161,1794089700000,1794093300000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803
+42419200803,2026-11-07T22:08:58.552910+00:00,PEPE-USDT-SWAP,SHORT,240,not_matured,,,,,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803
+42422261628,2026-11-07T22:47:59.235016+00:00,PEPE-USDT-SWAP,SHORT,60,matured,stop,-0.56025,1794092400000,1794093300000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628
+42422261628,2026-11-07T22:47:59.235016+00:00,PEPE-USDT-SWAP,SHORT,240,not_matured,,,,,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628
+42428089304,2026-11-08T00:04:50.453589+00:00,ZEC-USDT-SWAP,SHORT,60,matured,horizon_close,-0.1135,1794096900000,1794100500000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304
+42428089304,2026-11-08T00:04:50.453589+00:00,ZEC-USDT-SWAP,SHORT,240,not_matured,,,,,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304
+42428551777,2026-11-08T00:13:41.889389+00:00,UNI-USDT-SWAP,LONG,60,matured,horizon_close,-0.48087,1794096900000,1794100500000,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428551777
+42428551777,2026-11-08T00:13:41.889389+00:00,UNI-USDT-SWAP,LONG,240,not_matured,,,,,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428551777
