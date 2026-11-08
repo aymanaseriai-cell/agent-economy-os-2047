@@ -142,6 +142,23 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                   file=sys.stderr,flush=True)
             return 3
         status=statuses[0]
+        if status=="RISK_REJECTED_NO_ORDER":
+            if not resume_after_protected_fill:
+                print("TITAN unexpected risk-veto status without recurring authorization; stop",
+                      file=sys.stderr,flush=True)
+                return 3
+            # A rejected candidate is not an unknown order; no /trade/order
+            # was submitted. Re-scan on a NEW public snapshot with the SAME
+            # capital sizing, hard stop-risk cap, and exchange checks.
+            if max_cycles and scans>=max_cycles:
+                return 0
+            if max_runtime_seconds and clock()+INTERVAL_SECONDS+15>start+max_runtime_seconds:
+                print("TITAN bounded runtime reached",flush=True)
+                return 0
+            print("TITAN candidate rejected by full-margin risk limit; "
+                  "no order, scan again after 5s",flush=True)
+            sleep(INTERVAL_SECONDS)
+            continue
         if status=="REENTRY_COOLDOWN_NO_ORDER":
             if not resume_after_protected_fill:
                 print("TITAN unexpected cooldown status without recurring authorization; stop",

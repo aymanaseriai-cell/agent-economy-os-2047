@@ -281,3 +281,50 @@ class CooldownRacingMonitorTests(unittest.TestCase):
             self.assertEqual(loop(resume_after_protected_fill=True,run=fake_run,
                                   clock=lambda:0.0),2)
         self.assertEqual(calls.count("trading.okx_live_executor"),1)
+
+class FullMarginRiskVetoContinueTests(unittest.TestCase):
+    def test_risk_veto_continues_monitoring_without_duplicate_order(self):
+        seen=[]; pauses=[]; now=[0.]
+        outcomes=iter(("RISK_REJECTED_NO_ORDER","NO_CONSENSUS"))
+        def run(args,timeout):
+            seen.append(args[2])
+            if args[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(args,0,
+                    "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if args[2]=="trading.okx_live_executor":
+                return done(args,next(outcomes))
+            return done(args)
+        def sleep(n):
+            pauses.append(n); now[0]+=n
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
+                                    "OKX_CAPITAL_MODE":"Full_margin"}):
+            result=loop(max_cycles=2,run=run,clock=lambda:now[0],
+                        sleep=sleep,resume_after_protected_fill=True)
+        self.assertEqual(result,0)
+        self.assertEqual(seen.count("trading.six_agent_council"),2)
+        self.assertEqual(seen.count("trading.okx_live_executor"),2)
+        self.assertEqual(seen.count("trading.okx_resume_monitor"),2)
+        self.assertEqual(pauses,[5])
+
+    def test_risk_skip_without_separate_repeat_authorization_stops(self):
+        def run(args,timeout):
+            if args[2]=="trading.okx_live_executor":
+                return done(args,"RISK_REJECTED_NO_ORDER")
+            return done(args)
+        self.assertEqual(loop(max_cycles=3,run=run,
+                              clock=lambda:0.),3)
+
+    def test_unknown_block_is_still_fatal_not_risk_skip(self):
+        seen=[]
+        def run(args,timeout):
+            seen.append(args[2])
+            if args[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(args,0,
+                    "OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if args[2]=="trading.okx_live_executor":
+                return done(args,code=2)
+            return done(args)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            self.assertEqual(loop(run=run,clock=lambda:0.,
+                                  resume_after_protected_fill=True),2)
+        self.assertEqual(seen.count("trading.okx_live_executor"),1)

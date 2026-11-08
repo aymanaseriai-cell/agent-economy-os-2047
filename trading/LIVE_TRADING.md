@@ -90,3 +90,20 @@ Any other exchange block, ambiguous or stale history, failed protection, missing
 position information, model/signal error or uncertain POST status still stops
 the worker. This is a code-and-unit-test fix only: recurring real execution,
 GitHub queue continuity, and profitability are not guaranteed.
+\n## 2026-11-08: Nonfatal full-margin risk-veto for explicitly armed repeating sessions
+
+If the only chosen candidate requires more than the hard **10% of equity**
+planned-loss limit while sizing up to 100% margin at 10x, the executor
+**rejects that candidate without submitting a trade**. In separately
+confirmed recurring mode, it reports `RISK_REJECTED_NO_ORDER` and the
+worker continues monitoring and runs a new public signal scan after 5 seconds,
+rather than crashing the GitHub session. Risk-limited **one-off** executions
+still reject/stop, and **every other** exchange problem, invalid history,
+uncertain execution response or protection failure still stops and requires
+manual attention. The hard stop-risk invariant, size formula and ten-minute
+post-exit cooldown are unchanged. Such rejected signals do not count as a
+filled order; repeated scans do not guarantee a future eligible signal.
+
+This prevents *this specific observed fatal workflow stop*, not all future
+outages. The existing live workflow must be explicitly restarted after a
+failed job; code commits alone cannot restart a failed live chain.

@@ -474,3 +474,59 @@ class CooldownRaceSafetyTests(unittest.TestCase):
                              "REENTRY_COOLDOWN_NO_ORDER")
         self.assertEqual(cooldown.call_count,2)
         self.assertNotIn(("POST","/api/v5/trade/order"),client.calls)
+
+class FullMarginRiskVetoRecoveryTests(unittest.TestCase):
+    """Same excessive-stop case seen in live Actions must skip, never trade."""
+
+    @staticmethod
+    def fixture_env(autorreentry="YES"):
+        return {"OKX_EXECUTION_MODE":"live",
+                "OKX_EXECUTION_ARM":MODE_ARM["live"],
+                "OKX_ENABLE_REAL_TRADING":"YES",
+                "OKX_API_KEY":"test","OKX_SECRET_KEY":"test",
+                "OKX_PASSPHRASE":"test",
+                "OKX_CAPITAL_MODE":"Full_margin",
+                "OKX_FULL_MARGIN_ARM":FULL_MARGIN_ARM,
+                "OKX_AUTOREENTRY_ENABLED":autorreentry}
+
+    def test_repeated_full_margin_risk_reject_skips_without_trade(self):
+        from trading.okx_live_executor import OpportunityRiskRejected
+        from datetime import datetime, timezone
+        report={"results":[make_signal()],
+                "utc_timestamp":datetime.now(timezone.utc).isoformat()}
+        class FakeExchange:
+            def __init__(self): self.calls=[]
+            def request(self,method,path,params=None,body=None):
+                self.calls.append((method,path))
+                if path=="/api/v5/account/set-leverage":return [{"lever":"10"}]
+                if path=="/api/v5/account/max-size":
+                    return [{"maxBuy":"1000","maxSell":"1000"}]
+                raise AssertionError("Unexpected OKX endpoint "+path)
+        client=FakeExchange()
+        with (patch("trading.okx_live_executor.market_preflight",
+                    return_value=({"last":"100"},{"ctVal":"1","lotSz":"1","minSz":"1"})),
+              patch("trading.okx_live_executor.account_preflight",
+                    return_value=Decimal("1000")),
+              patch("trading.okx_live_executor.enforce_exit_cooldown"),
+              patch("trading.okx_live_executor.daily_order_limit",
+                    return_value=42),
+              patch("trading.okx_live_executor.get_prices",
+                    return_value=(Decimal("100"),Decimal("98"),Decimal("103"),Decimal("0.02")))):
+            # Full margin 10x $1000, $100 price: 100 contracts;
+            # stop 2% -> $200 planned loss, so $100 maximum rejects.
+            self.assertEqual(execute(report,client,"live",self.fixture_env()),
+                             "RISK_REJECTED_NO_ORDER")
+            with self.assertRaises(OpportunityRiskRejected):
+                execute(report,client,"live",self.fixture_env("NO"))
+        self.assertNotIn(("POST","/api/v5/trade/order"),client.calls)
+        self.assertFalse(any("/positions" in path for _,path in client.calls))
+
+    def test_no_relaxation_of_full_margin_10pct_cap(self):
+        from trading.okx_live_executor import (
+            OpportunityRiskRejected, contract_size, MAX_FULL_MARGIN_PLANNED_STOP_RISK
+        )
+        self.assertEqual(MAX_FULL_MARGIN_PLANNED_STOP_RISK,Decimal("0.10"))
+        with self.assertRaises(OpportunityRiskRejected):
+            contract_size({"ctVal":"1","lotSz":"1","minSz":"1"},
+                          Decimal("100"),Decimal("1000"),Decimal("0.02"),
+                          capital_mode="full_margin",exchange_max="1000")

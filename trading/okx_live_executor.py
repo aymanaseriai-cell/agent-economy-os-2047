@@ -55,6 +55,15 @@ class ReentryCooldownActive(ExecutionBlocked):
     """
 
 
+class OpportunityRiskRejected(ExecutionBlocked):
+    """This candidate fails a local PRE-ORDER sizing limit; never submit it.
+
+    A risk veto is not an API outage or unknown order state. Only the
+    separately authorized recurring worker may skip this candidate and scan
+    again. All other ExecutionBlocked failures still halt the live worker.
+    """
+
+
 def dec(x):
     try:
         d = Decimal(str(x))
@@ -388,7 +397,7 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
             raise ExecutionBlocked('Full-margin quantity is below exchange minimum')
         intended_stop_loss = contracts * per_contract * stop_fraction
         if intended_stop_loss > equity * MAX_FULL_MARGIN_PLANNED_STOP_RISK:
-            raise ExecutionBlocked('Full-margin stop implies over 10% equity planned loss; refuse order')
+            raise OpportunityRiskRejected('Full-margin stop implies over 10% equity planned loss; refuse order')
         if contracts * per_contract > equity * LEVERAGE:
             raise ExecutionBlocked('Full-margin leverage invariant failed')
         return contracts
@@ -544,8 +553,16 @@ def execute(report, client, mode, env, *, allow_post=True):
     if len(allowed)!=1:
         raise ExecutionBlocked('Max-size quote unavailable')
     max_side='maxBuy' if signal['signal']=='LONG' else 'maxSell'
-    contracts=contract_size(inst,price,equity,stop_fraction,
-        capital_mode=capital_mode,exchange_max=allowed[0].get(max_side,'0'))
+    try:
+        contracts=contract_size(inst,price,equity,stop_fraction,
+            capital_mode=capital_mode,exchange_max=allowed[0].get(max_side,'0'))
+    except OpportunityRiskRejected:
+        # Refuse the candidate without submitting /trade/order. Full-margin
+        # risk limit is NEVER reduced or worked around. Only a separately
+        # armed repeating session is allowed to scan for another opportunity.
+        if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+            return 'RISK_REJECTED_NO_ORDER'
+        raise
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
