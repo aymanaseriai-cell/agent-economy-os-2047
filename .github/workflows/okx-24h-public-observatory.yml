@@ -1,0 +1,52 @@
+name: TITAN QUANT2037 24H Market Observatory (NO LIVE TRADES)
+on:
+  schedule:
+    # GitHub minimum scheduler resolution: five minutes, in UTC.
+    # Offset from :00 to reduce scheduler contention.
+    - cron: '3-58/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: titan-24h-public-observatory
+  cancel-in-progress: false
+jobs:
+  research-monitor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    env:
+      # Hardcoded per-job safety lock, independent of repository's live vars.
+      OKX_EXECUTION_MODE: dry_run
+      OKX_ENABLE_REAL_TRADING: NO
+      OKX_CAPITAL_MODE: guarded
+      # Do not forward ANY exchange or NVIDIA secrets to this workflow.
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify this is a no-trade research worker
+        run: |
+          python - <<'PY'
+          import os
+          assert os.getenv("OKX_EXECUTION_MODE") == "dry_run"
+          assert os.getenv("OKX_ENABLE_REAL_TRADING") == "NO"
+          for secret in ("OKX_API_KEY", "OKX_SECRET_KEY",
+                         "OKX_PASSPHRASE", "OKX_EXECUTION_ARM",
+                         "OKX_FULL_MARGIN_ARM"):
+              assert not os.getenv(secret), "Private OKX secret unexpectedly injected"
+          print("24H_PUBLIC_RESEARCH_LOCKED: NO REAL ORDERS")
+          PY
+      - name: Full OKX 6-agent + 7-quant market scans with 5-second between-cycle pause
+        run: |
+          python -u -m trading.okx_five_second_worker             --interval-seconds 5             --max-runtime-seconds 270             --top 12             --report reports/okx_24h_public_observatory.json
+      - name: Archive latest public market research report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan-24h-public-scan
+          path: reports/okx_24h_public_observatory.json
+          retention-days: 2
+          if-no-files-found: warn
