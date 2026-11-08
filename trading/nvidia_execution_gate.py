@@ -23,6 +23,14 @@ class GateRejected(RuntimeError):
     """Conservative veto: no new exchange order may be attempted."""
 
 
+class GateConsensusVeto(GateRejected):
+    """Valid NVIDIA votes explicitly reject this trade; no order is allowed.
+
+    Separate an expected model/risk disagreement from missing credentials,
+    unverified outputs, stale reports, timeouts, or transport errors.
+    """
+
+
 def _nvidia_failure_category(message: object) -> str:
     """Classify only known provider failure patterns; NEVER log raw model text."""
     if not isinstance(message, str):
@@ -180,7 +188,7 @@ def require_nvidia_veto_pass(report: dict[str, Any], signal: dict[str, Any],
                 or not 0 <= confidence <= 1):
             raise GateRejected("Invalid NVIDIA decision schema")
         if direction == opposite:
-            raise GateRejected("NVIDIA reported opposing trade evidence")
+            raise GateConsensusVeto("NVIDIA reported opposing trade evidence")
         if direction == desired and confidence >= MIN_CONFIDENCE:
             aligned += 1
             if vote["agent"] == "risk_critic":
@@ -188,6 +196,6 @@ def require_nvidia_veto_pass(report: dict[str, Any], signal: dict[str, Any],
     if (response.get("advisory") != desired
             or aligned < 4
             or not critic_approved):
-        raise GateRejected("NVIDIA consensus or risk critic vetoed this trade")
+        raise GateConsensusVeto("NVIDIA consensus or risk critic vetoed this trade")
     _fresh_report(report)  # A once-fresh report may expire during model inference.
     return {"model": response["model"], "direction": desired}

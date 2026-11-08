@@ -113,11 +113,11 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             return 3
         status=statuses[0]
         if status not in ALLOWED_NONORDER_STATUSES:
-            # Especially for filled / partially filled / uncertain submissions,
-            # never resend automatically. Existing exchange protection and
-            # exit cooldown remain authoritative.
+            # This includes AI_VETO_NO_ORDER: do NOT retry a trade the risk
+            # council rejected. Filled/partial/uncertain outcomes also stop.
+            # Live execution never treats a missing or error status as safe.
             print("TITAN executor outcome: "+status+
-                  "; stop to prevent duplicate orders",flush=True)
+                  "; stop to prevent duplicate or rejected orders",flush=True)
             return 0
         if max_cycles and scans>=max_cycles:
             return 0
