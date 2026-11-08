@@ -1,0 +1,42 @@
+name: Validate actual TITAN council counterfactual (OFFLINE; NO TRADES)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run adversarial and historical-original tests
+        run: |
+          python -m unittest discover -s tests -p test_council_counterfactual.py -v
+          python -m unittest discover -s tests -p test_council_forward_audit.py -v
+      - name: Replay frozen 6+7 original signals under four scenarios
+        run: |
+          python -m trading.council_counterfactual --base reports --out reports/replay_adversarial.json
+      - name: Assert exact reproducibility and zero NVIDIA execution claim
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected=json.loads(Path("reports/council_adversarial_20261108.json").read_text())
+          actual=json.loads(Path("reports/replay_adversarial.json").read_text())
+          assert expected==actual, "Original council counterfactual replay diverged"
+          assert actual["summary"]["negative_baseline_count"]==6
+          assert actual["summary"]["no_verified_nvidia_approvals"]
+          assert actual["summary"]["underlying_instruments"]==3
+          print("AUDIT PASS: original six-agent+seven-quant historical evidence reproduced")
+          PY
+      - name: Archive reproducible offline research
+        uses: actions/upload-artifact@v4
+        with:
+          name: actual-titan-counterfactual-proof
+          path: reports/replay_adversarial.json
+          retention-days: 14

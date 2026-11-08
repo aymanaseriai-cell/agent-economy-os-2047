@@ -1,0 +1,7 @@
+published_utc,symbol,side,net_base_pct,frictionless_pct,net_stress_pct,reverse_direction_symmetric_R_net_pct,past_same_side_placebo_windows,past_placebo_mean_pct,event_rank_pct_vs_past_placebo,original_source_url
+2026-11-07T21:25:53.423661+00:00,ZEC-USDT-SWAP,SHORT,-0.98596,-0.82376,-1.18893,0.66165,68,0.19859,1.47,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+2026-11-07T21:25:53.423661+00:00,PEPE-USDT-SWAP,SHORT,-0.55655,-0.39482,-0.75879,0.23319,68,-0.01394,17.65,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779
+2026-11-07T22:08:58.552910+00:00,PEPE-USDT-SWAP,SHORT,-1.04161,-0.87934,-1.24467,0.71718,68,0.01878,5.88,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803
+2026-11-07T22:47:59.235016+00:00,PEPE-USDT-SWAP,SHORT,-0.56025,-0.39945,-0.76155,0.45488,68,0.03199,30.88,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628
+2026-11-08T00:04:50.453589+00:00,ZEC-USDT-SWAP,SHORT,-0.1135,0.04774,-0.31498,-0.20889,68,-0.06547,48.53,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304
+2026-11-08T00:13:41.889389+00:00,UNI-USDT-SWAP,LONG,-0.48087,-0.32002,-0.68127,0.15908,68,-0.02819,19.12,https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428551777

@@ -1,0 +1,163 @@
+{
+  "mode": "READ_ONLY_ARCHIVED_FULL_QUANT_COUNCIL_FALSIFICATION",
+  "scope": "Original ex-ante 6-agent + 7-quant research labels; NVIDIA votes NOT observed",
+  "limitations": [
+    "Six overlapping signals on only three assets: correlated, not six independent trials.",
+    "Counterfactual reverse side is hypothetical matched geometry, not AI-approved trades.",
+    "Placebo is fixed same-side, same-symbol historical window, not a causal randomized control.",
+    "18-hour lookback windows overlap and do not yield a statistically valid p-value.",
+    "Fees/slippage/funding are explicit assumptions; real fills and NVIDIA gate absent.",
+    "All original signal times were saved before the evaluated outcomes.",
+    "A negative sample cannot prove a system will always lose."
+  ],
+  "assumptions": {
+    "outcome_minutes": 60,
+    "placebo_past_lookback_hours": 18,
+    "base_taker_fee_each_side": 0.0005,
+    "base_slippage_each_side": 0.0003,
+    "base_funding_8h": 0.0001,
+    "stress_taker_fee_each_side": 0.0008,
+    "stress_slippage_each_side": 0.001,
+    "stress_funding_8h": 0.0002
+  },
+  "summary": {
+    "signals": 6,
+    "underlying_instruments": 3,
+    "negative_baseline_count": 6,
+    "positive_baseline_count": 0,
+    "baseline_mean_pct": -0.62312,
+    "frictionless_mean_pct": -0.46161,
+    "stressed_mean_pct": -0.82503,
+    "reverse_direction_mean_pct": 0.33618,
+    "original_better_than_opposite_count": 1,
+    "placebo_median_event_percentile": 18.38,
+    "asset_cluster_results": {
+      "PEPE-USDT-SWAP": {
+        "candidate_count": 3,
+        "mean_net_pct": -0.71947,
+        "all_negative": true
+      },
+      "UNI-USDT-SWAP": {
+        "candidate_count": 1,
+        "mean_net_pct": -0.48087,
+        "all_negative": true
+      },
+      "ZEC-USDT-SWAP": {
+        "candidate_count": 2,
+        "mean_net_pct": -0.54973,
+        "all_negative": true
+      }
+    },
+    "no_verified_nvidia_approvals": true
+  },
+  "rows": [
+    {
+      "symbol": "ZEC-USDT-SWAP",
+      "side": "SHORT",
+      "run_id": 42415801779,
+      "published_utc": "2026-11-07T21:25:53.423661+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779",
+      "net_base_pct": -0.98596,
+      "frictionless_pct": -0.82376,
+      "net_stress_pct": -1.18893,
+      "cost_drag_pct": 0.1622,
+      "reverse_direction_symmetric_R_net_pct": 0.66165,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": 0.19859,
+      "event_rank_pct_vs_past_placebo": 1.47,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    },
+    {
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "run_id": 42415801779,
+      "published_utc": "2026-11-07T21:25:53.423661+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42415801779",
+      "net_base_pct": -0.55655,
+      "frictionless_pct": -0.39482,
+      "net_stress_pct": -0.75879,
+      "cost_drag_pct": 0.16173,
+      "reverse_direction_symmetric_R_net_pct": 0.23319,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": -0.01394,
+      "event_rank_pct_vs_past_placebo": 17.65,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    },
+    {
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "run_id": 42419200803,
+      "published_utc": "2026-11-07T22:08:58.552910+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42419200803",
+      "net_base_pct": -1.04161,
+      "frictionless_pct": -0.87934,
+      "net_stress_pct": -1.24467,
+      "cost_drag_pct": 0.16227,
+      "reverse_direction_symmetric_R_net_pct": 0.71718,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": 0.01878,
+      "event_rank_pct_vs_past_placebo": 5.88,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    },
+    {
+      "symbol": "PEPE-USDT-SWAP",
+      "side": "SHORT",
+      "run_id": 42422261628,
+      "published_utc": "2026-11-07T22:47:59.235016+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42422261628",
+      "net_base_pct": -0.56025,
+      "frictionless_pct": -0.39945,
+      "net_stress_pct": -0.76155,
+      "cost_drag_pct": 0.1608,
+      "reverse_direction_symmetric_R_net_pct": 0.45488,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": 0.03199,
+      "event_rank_pct_vs_past_placebo": 30.88,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    },
+    {
+      "symbol": "ZEC-USDT-SWAP",
+      "side": "SHORT",
+      "run_id": 42428089304,
+      "published_utc": "2026-11-08T00:04:50.453589+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428089304",
+      "net_base_pct": -0.1135,
+      "frictionless_pct": 0.04774,
+      "net_stress_pct": -0.31498,
+      "cost_drag_pct": 0.16124,
+      "reverse_direction_symmetric_R_net_pct": -0.20889,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": -0.06547,
+      "event_rank_pct_vs_past_placebo": 48.53,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    },
+    {
+      "symbol": "UNI-USDT-SWAP",
+      "side": "LONG",
+      "run_id": 42428551777,
+      "published_utc": "2026-11-08T00:13:41.889389+00:00",
+      "original_source_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/42428551777",
+      "net_base_pct": -0.48087,
+      "frictionless_pct": -0.32002,
+      "net_stress_pct": -0.68127,
+      "cost_drag_pct": 0.16085,
+      "reverse_direction_symmetric_R_net_pct": 0.15908,
+      "reverse_direction_status": "matured",
+      "past_same_side_placebo_windows": 68,
+      "past_placebo_mean_pct": -0.02819,
+      "event_rank_pct_vs_past_placebo": 19.12,
+      "comparison_limitations": "Overlapping earlier windows, same-asset regimes; no independent p-value"
+    }
+  ],
+  "source_sha256": {
+    "actual_council_signals_20261108.json": "5f12d656caa1f93634de954d7389a95da32372be6fcb6314389d02642f09e616",
+    "PEPE-USDT-SWAP.outcome_candles_20261108.json": "0f1382580a7d2a9dc3851f60ddc1603532c8809dd68a97a6e59159cb8c0524e5",
+    "UNI-USDT-SWAP.outcome_candles_20261108.json": "4de96a0934b3f79bda2f5ad51ad1ac2d28544ef78d4fd37ab4b5a3ef53d448f8",
+    "ZEC-USDT-SWAP.outcome_candles_20261108.json": "7377d42dfca397d0128c2d01b565d83a828174af5b071639fc935d23f67b01cd"
+  }
+}
