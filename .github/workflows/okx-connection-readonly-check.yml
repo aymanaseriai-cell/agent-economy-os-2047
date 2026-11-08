@@ -1,0 +1,28 @@
+name: Verify OKX API credentials READ-ONLY (NO TRADES)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: okx-auth-readonly-validation
+  cancel-in-progress: false
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      OKX_EXECUTION_MODE: dry_run
+      OKX_ENABLE_REAL_TRADING: NO
+      OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+      OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+      OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+      OKX_API_DOMAIN: https://www.okx.com
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify account authentication, position mode and exit history by GET only
+        run: python -m trading.okx_live_executor --verify-only
