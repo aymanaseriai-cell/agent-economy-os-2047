@@ -1,4 +1,6 @@
+import os
 import subprocess
+from unittest.mock import patch
 import unittest
 
 from trading.okx_five_second_worker import loop
@@ -83,6 +85,73 @@ class FiveSecondWorkerTests(unittest.TestCase):
         self.assertEqual(loop(max_runtime_seconds=100,run=run,clock=lambda:now[0],sleep=sleep),0)
         self.assertEqual(sum(x[2]=="trading.six_agent_council" for x in calls),2)
         self.assertEqual(pauses,[5])
+
+    def test_public_window_finishes_without_starting_too_late_scan(self):
+        now=[0.0]; calls=[]
+        def run(args,timeout):
+            calls.append((args[2],timeout))
+            if args[2]=="trading.six_agent_council":
+                now[0]+=23
+                return done(args)
+            return done(args,"DRY_RUN_SIGNAL_ONLY")
+        def sleep(n): now[0]+=n
+        with patch.dict(os.environ,{"OKX_EXECUTION_MODE":"dry_run",
+                                    "OKX_ENABLE_REAL_TRADING":"NO"}):
+            code=loop(max_runtime_seconds=100,graceful_public_deadline=True,
+                      run=run,clock=lambda:now[0],sleep=sleep)
+        self.assertEqual(code,0)
+        self.assertEqual(sum(c[0]=="trading.six_agent_council" for c in calls),3)
+        self.assertEqual(sum(c[0]=="trading.okx_live_executor" for c in calls),3)
+
+    def test_public_incomplete_last_scan_is_safe_deadline_not_failed_job(self):
+        now=[0.0]; calls=[]
+        def run(args,timeout):
+            calls.append((args[2],timeout))
+            if args[2]=="trading.six_agent_council":
+                if len(calls)>2:
+                    # Deadline-limited scan ends before any order executor.
+                    self.assertLess(timeout,90)
+                    now[0]+=timeout
+                    return done(args,code=124)
+                now[0]+=40
+                return done(args)
+            return done(args,"DRY_RUN_SIGNAL_ONLY")
+        def sleep(n):now[0]+=n
+        with patch.dict(os.environ,{"OKX_EXECUTION_MODE":"dry_run",
+                                    "OKX_ENABLE_REAL_TRADING":"NO"}):
+            code=loop(max_runtime_seconds=100,graceful_public_deadline=True,
+                      run=run,clock=lambda:now[0],sleep=sleep)
+        self.assertEqual(code,0)
+        self.assertEqual([c[0] for c in calls].count("trading.okx_live_executor"),1)
+
+    def test_public_scan_failure_with_full_time_budget_remains_failure(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append((args[2],timeout))
+            return done(args,code=124)
+        with patch.dict(os.environ,{"OKX_EXECUTION_MODE":"dry_run",
+                                    "OKX_ENABLE_REAL_TRADING":"NO"}):
+            code=loop(max_runtime_seconds=270,graceful_public_deadline=True,
+                      run=run,clock=lambda:0.0,sleep=lambda _:None)
+        self.assertEqual(code,2)
+        self.assertEqual(calls,[("trading.six_agent_council",90)])
+
+    def test_public_deadline_refuses_any_live_or_unbounded_configuration(self):
+        calls=[]
+        def never_run(*args,**kwargs):
+            calls.append(args)
+            self.fail("Unsafe research deadline mode reached market or order calls")
+        for mode,enable,runtime in (("live","YES",270),
+                                    ("dry_run","YES",270),
+                                    ("live","NO",270),
+                                    ("dry_run","NO",0)):
+            with self.subTest(mode=mode,enable=enable,runtime=runtime):
+                with patch.dict(os.environ,{"OKX_EXECUTION_MODE":mode,
+                                            "OKX_ENABLE_REAL_TRADING":enable}):
+                    with self.assertRaises(ValueError):
+                        loop(max_runtime_seconds=runtime,
+                             graceful_public_deadline=True,run=never_run)
+        self.assertEqual(calls,[])
 
     def test_refuse_faster_than_five_seconds(self):
         with self.assertRaises(ValueError):loop(interval_seconds=1)

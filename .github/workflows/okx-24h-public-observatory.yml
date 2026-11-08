@@ -17,7 +17,7 @@ jobs:
     env:
       # Hardcoded per-job safety lock, independent of repository's live vars.
       OKX_EXECUTION_MODE: dry_run
-      OKX_ENABLE_REAL_TRADING: NO
+      OKX_ENABLE_REAL_TRADING: 'NO'
       OKX_CAPITAL_MODE: guarded
       # Do not forward ANY exchange or NVIDIA secrets to this workflow.
     steps:
@@ -41,7 +41,8 @@ jobs:
           PY
       - name: Full OKX 6-agent + 7-quant market scans with 5-second between-cycle pause
         run: |
-          python -u -m trading.okx_five_second_worker             --interval-seconds 5             --max-runtime-seconds 270             --top 12             --report reports/okx_24h_public_observatory.json
+          # Normal end-of-job timeout is not a market-data failure:
+          python -u -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 270 --top 12 --graceful-public-deadline --report reports/okx_24h_public_observatory.json
       - name: Archive latest public market research report
         if: always()
         uses: actions/upload-artifact@v4

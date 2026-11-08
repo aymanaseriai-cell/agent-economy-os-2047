@@ -13,6 +13,7 @@ risk check, or any submitted order stops this process instead of blind retries.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -41,7 +42,7 @@ def command(args, *, timeout):
 def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
          max_runtime_seconds=0, top=12, report="reports/okx_six_agents.json",
          run:Callable=command, clock:Callable=time.monotonic,
-         sleep:Callable=time.sleep):
+         sleep:Callable=time.sleep, graceful_public_deadline=False):
     """Fail-closed full analysis, then executor; 5-sec pause between decisions.
 
     0 max_cycles = unlimited. 0 max_runtime = unlimited.
@@ -56,6 +57,13 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         raise ValueError("Nonnegative cycle/runtime limits required")
     if not isinstance(report,str) or not report or report.startswith("-"):
         raise ValueError("Invalid report path")
+    if graceful_public_deadline:
+        # This mode is ONLY for public market research. In particular, never
+        # silently treat a timeout during live order execution as success.
+        if (os.getenv("OKX_EXECUTION_MODE") != "dry_run"
+                or os.getenv("OKX_ENABLE_REAL_TRADING") != "NO"
+                or not max_runtime_seconds):
+            raise ValueError("Graceful public deadline requires NO/dry_run and bounded runtime")
     start=clock()
     scans=0
     while True:
@@ -63,17 +71,30 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             print("TITAN 5-second worker reached cycle limit",flush=True)
             return 0
         remaining=(start+max_runtime_seconds-clock()) if max_runtime_seconds else None
-        if remaining is not None and remaining<15:
-            print("TITAN 5-second worker completed bounded runtime",flush=True)
+        if remaining is not None and remaining < (35 if graceful_public_deadline else 15):
+            print("TITAN bounded runtime reached; no new market scan started", flush=True)
             return 0
         scans+=1
         print(f"TITAN cycle {scans} start; full public council scan",flush=True)
-        scan_timeout=90 if remaining is None else min(90,remaining)
+        # Hold back 15 seconds for a controlled exit at the end of a GitHub
+        # public-research job. The earlier code gave the scan all remaining
+        # seconds and flagged normal deadline exhaustion as a hard failure.
+        scan_timeout=(90 if remaining is None else
+                      min(90, max(1, remaining - 15 if graceful_public_deadline else remaining)))
         scan=run([sys.executable,"-m","trading.six_agent_council",
                   "--top",str(top),"--out",report],timeout=scan_timeout)
         if scan.returncode!=0:
+            if (graceful_public_deadline and scan.returncode==124
+                    and scan_timeout<90):
+                print("TITAN public research window ended during an incomplete final scan; "
+                      "no orders, previous completed scans retained",flush=True)
+                return 0
             print("TITAN market scan failed; stop without orders",file=sys.stderr,flush=True)
             return 2
+        if graceful_public_deadline and clock()+10 >= start+max_runtime_seconds:
+            print("TITAN public research window ended after scan; "
+                  "no executor started, no orders",flush=True)
+            return 0
         # The existing guarded executor refuses live access unless all original
         # independent arm tokens, configured risk checks and NVIDIA veto pass.
         # Even in dry_run, no private OKX endpoint or order is called.
@@ -114,13 +135,17 @@ def main():
                         help="0 means continuous; stop on failure or order")
     parser.add_argument("--max-runtime-seconds",type=int,default=0,
                         help="0 means unbounded; GitHub Actions must use bounded")
+    parser.add_argument("--graceful-public-deadline",action="store_true",
+                        help="Only in forced NO/dry_run: cleanly stop incomplete final "
+                             "public scan at scheduled job deadline")
     parser.add_argument("--top",type=int,default=12)
     parser.add_argument("--report",default="reports/okx_six_agents.json")
     args=parser.parse_args()
     try:
         return loop(interval_seconds=args.interval_seconds,max_cycles=args.max_cycles,
                     max_runtime_seconds=args.max_runtime_seconds,
-                    top=args.top,report=args.report)
+                    top=args.top,report=args.report,
+                    graceful_public_deadline=args.graceful_public_deadline)
     except ValueError as exc:
         print("Invalid TITAN configuration: "+str(exc),file=sys.stderr)
         return 2

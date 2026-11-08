@@ -44,6 +44,11 @@ jobs:
           OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
           OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
           OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+      - name: Refuse unconfirmed live run (never mark skipped execution green)
+        if: inputs.purpose == 'run' && inputs.confirm_live != true
+        run: |
+          echo "::error::LIVE TRADING NOT STARTED. Choose purpose=run and check confirm_live=true."
+          exit 1
       - name: Five-second continuous worker within bounded GitHub job
         if: inputs.purpose == 'run' && inputs.confirm_live == true
         run: python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json
