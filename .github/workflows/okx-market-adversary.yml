@@ -1,0 +1,51 @@
+name: QUANT2037 Adversarial Microstructure Twin (PUBLIC, NO TRADES)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '34 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: quant2037-market-adversary
+  cancel-in-progress: true
+jobs:
+  public-microstructure-stress:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test exact-replay invariants
+        run: |
+          python -m unittest discover -s tests -p 'test_market_adversary.py' -v
+          python -m unittest discover -s tests -p 'test_six_agent_council.py' -v
+      - name: Capture public OKX L2/tape/15m/1h/4h/OI/mark/funding and stress original council
+        run: python -m trading.market_adversary capture --top 6 --evidence reports/adversary_public_inputs.json --out reports/adversary_decisions.json
+      - name: Independently reproduce same output from frozen public data
+        run: |
+          python -m trading.market_adversary replay --evidence reports/adversary_public_inputs.json --out reports/adversary_replay.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('reports/adversary_decisions.json').read_text())
+          b=json.loads(Path('reports/adversary_replay.json').read_text())
+          assert a==b, 'Original 6+7 model is not reproducible on frozen evidence'
+          assert a['order_count']==0 and not a['nvidia_evaluated']
+          assert a['summary']['markets_evaluated']>0, 'No actual market was evaluated'
+          print('REPLAY PASS:',a['summary'])
+          PY
+      - name: Archive raw public market snapshot and attack outcomes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quant2037-real-market-adversarial-twin
+          path: |
+            reports/adversary_public_inputs.json
+            reports/adversary_decisions.json
+            reports/adversary_replay.json
+          if-no-files-found: warn
+          retention-days: 30

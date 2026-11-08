@@ -1,0 +1,3241 @@
+{
+  "mode": "QUANT2037_ADVERSARIAL_PUBLIC_ONLY_NO_TRADES",
+  "source_evidence_sha256": "b5f6995fb47ae1af460dc47008c44361dc3aa701e5b1ee7cd93d74d229fc2f64",
+  "replayed_using": "EXACT_6_SPECIALIST_PLUS_7_QUANT_PYTHON_FUNCTIONS",
+  "synthetic_stress": true,
+  "nvidia_evaluated": false,
+  "order_count": 0,
+  "experiment_registry": {
+    "mild": [
+      "bid_depth_minus_20pct",
+      "ask_depth_minus_20pct",
+      "recent_trade_flip_10pct",
+      "spread_plus_3bp",
+      "last_up_5bp",
+      "last_down_5bp"
+    ],
+    "hostile": [
+      "fake_bid_wall_x3",
+      "fake_ask_wall_x3",
+      "recent_trade_flip_30pct",
+      "spread_plus_20bp",
+      "stale_book_150sec"
+    ]
+  },
+  "summary": {
+    "markets_captured": 3,
+    "markets_evaluated": 3,
+    "candidate_signals": 0,
+    "candidate_with_mild_instability": 0,
+    "opposite_decision_under_attack": 0,
+    "mild_changed_core_role_votes": 0,
+    "mild_changed_seven_quant_verdicts": 0,
+    "hostile_changed_core_role_votes": 4,
+    "hostile_changed_seven_quant_verdicts": 6,
+    "mild_decision_change_events": 0,
+    "hostile_decision_change_events": 0,
+    "market_errors": 0,
+    "not_validated_profit_edge": true
+  },
+  "markets": [
+    {
+      "symbol": "BTC-USDT-SWAP",
+      "source_sha256": "8ddc92c4e0554dd72bec267e02370c6e6e9f498b065b074f26397ab374e4490c",
+      "captured_at_utc": "2026-11-08T14:32:33.150000+00:00",
+      "baseline": {
+        "signal": "WAIT",
+        "core_signal": "WAIT",
+        "six_roles": [
+          [
+            "01_liquidity_sentinel",
+            0,
+            false
+          ],
+          [
+            "02_auction_cartographer",
+            0,
+            false
+          ],
+          [
+            "03_tape_detective",
+            1,
+            false
+          ],
+          [
+            "04_derivatives_intelligence",
+            0,
+            false
+          ],
+          [
+            "05_structure_navigator",
+            0,
+            false
+          ],
+          [
+            "06_risk_marshal",
+            0,
+            true
+          ]
+        ],
+        "seven_systems": [
+          [
+            "01_jump_sentinel",
+            0,
+            "PASS"
+          ],
+          [
+            "02_permutation_entropy",
+            0,
+            "CAUTION"
+          ],
+          [
+            "03_variance_ratio",
+            0,
+            "PASS"
+          ],
+          [
+            "04_value_area_migration",
+            0,
+            "PASS"
+          ],
+          [
+            "05_depth_fragility",
+            0,
+            "PASS"
+          ],
+          [
+            "06_flow_acceleration",
+            0,
+            "PASS"
+          ],
+          [
+            "07_counterfactual_stability",
+            0,
+            "PASS"
+          ]
+        ],
+        "advanced_confirmations": 0,
+        "advanced_veto_reasons": []
+      },
+      "stress": [
+        {
+          "experiment": "bid_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "ask_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_10pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_3bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_up_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_down_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_bid_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [
+            "05_depth_fragility"
+          ],
+          "changed_role_count": 0,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_ask_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [
+            "05_depth_fragility"
+          ],
+          "changed_role_count": 0,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_30pct",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                -1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [
+            "06_flow_acceleration"
+          ],
+          "changed_role_count": 0,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_20bp",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "stale_book_150sec",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                true
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                0,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [
+            "01_liquidity_sentinel"
+          ],
+          "changed_quant_systems": [],
+          "changed_role_count": 1,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        }
+      ],
+      "mild_changed_count": 0,
+      "mild_failed_count": 0,
+      "mild_role_vote_changes": 0,
+      "mild_quant_system_changes": 0,
+      "hostile_role_vote_changes": 1,
+      "hostile_quant_system_changes": 3,
+      "hostile_changed_count": 0,
+      "opposite_direction_cases": 0,
+      "baseline_market_decision_stable_under_all_mild": true,
+      "mild_input_fragility_if_candidate": null,
+      "note": "Synthetic perturbation of public feeds; stability is NOT predictive alpha."
+    },
+    {
+      "symbol": "ETH-USDT-SWAP",
+      "source_sha256": "3ea55e3f9ca5b7995f6b40e3a0e226d09ad8bdb7fee05b0cfa33bcee49cb30e5",
+      "captured_at_utc": "2026-11-08T14:32:34.445000+00:00",
+      "baseline": {
+        "signal": "WAIT",
+        "core_signal": "WAIT",
+        "six_roles": [
+          [
+            "01_liquidity_sentinel",
+            0,
+            false
+          ],
+          [
+            "02_auction_cartographer",
+            0,
+            false
+          ],
+          [
+            "03_tape_detective",
+            1,
+            false
+          ],
+          [
+            "04_derivatives_intelligence",
+            0,
+            false
+          ],
+          [
+            "05_structure_navigator",
+            0,
+            false
+          ],
+          [
+            "06_risk_marshal",
+            0,
+            true
+          ]
+        ],
+        "seven_systems": [
+          [
+            "01_jump_sentinel",
+            0,
+            "PASS"
+          ],
+          [
+            "02_permutation_entropy",
+            0,
+            "CAUTION"
+          ],
+          [
+            "03_variance_ratio",
+            0,
+            "PASS"
+          ],
+          [
+            "04_value_area_migration",
+            -1,
+            "PASS"
+          ],
+          [
+            "05_depth_fragility",
+            0,
+            "CAUTION"
+          ],
+          [
+            "06_flow_acceleration",
+            1,
+            "PASS"
+          ],
+          [
+            "07_counterfactual_stability",
+            0,
+            "PASS"
+          ]
+        ],
+        "advanced_confirmations": 0,
+        "advanced_veto_reasons": []
+      },
+      "stress": [
+        {
+          "experiment": "bid_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "ask_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_10pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_3bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_up_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_down_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_bid_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_ask_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_30pct",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_20bp",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "stale_book_150sec",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                true
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                0,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                1,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [
+            "01_liquidity_sentinel"
+          ],
+          "changed_quant_systems": [],
+          "changed_role_count": 1,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        }
+      ],
+      "mild_changed_count": 0,
+      "mild_failed_count": 0,
+      "mild_role_vote_changes": 0,
+      "mild_quant_system_changes": 0,
+      "hostile_role_vote_changes": 1,
+      "hostile_quant_system_changes": 0,
+      "hostile_changed_count": 0,
+      "opposite_direction_cases": 0,
+      "baseline_market_decision_stable_under_all_mild": true,
+      "mild_input_fragility_if_candidate": null,
+      "note": "Synthetic perturbation of public feeds; stability is NOT predictive alpha."
+    },
+    {
+      "symbol": "ZEC-USDT-SWAP",
+      "source_sha256": "8e75fae05704add6abe6046edbbfbd0ecf0bfbeb3c601ff0e5527e7f8bf3e310",
+      "captured_at_utc": "2026-11-08T14:32:35.746000+00:00",
+      "baseline": {
+        "signal": "WAIT",
+        "core_signal": "LONG",
+        "six_roles": [
+          [
+            "01_liquidity_sentinel",
+            0,
+            false
+          ],
+          [
+            "02_auction_cartographer",
+            0,
+            false
+          ],
+          [
+            "03_tape_detective",
+            1,
+            false
+          ],
+          [
+            "04_derivatives_intelligence",
+            0,
+            false
+          ],
+          [
+            "05_structure_navigator",
+            1,
+            false
+          ],
+          [
+            "06_risk_marshal",
+            0,
+            false
+          ]
+        ],
+        "seven_systems": [
+          [
+            "01_jump_sentinel",
+            0,
+            "PASS"
+          ],
+          [
+            "02_permutation_entropy",
+            0,
+            "CAUTION"
+          ],
+          [
+            "03_variance_ratio",
+            0,
+            "PASS"
+          ],
+          [
+            "04_value_area_migration",
+            -1,
+            "PASS"
+          ],
+          [
+            "05_depth_fragility",
+            0,
+            "PASS"
+          ],
+          [
+            "06_flow_acceleration",
+            0,
+            "PASS"
+          ],
+          [
+            "07_counterfactual_stability",
+            1,
+            "PASS"
+          ]
+        ],
+        "advanced_confirmations": 0,
+        "advanced_veto_reasons": [
+          "no_independent_quant_confirmation"
+        ]
+      },
+      "stress": [
+        {
+          "experiment": "bid_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "ask_depth_minus_20pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_10pct",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_3bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_up_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "last_down_5bp",
+          "severity": "MILD",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_bid_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "CAUTION"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [
+            "05_depth_fragility"
+          ],
+          "changed_role_count": 0,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "fake_ask_wall_x3",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "recent_trade_flip_30pct",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "LONG",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                1,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": [
+              "no_independent_quant_confirmation"
+            ]
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": false,
+          "changed_roles": [],
+          "changed_quant_systems": [],
+          "changed_role_count": 0,
+          "changed_quant_count": 0,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "spread_plus_20bp",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                false
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                true
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": true,
+          "changed_roles": [
+            "06_risk_marshal"
+          ],
+          "changed_quant_systems": [
+            "07_counterfactual_stability"
+          ],
+          "changed_role_count": 1,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        },
+        {
+          "experiment": "stale_book_150sec",
+          "severity": "HOSTILE",
+          "result": {
+            "signal": "WAIT",
+            "core_signal": "WAIT",
+            "six_roles": [
+              [
+                "01_liquidity_sentinel",
+                0,
+                true
+              ],
+              [
+                "02_auction_cartographer",
+                0,
+                false
+              ],
+              [
+                "03_tape_detective",
+                1,
+                false
+              ],
+              [
+                "04_derivatives_intelligence",
+                0,
+                false
+              ],
+              [
+                "05_structure_navigator",
+                1,
+                false
+              ],
+              [
+                "06_risk_marshal",
+                0,
+                false
+              ]
+            ],
+            "seven_systems": [
+              [
+                "01_jump_sentinel",
+                0,
+                "PASS"
+              ],
+              [
+                "02_permutation_entropy",
+                0,
+                "CAUTION"
+              ],
+              [
+                "03_variance_ratio",
+                0,
+                "PASS"
+              ],
+              [
+                "04_value_area_migration",
+                -1,
+                "PASS"
+              ],
+              [
+                "05_depth_fragility",
+                0,
+                "PASS"
+              ],
+              [
+                "06_flow_acceleration",
+                0,
+                "PASS"
+              ],
+              [
+                "07_counterfactual_stability",
+                0,
+                "PASS"
+              ]
+            ],
+            "advanced_confirmations": 0,
+            "advanced_veto_reasons": []
+          },
+          "error": null,
+          "changed_final_decision": false,
+          "changed_core_vote": true,
+          "changed_roles": [
+            "01_liquidity_sentinel"
+          ],
+          "changed_quant_systems": [
+            "07_counterfactual_stability"
+          ],
+          "changed_role_count": 1,
+          "changed_quant_count": 1,
+          "opposite_entry": false
+        }
+      ],
+      "mild_changed_count": 0,
+      "mild_failed_count": 0,
+      "mild_role_vote_changes": 0,
+      "mild_quant_system_changes": 0,
+      "hostile_role_vote_changes": 2,
+      "hostile_quant_system_changes": 3,
+      "hostile_changed_count": 0,
+      "opposite_direction_cases": 0,
+      "baseline_market_decision_stable_under_all_mild": true,
+      "mild_input_fragility_if_candidate": null,
+      "note": "Synthetic perturbation of public feeds; stability is NOT predictive alpha."
+    }
+  ],
+  "errors": [],
+  "limitations": [
+    "Synthetic book/tape/spread perturbations do not establish market manipulation.",
+    "One public L2 snapshot cannot detect spoofing or measure real fill probability.",
+    "Inputs from sequential API calls are not exchange-atomic.",
+    "Robustness on a few snapshots is not evidence of profitable trading.",
+    "Original live NVIDIA veto cannot be reconstructed or authorized here.",
+    "Experimental attacks never change the production trading decision or live gates."
+  ]
+}

@@ -105,12 +105,12 @@ def result(name, vote, strength, detail, veto=False):
 
 
 # AGENT 1: LIQUIDITY SENTINEL - mandatory market quality veto.
-def liquidity_sentinel(ticker, book):
+def liquidity_sentinel(ticker, book, *, asof_epoch=None):
     bids, asks = book.get("bids", []), book.get("asks", [])
     bid_depth = sum(number(level[1]) for level in bids[:20])
     ask_depth = sum(number(level[1]) for level in asks[:20])
     book_ts = number(book.get("ts"))
-    age_sec = max(0, time.time() - book_ts / 1000) if book_ts else None
+    age_sec = max(0, (time.time() if asof_epoch is None else asof_epoch) - book_ts / 1000) if book_ts else None
     veto = (ticker["turnover_usdt_est"] < MIN_TURNOVER_USDT_EST or
             ticker["spread_bp"] > MAX_SPREAD_BP or not min(bid_depth, ask_depth) > 0 or
             age_sec is None or age_sec > 120)
@@ -291,8 +291,8 @@ def risk_marshal(ticker, bars, proposed, profile):
         "warning": "No leverage or exposure applied. Targets are examples and not forecasts."}, veto=veto)
 
 
-def summarize_agents(ticker, bars, hourly, four_hourly, book, trades, funding, interest, mark):
-    checks = [liquidity_sentinel(ticker, book), auction_cartographer(bars),
+def summarize_agents(ticker, bars, hourly, four_hourly, book, trades, funding, interest, mark, *, asof_epoch=None):
+    checks = [liquidity_sentinel(ticker, book, asof_epoch=asof_epoch), auction_cartographer(bars),
               tape_detective(book, trades), derivatives_intelligence(funding, interest, mark, ticker["last"]),
               structure_navigator(hourly, four_hourly)]
     votes = checks[1:]
