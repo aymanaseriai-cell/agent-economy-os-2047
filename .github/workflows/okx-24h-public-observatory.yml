@@ -4,6 +4,15 @@ on:
     # GitHub minimum scheduler resolution: five minutes, in UTC.
     # Offset from :00 to reduce scheduler contention.
     - cron: '3-58/5 * * * *'
+  # After each finite manually approved live session, immediately restart
+  # public market observation. Never auto-dispatch the live execution workflow.
+  workflow_run:
+    workflows:
+      - 'OKX guarded execution (LIVE only after explicit arm)'
+    types:
+      - completed
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       runtime_seconds:
