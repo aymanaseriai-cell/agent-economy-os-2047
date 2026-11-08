@@ -1,6 +1,8 @@
 import copy
 import json
 import unittest
+from unittest.mock import patch
+from trading.shadow_observatory import fetch_public_candles
 from datetime import datetime,timezone
 from trading.shadow_observatory import (
     BAR_MS,canonical,diagnostic,freeze,outcome,parse_bars,score,sha,utc_ms,verify_snapshot
@@ -128,6 +130,25 @@ class ShadowObservatoryTests(unittest.TestCase):
         z=score([s],{"BTC-USDT-SWAP":price_bars()})
         self.assertFalse(z["summary"]["edge_established"])
         self.assertEqual(z["summary"]["status"],"INSUFFICIENT_PROSPECTIVE_EVIDENCE")
+
+    def test_brand_new_signal_without_completed_future_candles_is_pending(self):
+        class FakeResponse:
+            def __enter__(self):return self
+            def __exit__(self,*args):return False
+        # Only old bars exist before new signal's observation timestamp.
+        fake={"code":"0","data":[
+            [str(i*BAR_MS),"100","101","99","100","0","0","0","1"]
+            for i in range(100,0,-1)]}
+        with patch("trading.shadow_observatory.urlopen",return_value=FakeResponse()):
+            with patch("trading.shadow_observatory.json.load",return_value=fake):
+                bars=fetch_public_candles("BTC-USDT-SWAP",200*BAR_MS,
+                                          now_ms=201*BAR_MS)
+        self.assertEqual(bars,[])
+        snap=freeze(make_report(at_ms=200*BAR_MS+60_000,
+                               signals=[("BTC-USDT-SWAP","LONG")]))
+        scored=score([snap],{"BTC-USDT-SWAP":bars})
+        self.assertEqual(scored["rows"][0]["60m"]["status"],"immature_or_missing")
+        self.assertEqual(scored["summary"]["primary_matured_1h_count"],0)
 
     def test_policy_version_firewall_never_blends_old_and_new(self):
         a=freeze(make_report(signals=[("BTC-USDT-SWAP","LONG")]))

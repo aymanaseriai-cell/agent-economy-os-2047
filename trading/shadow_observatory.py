@@ -165,8 +165,11 @@ def fetch_public_candles(symbol, oldest_ms, *, now_ms=None, max_pages=20):
     else:
         raise ValueError("History exceeded page safety bound")
     bars=[by_ts[k] for k in sorted(by_ts)]
-    if len(bars)<8:
-        raise ValueError("Insufficient complete market history")
+    # A newly recorded research decision may not yet have even one completed
+    # future candle. That is PENDING evidence, not a scanner or market failure.
+    # outcome() marks its horizons immature until enough real bars are present.
+    # Market API failures and missing bars inside an observed sequence still
+    # fail closed instead of manufacturing a return.
     if any(b["ts"]-a["ts"]!=BAR_MS for a,b in zip(bars,bars[1:])):
         raise ValueError("Incomplete history: missing 15m bars")
     return bars
