@@ -1,0 +1,29 @@
+name: FreeLLMAPI bridge security tests (NO TRADES OR INFERENCE)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-bridge-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Test secured OpenAI-compatible FreeLLMAPI integration
+        run: python -m unittest discover -s tests -p test_freellmapi_bridge.py -v
+      - name: Verify zero network calls and no trading authority by default
+        run: |
+          python -m trading.freellmapi_bridge --mode status --out reports/freellmapi_status.json
+          python - <<'PY'
+          import json
+          o=json.load(open('reports/freellmapi_status.json'))
+          assert o['mode']=='FREELLMAPI_CONFIGURATION_ONLY'
+          assert o['execution_authorized'] is False
+          assert o['requests_sent']==0
+          print('FREE LLM BRIDGE TESTS PASS: ZERO EXCHANGE OR AI REQUESTS')
+          PY
