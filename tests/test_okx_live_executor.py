@@ -334,3 +334,16 @@ class TestLiveSafety(unittest.TestCase):
             daily_order_limit(Fake(),candidate_id='Q37ABC')
 
 if __name__=='__main__': unittest.main()
+
+class AutoReentrySizingTests(unittest.TestCase):
+    def test_auto_reentry_never_uses_full_margin(self):
+        from tests.test_okx_live_executor import make_signal
+        report={"results":[make_signal()]}
+        env={"OKX_EXECUTION_MODE":"live","OKX_EXECUTION_ARM":MODE_ARM["live"],
+             "OKX_ENABLE_REAL_TRADING":"YES","OKX_API_KEY":"fake",
+             "OKX_SECRET_KEY":"fake","OKX_PASSPHRASE":"fake",
+             "OKX_CAPITAL_MODE":"full_margin",
+             "OKX_FULL_MARGIN_ARM":FULL_MARGIN_ARM,
+             "OKX_AUTOREENTRY_ENABLED":"YES"}
+        with self.assertRaisesRegex(ExecutionBlocked,"guarded"):
+            execute(report,object(),"live",env)

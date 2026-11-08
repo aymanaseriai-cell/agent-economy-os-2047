@@ -6,9 +6,11 @@ guarantee that the original 6+7 analysis finishes within five seconds.
 A persistent host can run this as one long-lived process. GitHub Actions
 cron cannot schedule every five seconds; its minimum is five minutes.
 
-Uses the ORIGINAL public 6+7 scanner and original guarded executor, unchanged.
-NO new order endpoints. Unknown execution status, network failure, blocked
-risk check, or any submitted order stops this process instead of blind retries.
+Uses the public 6+7 scanner and guarded executor. Normal one-off mode stops
+after submitting an order. Separately armed auto-reentry mode only resumes after
+a FILLED_PROTECTED result, repeatedly verifies open-position protection and
+exchange-recorded ten-minute cooldown, and stops on all unknown states.
+No blind order retries and no new write endpoints.
 """
 from __future__ import annotations
 
@@ -21,6 +23,7 @@ from typing import Callable
 
 INTERVAL_SECONDS = 5
 ALLOWED_NONORDER_STATUSES = frozenset(("NO_CONSENSUS","DRY_RUN_SIGNAL_ONLY"))
+MONITOR_WAIT_STATES = frozenset(("POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE"))
 
 def command(args, *, timeout):
     """Subprocess is sequential, and any unknown-order timeout aborts."""
@@ -42,13 +45,18 @@ def command(args, *, timeout):
 def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
          max_runtime_seconds=0, top=12, report="reports/okx_six_agents.json",
          run:Callable=command, clock:Callable=time.monotonic,
-         sleep:Callable=time.sleep, graceful_public_deadline=False):
+         sleep:Callable=time.sleep, graceful_public_deadline=False,
+         resume_after_protected_fill=False):
     """Fail-closed full analysis, then executor; 5-sec pause between decisions.
 
     0 max_cycles = unlimited. 0 max_runtime = unlimited.
     In a GitHub job use a bounded runtime to stay inside job timeouts.
     A persistent machine can use unlimited mode.
     """
+    if resume_after_protected_fill and os.getenv("OKX_AUTOREENTRY_ENABLED")!="YES":
+        raise ValueError("Auto re-entry requires explicit OKX_AUTOREENTRY_ENABLED=YES")
+    if resume_after_protected_fill and os.getenv("OKX_CAPITAL_MODE","guarded").lower()!="guarded":
+        raise ValueError("Auto re-entry refuses full_margin; use guarded capital mode")
     if interval_seconds!=INTERVAL_SECONDS:
         raise ValueError("TITAN 5-second cadence is fixed at 5 seconds")
     if not 1<=top<=12:
@@ -74,6 +82,30 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         if remaining is not None and remaining < (35 if graceful_public_deadline else 15):
             print("TITAN bounded runtime reached; no new market scan started", flush=True)
             return 0
+        if resume_after_protected_fill:
+            # Read-only private state before public scans; do not waste scans or
+            # trigger orders while a protected position or exit cooldown exists.
+            mon=run([sys.executable,"-m","trading.okx_resume_monitor"],timeout=45)
+            if mon.returncode!=0:
+                print("TITAN account monitor blocked; stop without another order",
+                      file=sys.stderr,flush=True)
+                return mon.returncode
+            states=[line.partition("OKX MONITOR RESULT: ")[2].strip()
+                    for line in mon.stdout.splitlines()
+                    if line.startswith("OKX MONITOR RESULT: ")]
+            if len(states)!=1 or states[0] not in MONITOR_WAIT_STATES | {"FLAT_ELIGIBLE"}:
+                print("TITAN ambiguous account monitoring result; stop",
+                      file=sys.stderr,flush=True)
+                return 3
+            if states[0] in MONITOR_WAIT_STATES:
+                pause=30
+                if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
+                    print("TITAN bounded runtime reached",flush=True)
+                    return 0
+                print("TITAN monitor: "+states[0]+"; no new order, poll again after 30s",
+                      flush=True)
+                sleep(pause)
+                continue
         scans+=1
         print(f"TITAN cycle {scans} start; full public council scan",flush=True)
         # Hold back 15 seconds for a controlled exit at the end of a GitHub
@@ -112,10 +144,19 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                   file=sys.stderr,flush=True)
             return 3
         status=statuses[0]
+        if status=="FILLED_PROTECTED" and resume_after_protected_fill:
+            print("TITAN protected entry verified; switching to exchange-state monitoring",
+                  flush=True)
+            if max_cycles and scans>=max_cycles:
+                return 0
+            if max_runtime_seconds and clock()+INTERVAL_SECONDS+15>start+max_runtime_seconds:
+                print("TITAN bounded runtime reached",flush=True)
+                return 0
+            sleep(INTERVAL_SECONDS)
+            continue
         if status not in ALLOWED_NONORDER_STATUSES:
-            # This includes AI_VETO_NO_ORDER: do NOT retry a trade the risk
-            # council rejected. Filled/partial/uncertain outcomes also stop.
-            # Live execution never treats a missing or error status as safe.
+            # Never auto-repeat ambiguous or unprotected submissions, failed
+            # protection, risk veto, unknown order state or unexpected output.
             print("TITAN executor outcome: "+status+
                   "; stop to prevent duplicate or rejected orders",flush=True)
             return 0
@@ -138,6 +179,8 @@ def main():
     parser.add_argument("--graceful-public-deadline",action="store_true",
                         help="Only in forced NO/dry_run: cleanly stop incomplete final "
                              "public scan at scheduled job deadline")
+    parser.add_argument("--resume-after-protected-fill",action="store_true",
+                        help="Explicitly armed read-only monitoring after protected fill")
     parser.add_argument("--top",type=int,default=12)
     parser.add_argument("--report",default="reports/okx_six_agents.json")
     args=parser.parse_args()
@@ -145,7 +188,8 @@ def main():
         return loop(interval_seconds=args.interval_seconds,max_cycles=args.max_cycles,
                     max_runtime_seconds=args.max_runtime_seconds,
                     top=args.top,report=args.report,
-                    graceful_public_deadline=args.graceful_public_deadline)
+                    graceful_public_deadline=args.graceful_public_deadline,
+                    resume_after_protected_fill=args.resume_after_protected_fill)
     except ValueError as exc:
         print("Invalid TITAN configuration: "+str(exc),file=sys.stderr)
         return 2

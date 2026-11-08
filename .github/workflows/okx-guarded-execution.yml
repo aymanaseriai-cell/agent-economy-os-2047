@@ -25,6 +25,16 @@ on:
         type: boolean
         default: false
         required: true
+      resume_after_exit:
+        description: 'After a PROTECTED fill, monitor OKX and seek another trade no sooner than 10m after full exit (guarded margin only)'
+        type: boolean
+        default: false
+        required: true
+      confirm_repeat_entries:
+        description: 'I separately authorize up to TWO new entries in rolling 24h, guarded sizing only'
+        type: boolean
+        default: false
+        required: true
 permissions:
   contents: read
   actions: write
@@ -60,17 +70,38 @@ jobs:
         run: |
           echo "::error::LIVE TRADING NOT STARTED. Choose purpose=run and check confirm_live=true."
           exit 1
+      - name: Refuse unconfirmed or full-margin automatic repeat trading
+        if: inputs.purpose == 'run' && inputs.resume_after_exit == true
+        env:
+          CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          CONTINUOUS: ${{ inputs.continuous }}
+          CONTINUOUS_CONFIRM: ${{ inputs.confirm_continuous_live }}
+          REPEAT_CONFIRM: ${{ inputs.confirm_repeat_entries }}
+        run: |
+          if [[ "$CONTINUOUS" != "true" || "$CONTINUOUS_CONFIRM" != "true" || "$REPEAT_CONFIRM" != "true" ]]; then
+            echo "::error::Auto re-entry requires all independent repeat-entry confirmations."
+            exit 1
+          fi
+          if [[ "${CAPITAL_MODE,,}" != "guarded" ]]; then
+            echo "::error::Auto re-entry prohibited in full_margin. Set OKX_CAPITAL_MODE=guarded before enabling."
+            exit 1
+          fi
       - name: Five-second continuous worker within bounded GitHub job
         id: worker
         if: inputs.purpose == 'run' && inputs.confirm_live == true
         run: |
           set -euo pipefail
-          python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json | tee "$RUNNER_TEMP/okx_worker.log"
+          extra_args=()
+          if [[ "$OKX_AUTOREENTRY_ENABLED" == 'YES' ]]; then
+            extra_args+=(--resume-after-protected-fill)
+          fi
+          python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json "${extra_args[@]}" | tee "$RUNNER_TEMP/okx_worker.log"
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
@@ -92,6 +123,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'NO' }}
+          RESUME_AFTER_EXIT: ${{ inputs.resume_after_exit }}
+          CONFIRM_REPEAT_ENTRIES: ${{ inputs.confirm_repeat_entries }}
         run: |
           set -euo pipefail
           if [[ "$OKX_STOP_CONTINUOUS" == 'YES' ]]; then
@@ -99,7 +132,7 @@ jobs:
             exit 0
           fi
           if ! tail -n 1 "$RUNNER_TEMP/okx_worker.log" | grep -Eq '^TITAN bounded runtime reached(; no new market scan started)?$'; then
-            echo 'Worker ended early after order, veto, or uncertain status; no blind automatic replay.'
+            echo 'Worker ended early after order or an uncertain state; no blind automatic replay.'
             exit 0
           fi
           echo 'Clean session complete. Waiting 20 seconds before requesting the next run.'
@@ -109,4 +142,6 @@ jobs:
             -f 'inputs[purpose]=run' \
             -f 'inputs[confirm_live]=true' \
             -f 'inputs[continuous]=true' \
-            -f 'inputs[confirm_continuous_live]=true'
+            -f 'inputs[confirm_continuous_live]=true' \
+            -f "inputs[resume_after_exit]=${RESUME_AFTER_EXIT}" \
+            -f "inputs[confirm_repeat_entries]=${CONFIRM_REPEAT_ENTRIES}"

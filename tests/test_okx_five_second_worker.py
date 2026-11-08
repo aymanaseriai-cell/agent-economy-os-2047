@@ -173,3 +173,49 @@ class FiveSecondWorkerTests(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
+
+class AutoResumeWorkerTests(unittest.TestCase):
+    def test_protected_fill_switches_to_monitor_then_next_quant_trade(self):
+        clock=[0.0]
+        calls=[]; delays=[]
+        monitor_states=iter(("FLAT_ELIGIBLE","POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE","FLAT_ELIGIBLE"))
+        results=iter(("FILLED_PROTECTED","NO_CONSENSUS"))
+        def fake_run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(cmd,0,
+                       "OKX MONITOR RESULT: "+next(monitor_states)+"\\n","")
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,next(results))
+            return done(cmd)
+        def sleep(seconds):
+            delays.append(seconds);clock[0]+=seconds
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
+                                    "OKX_CAPITAL_MODE":"guarded"}):
+            result=loop(max_cycles=2,resume_after_protected_fill=True,
+                        run=fake_run,clock=lambda:clock[0],sleep=sleep)
+        self.assertEqual(result,0)
+        self.assertEqual(calls.count("trading.okx_resume_monitor"),4)
+        self.assertEqual(calls.count("trading.six_agent_council"),2)
+        self.assertEqual(delays,[5,30,30])
+
+    def test_unprotected_open_position_stops_immediately(self):
+        calls=[]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            return done(cmd,code=2)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
+                                    "OKX_CAPITAL_MODE":"guarded"}):
+            self.assertEqual(loop(resume_after_protected_fill=True,run=run,
+                                  clock=lambda:0.0),2)
+        self.assertEqual(calls,["trading.okx_resume_monitor"])
+
+    def test_auto_repeat_cannot_run_full_margin_or_without_opt_in(self):
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES",
+                                    "OKX_CAPITAL_MODE":"Full_margin"}):
+            with self.assertRaisesRegex(ValueError,"full_margin"):
+                loop(resume_after_protected_fill=True)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"NO",
+                                    "OKX_CAPITAL_MODE":"guarded"}):
+            with self.assertRaisesRegex(ValueError,"explicit"):
+                loop(resume_after_protected_fill=True)

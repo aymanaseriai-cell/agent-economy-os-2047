@@ -34,6 +34,7 @@ EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial sto
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
 REENTRY_COOLDOWN_MS = 10 * 60 * 1000  # wait at least 10m after any fully closed SWAP position
+MAX_AUTO_REENTRY_ENTRIES_24H = 2  # applies ONLY to separately armed repeat-entry mode
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
@@ -499,6 +500,11 @@ def inspect_after_submit(client,signal,clordid):
 
 def execute(report, client, mode, env, *, allow_post=True):
     check_mode(mode,env)
+    auto_reentry = env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
+    # A recurring GitHub worker has no persistent drawdown daemon. Refuse
+    # sequential full-margin entries; one-off full-margin remains separately armed.
+    if auto_reentry and env.get('OKX_CAPITAL_MODE','guarded').lower() != 'guarded':
+        raise ExecutionBlocked('Auto re-entry requires guarded capital mode (not full_margin)')
     signal=choose_signal(report)
     if signal is None:
         return 'NO_CONSENSUS'
@@ -514,7 +520,9 @@ def execute(report, client, mode, env, *, allow_post=True):
     clordid=client_order_id(signal)
     # Check the latest 24h history for duplicate client order IDs, not a numeric trade limit.
     # A second entry is only considered after the exchange-verified 10m exit cooldown.
-    daily_order_limit(client,candidate_id=clordid)
+    previous_bot_entries=daily_order_limit(client,candidate_id=clordid)
+    if auto_reentry and previous_bot_entries >= MAX_AUTO_REENTRY_ENTRIES_24H:
+        raise ExecutionBlocked('Auto re-entry budget exhausted (2 entries in rolling 24h); stop')
     price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
     capital_mode=env.get('OKX_CAPITAL_MODE','guarded').lower()
     # Verify OKX exchange size limit; leverage config changed only at last possible step.
@@ -530,7 +538,9 @@ def execute(report, client, mode, env, *, allow_post=True):
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
-    daily_order_limit(client,candidate_id=clordid)  # Duplicate guard remains active.
+    fresh_entry_count=daily_order_limit(client,candidate_id=clordid)  # Duplicate guard remains active.
+    if auto_reentry and fresh_entry_count >= MAX_AUTO_REENTRY_ENTRIES_24H:
+        raise ExecutionBlocked('Auto re-entry budget reached just before submission')
     if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
         raise ExecutionBlocked('Position changed before order placement')
     if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
