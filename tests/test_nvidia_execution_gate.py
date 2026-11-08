@@ -27,7 +27,7 @@ def fixture():
         "advanced_system_count": 7, "advanced_confirmations": 2,
         "advanced_veto_reasons": [], "derivatives_data_warnings": [],
         "execution": "DISABLED", "order_count": 0,
-        "last_complete_15m_candle_ms": int(now.timestamp() * 1000) - 30000,
+        "last_complete_15m_candle_ms": int(now.timestamp() * 1000) - 16 * 60 * 1000,
         "ordinal_buy_points": 5, "ordinal_sell_points": 0,
         "agents": agents,
     }
