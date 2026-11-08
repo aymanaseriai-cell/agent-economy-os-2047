@@ -1,0 +1,49 @@
+name: NEXUS-7 actual cross-domain research integration (NO TRADES)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: nexus7-research
+  cancel-in-progress: true
+jobs:
+  seven-upstream-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install isolated seven-source research packages (never trading bot)
+        run: |
+          python -m pip install --disable-pip-version-check -r trading/requirements_nexus7_research.txt
+      - name: Execute twelve actual upstream-package integration checks
+        run: python -m unittest discover -s research_tests -p test_nexus7_integration.py -v
+      - name: Repeat seven-package experiment from frozen REAL public book
+        run: python -m trading.nexus_seven_2047 --public-book reports/nexus7_frozen_real_okx_book_20261108.json --out reports/nexus7_actions_replay.json
+      - name: Verify exact public-book provenance and ALL seven package calls
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          from trading.nexus_seven_2047 import digest,REPOSITORIES
+          old=json.loads(Path('reports/nexus7_first_demo_20261108.json').read_text())
+          rep=json.loads(Path('reports/nexus7_actions_replay.json').read_text())
+          book=json.loads(Path('reports/nexus7_frozen_real_okx_book_20261108.json').read_text())
+          assert rep['public_book_sha256']==old['public_book_sha256']==digest(book)
+          assert set(rep['modules'])==set(REPOSITORIES)
+          assert all(v['status']=='executed' for v in rep['modules'].values())
+          assert rep['orders_placed']==0 and not rep['trading_enabled']
+          assert rep['synthetic_data']['real_future_outcomes']==0
+          assert rep['real_market_data_used_only_for']==['gudhi']
+          print('PASS: seven actual source projects executed, market evidence fixed, zero trading authority')
+          PY
+      - name: Archive research-only evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: nexus7-seven-upstreams-no-trading
+          path: reports/nexus7_actions_replay.json
+          retention-days: 30

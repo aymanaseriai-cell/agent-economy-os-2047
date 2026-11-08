@@ -1,0 +1,127 @@
+{
+  "experiment": "NEXUS_7_2047",
+  "mode": "RESEARCH_ONLY_ZERO_TRADING_AUTHORITY",
+  "seven_imported_and_exercised": true,
+  "trading_enabled": false,
+  "orders_placed": 0,
+  "public_book_sha256": "0fbed64f60b2d5748942ffd6841ea41bd05738561e772f1ec0a235ada5a59806",
+  "public_book_timestamp_utc": "2026-11-08T15:25:19.661903+00:00",
+  "synthetic_data": {
+    "rows": 300,
+    "seed": 2037,
+    "known_treatment_effect": 0.65,
+    "real_future_outcomes": 0
+  },
+  "real_market_data_used_only_for": [
+    "gudhi"
+  ],
+  "projects": {
+    "z3": "https://github.com/Z3Prover/z3",
+    "gudhi": "https://github.com/GUDHI/gudhi-devel",
+    "openspiel": "https://github.com/google-deepmind/open_spiel",
+    "cleanlab": "https://github.com/cleanlab/cleanlab",
+    "dowhy": "https://github.com/py-why/dowhy",
+    "causal_learn": "https://github.com/py-why/causal-learn",
+    "art": "https://github.com/Trusted-AI/adversarial-robustness-toolbox"
+  },
+  "modules": {
+    "cleanlab": {
+      "status": "executed",
+      "source": "SYNTHETIC_WITH_INJECTED_LABEL_ERRORS",
+      "suspect_count": 20,
+      "detected_injected_count": 4,
+      "first_suspects": [
+        171,
+        121,
+        297,
+        264,
+        46,
+        245,
+        71,
+        115,
+        227,
+        20,
+        12,
+        74
+      ],
+      "observations": 300
+    },
+    "causal_learn": {
+      "status": "executed",
+      "source": "CONTROLLED_SYNTHETIC_STRUCTURAL_DATA",
+      "variables": [
+        "regime",
+        "candidate_trade",
+        "future_outcome"
+      ],
+      "nonzero_adjacency_entries": 6,
+      "not_proof_of_observed_market_causality": true
+    },
+    "dowhy": {
+      "status": "executed",
+      "source": "SYNTHETIC_KNOWN_GENERATING_PROCESS",
+      "estimated_adjusted_effect": 0.6482,
+      "true_synthetic_effect": 0.65,
+      "not_estimated_from_real_trade_outcomes": true
+    },
+    "art": {
+      "status": "executed",
+      "source": "SYNTHETIC_CLASSIFICATION_SURROGATE",
+      "attacked_points": 50,
+      "predictions_flipped": 7,
+      "flip_rate": 0.14,
+      "max_feature_perturbation": 0.2,
+      "not_attack_on_actual_NVIDIA_or_core_trading_bot": true
+    },
+    "gudhi": {
+      "status": "executed",
+      "source": "REAL_OKX_PUBLIC_BOOK_SNAPSHOT",
+      "symbol": "BTC-USDT-SWAP",
+      "depth_points": 40,
+      "finite_one_dimensional_cycles": 2,
+      "max_cycle_lifetime": 0.236219,
+      "not_predictive_without_historical_validation": true
+    },
+    "openspiel": {
+      "status": "executed",
+      "source": "SYNTHETIC_PAYOFF_ASSUMPTIONS_NOT_MARKET",
+      "defender_actions": [
+        "ENTER",
+        "WAIT"
+      ],
+      "adversary_actions": [
+        "NORMAL",
+        "DATA_ATTACK"
+      ],
+      "payoff_matrix": [
+        [
+          0.6482,
+          0.24819999999999998
+        ],
+        [
+          0.0,
+          0.0
+        ]
+      ],
+      "maximin_research_action": "ENTER",
+      "not_authorized_trade": true
+    },
+    "z3": {
+      "status": "executed",
+      "source": "ABSTRACT_FORMAL_SPEC_NOT_EXISTING_CODE",
+      "disabled_cannot_authorize": true,
+      "missing_nvidia_cannot_authorize": true,
+      "does_not_formally_verify_existing_live_executor": true
+    }
+  },
+  "hard_limitations": [
+    "Seven project calls compose one controlled research demonstration.",
+    "Synthetic treatment labels and model predictions are NOT real trading alpha.",
+    "OpenSpiel payoffs are hypothetical; no profit expectations inferred.",
+    "DoWhy and PC cannot establish causality from limited market snapshots.",
+    "Z3 proves only an abstract policy, not the production order executor.",
+    "GUDHI sees one public L2 snapshot, not time-series stability.",
+    "No NVIDIA calls, private endpoints, orders, portfolio or future PnL.",
+    "Novel integration is not evidence of being first in the world."
+  ]
+}

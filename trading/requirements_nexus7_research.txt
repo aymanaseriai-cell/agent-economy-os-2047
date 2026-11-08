@@ -1,0 +1,20 @@
+# Isolated research environment only; NOT installed in trading bot
+# Exact seven upstream direct dependencies verified on Python 3.13.
+z3-solver==5.3.3.0
+gudhi==3.13.0
+open-spiel==2.0.2
+cleanlab==2.9.0
+dowhy==0.14
+causal-learn==0.1.4.8
+adversarial-robustness-toolbox==1.20.1
+
+# Additional dependencies for synthetic controlled experiment:
+scikit-learn==1.6.1
+numpy==2.3.5
+pandas
+scipy
+statsmodels
+termcolor
+networkx
+tqdm
+numba
