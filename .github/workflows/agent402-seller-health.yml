@@ -1,0 +1,33 @@
+name: Agent402 seller visibility and payment-quote guard
+on:
+  schedule:
+    - cron: '19 */6 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: agent402-seller-visibility-readonly
+  cancel-in-progress: true
+jobs:
+  verify-seller-availability:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test quote and router verification logic offline
+        run: python -m unittest discover -s tests -p 'test_agent402_seller_watch.py' -v
+      - name: Inspect public index and project x402 challenges without payment
+        run: python automation/agent402_seller_watch.py --output agent402-seller-status.json
+      - name: Keep audit evidence even on availability failure
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: agent402-seller-readonly-availability
+          path: agent402-seller-status.json
+          if-no-files-found: warn
+          retention-days: 7
