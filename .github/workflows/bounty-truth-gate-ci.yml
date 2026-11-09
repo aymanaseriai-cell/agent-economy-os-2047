@@ -1,0 +1,28 @@
+name: BountyTruth | x402 read-only paid-work preflight checks
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "services/agent-bounty-truth-gate/**"
+      - "tests/bounty_truth_gate/**"
+      - ".github/workflows/bounty-truth-gate-ci.yml"
+  pull_request:
+    paths:
+      - "services/agent-bounty-truth-gate/**"
+      - "tests/bounty_truth_gate/**"
+      - ".github/workflows/bounty-truth-gate-ci.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Verify BountyTruth checks and read-only RPC quorum logic
+        run: node --test tests/bounty_truth_gate/test_core.mjs tests/bounty_truth_gate/test_onchain.mjs
