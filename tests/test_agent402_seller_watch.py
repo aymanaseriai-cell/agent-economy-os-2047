@@ -2,7 +2,7 @@ import base64
 import json
 import unittest
 from automation.agent402_seller_watch import (
-    PAYEE, CHAIN, USDC, QUERY, ROUTES, check_index, check_quote, find_rank
+    PAYEE, CHAIN, USDC, QUERY, ROUTES, check_index, check_quote, find_rank, micro_usdc_price
 )
 
 def header(payee=PAYEE, amount="5000", network=CHAIN, asset=USDC):
@@ -65,6 +65,19 @@ class SellerWatchTests(unittest.TestCase):
         index["tools"][0]["route"] = route
         self.assertTrue(check_index(index, origin, 5000, route)["ok"])
         self.assertFalse(check_index(index, origin, 5000, "/api/v1/receipt")["ok"])
+
+    def test_string_display_price_accepts_exact_micro_usdc(self):
+        origin = "https://example.supabase.co/agent-bounty-truth-gate"
+        index = sample_index(origin)
+        index["tools"][0]["route"] = "/api/v1/audit"
+        index["tools"][0]["price"] = "$0.005"
+        self.assertTrue(check_index(index, origin, 5000, "/api/v1/audit")["ok"])
+        self.assertEqual(micro_usdc_price("$0.005"), 5000)
+        self.assertEqual(micro_usdc_price(0.005), 5000)
+
+    def test_invalid_or_wrong_currency_price_is_not_accepted(self):
+        for raw in (None, True, "0.005 USD", "USDC 0.005", "-0.005", "0.0000009", "$0.006"):
+            self.assertNotEqual(micro_usdc_price(raw), 5000)
 
     def test_bountytruth_route_is_in_monitoring_roster(self):
         self.assertIn(("agent-bounty-truth-gate", 5000, "/api/v1/audit"), ROUTES)
