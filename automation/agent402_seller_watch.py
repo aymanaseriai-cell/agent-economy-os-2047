@@ -15,7 +15,10 @@ PAYEE = "0x935ad91b70c6d0769871416c5904d06fbf9ef586"
 USDC = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
 CHAIN = "eip155:8453"
 QUERY = "Verify a native USDC transfer on Base using 2 of 3 independent RPC providers with transaction hash"
-ROUTES = (("agent-usdc-receipt-lite", 5000), ("agent-usdc-receipt", 10000))
+BOUNTY_QUERY = "Check if a paid GitHub bounty issue has real USDC escrow, unsafe instructions or false payout claims"
+ROUTES = (("agent-usdc-receipt-lite", 5000, "/api/v1/receipt"),
+          ("agent-usdc-receipt", 10000, "/api/v1/receipt"),
+          ("agent-bounty-truth-gate", 5000, "/api/v1/audit"))
 LIMIT = 700000
 
 class NoRedirect(urllib.request.HTTPRedirectHandler):
@@ -66,14 +69,14 @@ def check_quote(status, headers, expected_amount):
     return {"ok": all(assertions.values()), "checks": assertions, "http": status,
             "price_usdc": expected_amount / 1_000_000, "payment_submitted": False}
 
-def check_index(index, origin, amount):
+def check_index(index, origin, amount, route="/api/v1/receipt"):
     if not isinstance(index, dict) or index.get("origin") != origin:
         return {"ok": False, "reason": "index_origin_mismatch"}
     tools = index.get("tools", [])
     if not isinstance(tools, list):
         return {"ok": False, "reason": "invalid_tools"}
     rows = [x for x in tools if isinstance(x, dict)
-            and x.get("method") == "GET" and x.get("route") == "/api/v1/receipt"
+            and x.get("method") == "GET" and x.get("route") == route
             and x.get("price") == amount / 1_000_000]
     if len(rows) != 1:
         return {"ok": False, "reason": "missing_or_duplicate_paid_tool"}
@@ -93,13 +96,13 @@ def check_index(index, origin, amount):
             "unproven_max_usd": layer.get("unprovenMaxUsd"),
             "request_runtime_verified": ((tool.get("requestContract") or {}).get("runtimeVerified") is True)}
 
-def find_rank(route_result, origin):
+def find_rank(route_result, origin, route="/api/v1/receipt"):
     rows = route_result.get("results", []) if isinstance(route_result, dict) else []
     if not isinstance(rows, list):
         return None
     return next((i for i, x in enumerate(rows, 1)
                  if isinstance(x, dict) and x.get("seller") == origin
-                 and x.get("route") == "/api/v1/receipt"), None)
+                 and x.get("route") == route), None)
 
 def inspect():
     report = {"schema": "agent-economy.agent402-seller-watch.v1",
@@ -109,16 +112,17 @@ def inspect():
               "sales_verification_scope": "NOT_CHECKED",
               "notes": "Tool callable via unproven lane may coexist with origin-level settlement_required. A ready tool is not a sale.",
               "routes": []}
-    for slug, amount in ROUTES:
+    for slug, amount, route in ROUTES:
         origin = SUPABASE + "/" + slug
-        row = {"slug": slug, "origin": origin, "expected_price_usdc": amount / 1_000_000}
+        row = {"slug": slug, "route": route, "origin": origin, "expected_price_usdc": amount / 1_000_000}
         try:
             indexed_url = AGENT402 + "/api/index?" + urllib.parse.urlencode({"seller": origin})
             status, _, body = http(indexed_url)
             if status != 200:
                 raise ValueError("index_not_200")
-            row["index"] = check_index(json.loads(body), origin, amount)
-            status, headers, _ = http(origin + "/api/v1/receipt?tx=0x" + "0" * 64)
+            row["index"] = check_index(json.loads(body), origin, amount, route)
+            quote_url = origin + (route + "?tx=0x" + "0" * 64 if route == "/api/v1/receipt" else route)
+            status, headers, _ = http(quote_url)
             row["quote"] = check_quote(status, headers, amount)
         except (OSError, ValueError, urllib.error.URLError, UnicodeError) as exc:
             row["probe_error_type"] = type(exc).__name__
@@ -135,13 +139,27 @@ def inspect():
         report["free_router_discovery"] = {
             "query": QUERY, "http": status,
             "ranks_among_returned": {
-                row["slug"]: find_rank(routed, row["origin"]) for row in report["routes"]
+                row["slug"]: find_rank(routed, row["origin"], row["route"]) for row in report["routes"]
             },
             "result_count": routed.get("count"),
             "payment_executed": False,
         }
     except (OSError, ValueError, urllib.error.URLError, UnicodeError) as exc:
         report["router_error_type"] = type(exc).__name__
+    try:
+        status, _, raw = http(AGENT402 + "/api/route", json.dumps({"query": BOUNTY_QUERY, "top": 25}).encode())
+        if status != 200:
+            raise ValueError("bounty_route_not_200")
+        routed = json.loads(raw)
+        bounty_origin = SUPABASE + "/agent-bounty-truth-gate"
+        report["bounty_router_discovery"] = {
+            "query": BOUNTY_QUERY,
+            "rank_among_returned": find_rank(routed, bounty_origin, "/api/v1/audit"),
+            "returned": routed.get("returned"),
+            "payment_executed": False,
+        }
+    except (OSError, ValueError, urllib.error.URLError, UnicodeError) as exc:
+        report["bounty_router_error_type"] = type(exc).__name__
     report["all_ready"] = all(row["ready_for_unproven_route"] for row in report["routes"])
     return report
 

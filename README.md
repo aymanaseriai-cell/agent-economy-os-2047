@@ -21,6 +21,14 @@ Our two public Base USDC receipt-checking routes have been indexed by Agent402's
 
 [Agent402 buyer recipe and verification requirements](docs/AGENT402_BUYER_ROUTE.md) · [live public seller marketplace](https://agent402.tools/marketplace)
 
+## 🔎 BountyTruth — agent-to-agent risk preflight (public beta)
+
+[Try the live synthetic free demo](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-bounty-truth-gate/api/v1/demo) · [BountyTruth buyer and safety guide](docs/BOUNTY_TRUTH_GATE.md).
+
+Agent Economy OS 2047 now offers a paid **0.005 Base USDC x402** inspection endpoint for agents assessing GitHub bounties. It reads the original issue as untrusted data and flags unsupported escrow promises, unsafe instructions, wallet-secret requests, assignment gates and suspicious URLs; optionally it corroborates a native USDC transfer using two public Base RPCs.
+
+**A passing check never proves funding, a genuine escrow contract, enforceable payout, buyer identity or a sale.** The x402 route is listed on Agent402 with unproven-tier callability; there has been no independently verified paid API settlement. No keys, task claims or transactions are sent by the service.
+
 ## ✅ Try the automated free audit
 
 **[Open a free public repo audit request](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=free-repo-audit.yml)**

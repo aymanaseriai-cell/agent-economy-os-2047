@@ -58,6 +58,21 @@ class SellerWatchTests(unittest.TestCase):
     def test_wrong_origin_rejected(self):
         self.assertFalse(check_index(sample_index("https://bad.example"), "https://trusted.example", 5000)["ok"])
 
+    def test_bountytruth_marketplace_route_uses_expected_path(self):
+        route = "/api/v1/audit"
+        origin = "https://example.supabase.co/functions/v1/agent-bounty-truth-gate"
+        index = sample_index(origin)
+        index["tools"][0]["route"] = route
+        self.assertTrue(check_index(index, origin, 5000, route)["ok"])
+        self.assertFalse(check_index(index, origin, 5000, "/api/v1/receipt")["ok"])
+
+    def test_bountytruth_route_is_in_monitoring_roster(self):
+        self.assertIn(("agent-bounty-truth-gate", 5000, "/api/v1/audit"), ROUTES)
+
+    def test_bountytruth_discovery_rank(self):
+        x = {"results": [{"seller": "https://example.test/bounty", "route": "/api/v1/audit"}]}
+        self.assertEqual(find_rank(x, "https://example.test/bounty", "/api/v1/audit"), 1)
+
     def test_ranking_not_interpreted_as_payment(self):
         a = "https://example.supabase.co/receipt"
         self.assertEqual(find_rank({"results": [{"seller": a, "route": "/api/v1/receipt"}]}, a), 1)
