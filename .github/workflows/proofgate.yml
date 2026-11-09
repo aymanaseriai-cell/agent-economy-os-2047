@@ -1,0 +1,35 @@
+name: ProofGate 2047 | public USDC paid-work preflight
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '16 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: proofgate-public-demand
+  cancel-in-progress: true
+jobs:
+  read-only-demand-gates:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout without persistent credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regression and policy checks
+        run: python -m unittest discover -s tests -p 'test_proofgate.py' -v
+      - name: Read-only public gigs preflight
+        run: python automation/proofgate.py --probe --output proofgate-report.json
+      - name: Save evidence artifact (not sent to buyers)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: proofgate-readonly-usdc-opportunity-evidence
+          path: proofgate-report.json
+          if-no-files-found: warn
+          retention-days: 7
