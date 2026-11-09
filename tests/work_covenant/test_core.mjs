@@ -114,3 +114,38 @@ test("reject missing contract digest; self-generated approval cannot count as pa
  const result=await evaluateContract({...c,submission});
  assert.equal(result.onchain_settlement_verified,false);
 });
+
+test("valid Ed25519 signature verifies a specific technical statement but not buyer identity",async()=>{
+ const {compileContract,prepareEndorsement,verifyEndorsement}=await import("../../services/agent-work-covenant-2047/core.mjs");
+ const compiled=await compileContract({task:{title:"Technical-review artifact"},criteria:[
+   {id:"proof",type:"artifact_exists",artifact:"proof.json"}
+ ]});
+ const unsigned={contract:compiled.contract,contract_id:compiled.contract_id,
+   decision:"technical-reviewed",issued_at:"2026-11-09T17:53:00Z"};
+ const prepared=await prepareEndorsement(unsigned);
+ const pair=await crypto.subtle.generateKey({name:"Ed25519"},true,["sign","verify"]);
+ const sig=await crypto.subtle.sign("Ed25519",pair.privateKey,new TextEncoder().encode(prepared.message));
+ const pub=await crypto.subtle.exportKey("raw",pair.publicKey);
+ const encode=x=>Buffer.from(x).toString("base64url");
+ const request={...unsigned,public_key_b64url:encode(pub),signature_b64url:encode(sig)};
+ const valid=await verifyEndorsement(request);
+ assert.equal(valid.signature_valid,true);
+ assert.equal(valid.buyer_acceptance_verified,false);
+ assert.equal(valid.signer_identity_verified,false);
+ assert.equal(valid.signer_authority_verified,false);
+ assert.equal(valid.payment_verified,false);
+ assert.match(valid.public_key_fingerprint,/^[a-f0-9]{64}$/);
+ const tampered=await verifyEndorsement({...request,decision:"technical-approved"});
+ assert.equal(tampered.signature_valid,false);
+});
+test("Ed25519 endorsement rejects invalid key length or modified contract id",async()=>{
+ const {compileContract,verifyEndorsement}=await import("../../services/agent-work-covenant-2047/core.mjs");
+ const c=await compileContract({task:{title:"Review document"},criteria:[
+  {id:"present",type:"artifact_exists",artifact:"file.txt"}
+ ]});
+ const base={contract:c.contract,contract_id:c.contract_id,
+  decision:"technical-reviewed",issued_at:"2026-11-09T17:53:00Z",
+  public_key_b64url:"AAA",signature_b64url:"AAA"};
+ await assert.rejects(verifyEndorsement(base),/invalid_key_or_signature_length/);
+ await assert.rejects(verifyEndorsement({...base,contract_id:"0".repeat(64)}),/contract_id_mismatch/);
+});

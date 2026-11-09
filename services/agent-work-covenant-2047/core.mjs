@@ -218,3 +218,66 @@ export async function evaluateContract(input) {
     ]
   };
 }
+
+/**
+ * Optional Ed25519 technical endorsement: verifies an externally signed statement
+ * about this exact deterministic contract. This NEVER proves the key belongs
+ * to the buyer. A buyer's public key must be pinned out of band.
+ */
+export const ENDORSEMENT_DOMAIN="agent-economy.work-covenant.technical-endorsement.v1";
+function b64urlBytes(v,expectedLength) {
+  str(v,180,"invalid_base64url",/^[A-Za-z0-9_-]+$/);
+  check(v.length%4!==1,"invalid_base64url");
+  let bin;
+  try {bin=atob(v.replace(/-/g,"+").replace(/_/g,"/")+"=".repeat((4-v.length%4)%4));}
+  catch {reject("invalid_base64url");}
+  check(bin.length===expectedLength,"invalid_key_or_signature_length");
+  return Uint8Array.from(bin,c=>c.charCodeAt(0));
+}
+export async function prepareEndorsement(input) {
+  check(isRecord(input) && isRecord(input.contract),"invalid_endorsement_request");
+  const contract=normalizeContract(input.contract);
+  const expectedId=await digest(canonical(contract));
+  check(input.contract_id===expectedId,"contract_id_mismatch");
+  const decision=str(input.decision,40,"invalid_decision");
+  check(["technical-reviewed","technical-approved","technical-rejected"].includes(decision),"invalid_decision");
+  const issued_at=str(input.issued_at,30,"invalid_issued_at",
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  check(!Number.isNaN(Date.parse(issued_at)) && new Date(issued_at).toISOString().replace(".000Z","Z")===issued_at,
+    "invalid_issued_at");
+  const payload={domain:ENDORSEMENT_DOMAIN,contract_id:expectedId,decision,issued_at};
+  const message=canonical(payload);
+  return {
+    schema:ENDORSEMENT_DOMAIN,
+    status:"message_prepared",
+    message, message_sha256:await digest(message),
+    signature_algorithm:"Ed25519",
+    key_lookup:"out_of_band_required",
+    warning:"Technical cryptographic statement only. Not buyer identity, authority, legal agreement, delivery or payment."
+  };
+}
+export async function verifyEndorsement(input) {
+  const prepared=await prepareEndorsement(input);
+  const publicBytes=b64urlBytes(input.public_key_b64url,32);
+  const signatureBytes=b64urlBytes(input.signature_b64url,64);
+  let signature_valid=false;
+  try {
+    const key=await crypto.subtle.importKey("raw",publicBytes,{name:"Ed25519"},false,["verify"]);
+    signature_valid=await crypto.subtle.verify({name:"Ed25519"},key,signatureBytes,textEncoder.encode(prepared.message));
+  }catch {signature_valid=false;}
+  const public_key_fingerprint=await digest(publicBytes);
+  return {
+    schema:ENDORSEMENT_DOMAIN,
+    status:signature_valid?"cryptographic_signature_valid":"signature_invalid",
+    signature_valid,
+    contract_id:input.contract_id,
+    message_sha256:prepared.message_sha256,
+    public_key_fingerprint,
+    signer_identity_verified:false,
+    signer_authority_verified:false,
+    buyer_acceptance_verified:false,
+    legal_agreement_verified:false,
+    payment_verified:false,
+    warning:"Match the public key to a real authorized counterparty independently. Signature validity alone proves no commercial status."
+  };
+}

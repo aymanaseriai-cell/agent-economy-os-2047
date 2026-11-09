@@ -36,3 +36,25 @@ test("no redirects or unsafe method/actions",async()=>{
  const o=await handler(new Request(BASE+"/v1/compile",{method:"OPTIONS"}));
  assert.equal(o.status,204);
 });
+test("endorsement message and signature-verification endpoints maintain explicit trust boundary",async()=>{
+ const c=await (await post("/v1/compile",{task:{title:"A task"},criteria:[
+  {id:"file_present",type:"artifact_exists",artifact:"f.txt"}
+ ]})).json();
+ const envelope={contract:c.contract,contract_id:c.contract_id,decision:"technical-reviewed",issued_at:"2026-11-09T17:53:00Z"};
+ const x=await post("/v1/endorsement-message",envelope);
+ assert.equal(x.status,200);
+ const message=await x.json();
+ assert.match(message.message,/work-covenant.technical-endorsement/);
+ const pair=await crypto.subtle.generateKey({name:"Ed25519"},true,["sign","verify"]);
+ const signature=await crypto.subtle.sign("Ed25519",pair.privateKey,new TextEncoder().encode(message.message));
+ const pub=await crypto.subtle.exportKey("raw",pair.publicKey);
+ const verify=await post("/v1/verify-endorsement",{...envelope,
+   public_key_b64url:Buffer.from(pub).toString("base64url"),
+   signature_b64url:Buffer.from(signature).toString("base64url")
+ });
+ assert.equal(verify.status,200);
+ const result=await verify.json();
+ assert.equal(result.signature_valid,true);
+ assert.equal(result.signer_identity_verified,false);
+ assert.equal(result.payment_verified,false);
+});
