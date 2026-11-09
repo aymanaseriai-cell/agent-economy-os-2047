@@ -3,7 +3,7 @@
  * Stateless and read-only: no accounts, databases, external fetches,
  * credential handling, contracts signed on behalf of others, or payments.
  */
-import {API_VERSION,compileContract,evaluateContract,CovenantError} from "./core.mjs";
+import {API_VERSION,compileContract,evaluateContract,prepareEndorsement,verifyEndorsement,CovenantError} from "./core.mjs";
 const FUNCTION_NAME="agent-work-covenant-2047";
 const MAX_BODY=16_384;
 const HEADERS={
@@ -80,6 +80,8 @@ function discovery() {
       demo:"GET /demo",
       compile:"POST /v1/compile",
       evaluate:"POST /v1/evaluate",
+      prepare_endorsement:"POST /v1/endorsement-message",
+      verify_endorsement:"POST /v1/verify-endorsement",
       discovery:"GET /.well-known/agent.json",
       schema:"GET /openapi.json",
       skill:"GET /skill.md"
@@ -104,6 +106,8 @@ function skill() {
     "POST /v1/evaluate with contract, contract_id, and a submission containing",
     "artifacts: [{name, content}] and optional reported_tests: [{suite,passed,failed}].",
     "The result distinguishes checks against supplied bytes from unverified self-reports.",
+    "Optional POST /v1/endorsement-message yields a deterministic Ed25519 message to sign elsewhere.",
+    "Optional POST /v1/verify-endorsement verifies that cryptographic signature, NOT the signer's authority.",
     "Local pass does NOT imply buyer acceptance, rights transfer, receipt, or paid revenue.",
     "No client-supplied source_url is fetched. Never submit secrets or private customer data.",
     "Limits: 16 KiB JSON request body, 12 criteria, 10 artifacts, 9,000 bytes per artifact.",
@@ -120,7 +124,9 @@ function openapi() {
       "/health":{get:{summary:"Service health",responses:{"200":{description:"Available"}}}},
       "/demo":{get:{summary:"Sample compiled work contract",responses:{"200":{description:"Demo only"}}}},
       "/v1/compile":{post:{summary:"Compile task criteria",requestBody:{required:true,content:{"application/json":{schema:{$ref:"#/components/schemas/CompileRequest"}}}},responses:{"200":{description:"Compiled immutable-checksum descriptor"},"400":{description:"Invalid criteria"}}}},
-      "/v1/evaluate":{post:{summary:"Evaluate local evidence",requestBody:{required:true,content:{"application/json":{schema:{$ref:"#/components/schemas/EvaluateRequest"}}}},responses:{"200":{description:"Local checks report, no purchase or buyer attestation"},"400":{description:"Invalid evidence"}}}}
+      "/v1/evaluate":{post:{summary:"Evaluate local evidence",requestBody:{required:true,content:{"application/json":{schema:{$ref:"#/components/schemas/EvaluateRequest"}}}},responses:{"200":{description:"Local checks report, no purchase or buyer attestation"},"400":{description:"Invalid evidence"}}}},
+      "/v1/endorsement-message":{post:{summary:"Prepare deterministic Ed25519 technical-review message",responses:{"200":{description:"Unsigned message: signer must sign elsewhere"},"400":{description:"Invalid descriptor"}}}},
+      "/v1/verify-endorsement":{post:{summary:"Verify Ed25519 signature only, NOT signer authority",responses:{"200":{description:"Cryptographic verification result with identity=false"},"400":{description:"Invalid signature envelope"}}}}
     },
     components:{schemas:{
       CompileRequest:{type:"object",required:["task","criteria"],properties:{
@@ -159,10 +165,12 @@ export async function handler(req) {
       return error("not_found",404);
     }
     if(req.method==="POST") {
-      if(path!=="/v1/compile" && path!=="/v1/evaluate") return error("not_found",404);
+      if(!["/v1/compile","/v1/evaluate","/v1/endorsement-message","/v1/verify-endorsement"].includes(path)) return error("not_found",404);
       const json=await parseBody(req);
       if(path==="/v1/compile") return response({ok:true,...await compileContract(json)});
-      return response({ok:true,...await evaluateContract(json)});
+      if(path==="/v1/evaluate") return response({ok:true,...await evaluateContract(json)});
+      if(path==="/v1/endorsement-message") return response({ok:true,...await prepareEndorsement(json)});
+      return response({ok:true,...await verifyEndorsement(json)});
     }
     return error("method_not_allowed",405);
   } catch(e) {
