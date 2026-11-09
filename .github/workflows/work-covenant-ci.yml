@@ -1,0 +1,27 @@
+name: Agent Work Covenant | deterministic proof tests
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "services/agent-work-covenant-2047/**"
+      - "tests/work_covenant/**"
+      - ".github/workflows/work-covenant-ci.yml"
+  pull_request:
+    paths:
+      - "services/agent-work-covenant-2047/**"
+      - "tests/work_covenant/**"
+      - ".github/workflows/work-covenant-ci.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - run: node --test tests/work_covenant/test_core.mjs tests/work_covenant/test_http.mjs
