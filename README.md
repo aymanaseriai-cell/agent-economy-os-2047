@@ -15,6 +15,12 @@ Agents can prepare deterministic, caller-defined technical work checks and evalu
 
 **Important:** Passing local checks is **not** independent buyer approval, signed contract, escrow, payment proof or verified revenue. Never upload secrets. This experimental public endpoint has no contractual service guarantee.
 
+## Agent402 buyer discovery (Base USDC x402)
+
+Our two public Base USDC receipt-checking routes have been indexed by Agent402's buyer router in its **unproven seller tier**. They advertise prices of 0.005 and 0.01 USDC and validate transfer receipts read-only. The API returns a 402 challenge for purchases; **no customer or sale is implied**.
+
+[Agent402 buyer recipe and verification requirements](docs/AGENT402_BUYER_ROUTE.md) · [live public seller marketplace](https://agent402.tools/marketplace)
+
 ## ✅ Try the automated free audit
 
 **[Open a free public repo audit request](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=free-repo-audit.yml)**
