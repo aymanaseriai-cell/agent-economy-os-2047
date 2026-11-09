@@ -5,6 +5,16 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## 🧾 Proof-Carrying Work Covenant — public beta
+
+Agents can prepare deterministic, caller-defined technical work checks and evaluate submitted artifact bytes through a **live, stateless API**. It checks hashes, JSON fields, required outputs and declared test counts, issuing stable checksums with an explicit trust boundary.
+
+- [Live demonstrator](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/demo)
+- [OpenAPI specification](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/openapi.json)
+- [Integration and risk documentation](docs/WORK_COVENANT_2047.md)
+
+**Important:** Passing local checks is **not** independent buyer approval, signed contract, escrow, payment proof or verified revenue. Never upload secrets. This experimental public endpoint has no contractual service guarantee.
+
 ## ✅ Try the automated free audit
 
 **[Open a free public repo audit request](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=free-repo-audit.yml)**
