@@ -4,6 +4,8 @@ import argparse
 import base64
 import datetime as dt
 import json
+import re
+from decimal import Decimal, InvalidOperation
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -69,6 +71,24 @@ def check_quote(status, headers, expected_amount):
     return {"ok": all(assertions.values()), "checks": assertions, "http": status,
             "price_usdc": expected_amount / 1_000_000, "payment_submitted": False}
 
+def micro_usdc_price(value):
+    """Parse a provider's numeric or $-prefixed display price exactly.
+
+    Do not interpret unexpected currencies, malformed strings or booleans.
+    """
+    if isinstance(value, bool) or not isinstance(value, (int, float, str)):
+        return None
+    raw = str(value).removeprefix("$")
+    if not re.fullmatch(r"(?:0|[1-9][0-9]{0,7})(?:\.[0-9]{1,6})?", raw):
+        return None
+    try:
+        amount = Decimal(raw) * Decimal(1000000)
+        if amount != amount.to_integral_value():
+            return None
+        return int(amount)
+    except (InvalidOperation, ValueError):
+        return None
+
 def check_index(index, origin, amount, route="/api/v1/receipt"):
     if not isinstance(index, dict) or index.get("origin") != origin:
         return {"ok": False, "reason": "index_origin_mismatch"}
@@ -77,7 +97,7 @@ def check_index(index, origin, amount, route="/api/v1/receipt"):
         return {"ok": False, "reason": "invalid_tools"}
     rows = [x for x in tools if isinstance(x, dict)
             and x.get("method") == "GET" and x.get("route") == route
-            and x.get("price") == amount / 1_000_000]
+            and micro_usdc_price(x.get("price")) == amount]
     if len(rows) != 1:
         return {"ok": False, "reason": "missing_or_duplicate_paid_tool"}
     tool = rows[0]
