@@ -243,8 +243,8 @@ class AutoResumeWorkerTests(unittest.TestCase):
             if cmd[2]=='trading.okx_resume_monitor':
                 return subprocess.CompletedProcess(
                     cmd,0,
-                    'OKX PORTFOLIO SLOTS: open=1 limit=10 remaining=9\\n'
-                    'OKX MONITOR RESULT: '+next(monitor_states)+'\\n','')
+                    'OKX PORTFOLIO SLOTS: open=1 limit=10 remaining=9\n'
+                    'OKX MONITOR RESULT: '+next(monitor_states)+'\n','')
             if cmd[2]=='trading.okx_live_executor':
                 return done(cmd,next(executor_results))
             return done(cmd)
