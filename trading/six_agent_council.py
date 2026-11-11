@@ -335,6 +335,22 @@ def risk_marshal(ticker, bars, proposed, profile):
         "warning": "No leverage or exposure applied. Targets are examples and not forecasts."}, veto=veto)
 
 
+# Deliberately modest relaxation: the directional lead was two ordinal
+# points. It now needs one, while two voting agents and >=3 direction
+# points, all independent quant gates, Omega vetoes, and OKX order checks
+# remain mandatory. These scores are NOT probabilities.
+CORE_MIN_DIRECTIONAL_LEAD = 1
+
+
+def core_direction_from_scores(bullish, bearish, bullish_agents, bearish_agents):
+    """Return LONG=1, SHORT=-1 or WAIT=0 from transparent ordinal votes."""
+    if bullish >= 3 and bullish_agents >= 2 and bullish - bearish >= CORE_MIN_DIRECTIONAL_LEAD:
+        return 1
+    if bearish >= 3 and bearish_agents >= 2 and bearish - bullish >= CORE_MIN_DIRECTIONAL_LEAD:
+        return -1
+    return 0
+
+
 def summarize_agents(ticker, bars, hourly, four_hourly, book, trades, funding, interest, mark, *, asof_epoch=None):
     checks = [liquidity_sentinel(ticker, book, asof_epoch=asof_epoch), auction_cartographer(bars),
               tape_detective(book, trades), derivatives_intelligence(funding, interest, mark, ticker["last"]),
@@ -344,12 +360,9 @@ def summarize_agents(ticker, bars, hourly, four_hourly, book, trades, funding, i
     bearish = sum(x["strength"] for x in votes if x["vote"] == -1)
     bullish_agents = sum(x["vote"] == 1 for x in votes)
     bearish_agents = sum(x["vote"] == -1 for x in votes)
-    proposal = 0
     # Score is an ordinal heuristic, NEVER a calibrated probability of winning.
-    if bullish >= 3 and bullish_agents >= 2 and bullish - bearish >= 2:
-        proposal = 1
-    elif bearish >= 3 and bearish_agents >= 2 and bearish - bullish >= 2:
-        proposal = -1
+    proposal = core_direction_from_scores(
+        bullish, bearish, bullish_agents, bearish_agents)
     profile = checks[1]["evidence"]
     risk = risk_marshal(ticker, bars, proposal, profile)
     checks.append(risk)

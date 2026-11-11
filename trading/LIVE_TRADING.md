@@ -326,3 +326,18 @@ owner's existing single-position, 20x, 30-second minimum post-exit
 cooldown, full-margin stop-risk veto, and protected-order checks.
 This is not actual quantum computing, not a validated statistical edge,
 and does not guarantee order placement or profits.
+
+
+## 2026-11-11: Modest ordinal vote-lead relaxation, NOT forced entries
+For the original 6-agent *core* proposal only, the directional score lead
+threshold is now 1 (previously 2) ordinal point. An entry proposal still
+requires at least two independent core directional voters, at least three
+directional points, and zero liquidity/structure/stop safety vetoes.
+Seven-system diagnostics still require at least **one independent directional
+quantitative confirmation**, fewer than two opposing signals, and no risk
+veto. The ten Omega diagnostics still reject non-positive model net edge
+and excessive costs. Exchange-side order protection, 20x isolated leverage,
+a maximum of one open position, adaptive guarded sizing, and the 30-second
+minimum after a full exit are unchanged. More signals may be considered,
+but no actual order or return is promised. Ordinal scores are NOT model
+probabilities; the speculative strategy is not backtested to a verified edge.

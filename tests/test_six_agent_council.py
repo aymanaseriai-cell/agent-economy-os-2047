@@ -2,7 +2,7 @@ import unittest
 from trading.six_agent_council import (
     candles, select_markets, eligible_20x_instruments, analyze_market_batch, volume_profile, auction_cartographer,
     tape_detective, derivatives_intelligence, structure_navigator,
-    risk_marshal, liquidity_sentinel, summarize_agents,
+    risk_marshal, liquidity_sentinel, summarize_agents, core_direction_from_scores,
 )
 
 
@@ -201,6 +201,34 @@ class TestCouncil(unittest.TestCase):
         hour = make_bars(100, 100, 0.4)
         four = make_bars(30, 100, 0.8)
         self.assertEqual(structure_navigator(hour, four)["vote"], 1)
+
+    def test_modestly_lower_core_lead_from_two_to_one_point(self):
+        # 3-2 score passes with >=2 independent directional voters.
+        self.assertEqual(core_direction_from_scores(3, 2, 2, 2), 1)
+        self.assertEqual(core_direction_from_scores(2, 3, 2, 2), -1)
+        # A tie is still WAIT; only one voter can NEVER trigger a trade.
+        self.assertEqual(core_direction_from_scores(3, 3, 2, 2), 0)
+        self.assertEqual(core_direction_from_scores(4, 0, 1, 0), 0)
+        self.assertEqual(core_direction_from_scores(2, 0, 2, 0), 0)
+        self.assertEqual(core_direction_from_scores(0, 0, 0, 0), 0)
+
+    def test_new_core_lead_does_not_waive_independent_quant_confirmation(self):
+        from trading.quant2037 import evaluate_advanced
+        from unittest.mock import patch
+        core={"signal":"LONG","agents":[],
+              "ordinal_buy_points":3,"ordinal_sell_points":2}
+        no_directional={"system":"neutral","vote":0,"risk":"PASS"}
+        with patch('trading.quant2037.jump_sentinel',return_value=no_directional), \\
+             patch('trading.quant2037.permutation_entropy',return_value=no_directional), \\
+             patch('trading.quant2037.variance_ratio',return_value=no_directional), \\
+             patch('trading.quant2037.value_migration',return_value=no_directional), \\
+             patch('trading.quant2037.depth_fragility',return_value=no_directional), \\
+             patch('trading.quant2037.flow_acceleration',return_value=no_directional), \\
+             patch('trading.quant2037.counterfactual_stability',return_value=no_directional):
+            x=evaluate_advanced([],{},[],core)
+        self.assertEqual(x['signal'],'WAIT')
+        self.assertIn('no_independent_quant_confirmation',
+                      x['advanced_veto_reasons'])
 
     def test_ensemble_six_agents_and_no_order(self):
         self.book["ts"] = str(int(__import__("time").time() * 1000))
