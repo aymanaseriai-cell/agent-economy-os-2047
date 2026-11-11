@@ -282,9 +282,9 @@ def market_preflight(client, signal):
     # modifying account leverage or placing a real order.
     try:
         advertised_max=dec(inst.get('lever','0'))
-    except (ValueError,TypeError,ArithmeticError):
-        raise CandidateRejected('Exchange maximum leverage not verifiable')
-    if not advertised_max.is_finite() or advertised_max < LEVERAGE:
+    except ExecutionBlocked as exc:
+        raise CandidateRejected('Exchange maximum leverage not verifiable') from exc
+    if advertised_max < LEVERAGE:
         raise CandidateRejected('Contract does not advertise 20x leverage')
     last,bid,ask=dec(t['last']),dec(t['bidPx']),dec(t['askPx'])
     if min(last,bid,ask)<=0 or bid>ask:
