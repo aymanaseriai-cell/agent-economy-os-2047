@@ -674,3 +674,55 @@ class OmegaExecutionSelectionTests(unittest.TestCase):
     def test_omega_report_required_under_explicit_guard(self):
         with self.assertRaisesRegex(ExecutionBlocked,'Missing TITAN Omega'):
             execute({'results':[make_signal()]},object(),'dry_run',{'OKX_REQUIRE_OMEGA':'YES'})
+
+
+class AdaptiveGuardedSizingTests(unittest.TestCase):
+    def test_adaptive_mode_accepted_without_full_margin_arm(self):
+        env={'OKX_EXECUTION_ARM':MODE_ARM['demo'],
+             'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST',
+             'OKX_CAPITAL_MODE':'adaptive_guarded'}
+        check_mode('demo', env)
+
+    def test_adaptive_scales_down_20x_full_margin_risk_veto(self):
+        # $1000 free equity, $100 per contract, 2% stop.
+        # Full margin fails the existing 10%-equity risk invariant.
+        from trading.okx_live_executor import OpportunityRiskRejected
+        i={'ctVal':'1','lotSz':'1','minSz':'1'}
+        with self.assertRaises(OpportunityRiskRejected):
+            contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.02'),
+                          capital_mode='full_margin',exchange_max='1000')
+        q=contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.02'),
+                        capital_mode='adaptive_guarded',exchange_max='1000')
+        self.assertEqual(q,Decimal('10'))
+        # 10 contracts * $100 * 2% stop = $20 = 2% equity.
+        self.assertLessEqual(q*Decimal('100')*Decimal('0.02'),Decimal('20'))
+        self.assertLessEqual(q*Decimal('100')/Decimal('20'),Decimal('200'))
+
+    def test_adaptive_respects_orderbook_exchange_max_and_step(self):
+        i={'ctVal':'1','lotSz':'0.25','minSz':'0.25'}
+        q=contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.01'),
+                        capital_mode='adaptive_guarded',exchange_max='3.1')
+        self.assertEqual(q,Decimal('3.00'))
+
+    def test_adaptive_does_not_oversize_very_small_account(self):
+        i={'ctVal':'1','lotSz':'1','minSz':'1'}
+        with self.assertRaisesRegex(ExecutionBlocked, 'minimum'):
+            contract_size(i,Decimal('100'),Decimal('5'),Decimal('0.02'),
+                          capital_mode='adaptive_guarded',exchange_max='1000')
+
+    def test_adaptive_missing_exchange_max_fails_closed(self):
+        i={'ctVal':'1','lotSz':'1','minSz':'1'}
+        with self.assertRaisesRegex(ExecutionBlocked, 'fresh OKX max-size'):
+            contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.01'),
+                          capital_mode='adaptive_guarded')
+
+    def test_adaptive_20x_does_not_use_all_margin(self):
+        from trading.okx_live_executor import (
+            ADAPTIVE_EQUITY_RISK_FRACTION, ADAPTIVE_MARGIN_CAP_FRACTION,
+            ADAPTIVE_NOTIONAL_CAP_FRACTION, LEVERAGE
+        )
+        self.assertEqual(LEVERAGE,20)
+        self.assertLessEqual(ADAPTIVE_EQUITY_RISK_FRACTION,Decimal('0.02'))
+        self.assertLessEqual(ADAPTIVE_MARGIN_CAP_FRACTION,Decimal('0.20'))
+        self.assertLessEqual(ADAPTIVE_NOTIONAL_CAP_FRACTION,Decimal('4.0'))
+

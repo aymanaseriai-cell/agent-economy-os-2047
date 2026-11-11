@@ -27,7 +27,7 @@ on:
         default: false
         required: true
       resume_after_exit:
-        description: 'After a PROTECTED fill, monitor OKX and seek a fresh trade >=10m after full exit (guarded/full_margin)'
+        description: 'After a PROTECTED fill, monitor OKX and seek a fresh trade >=10m after full exit (guarded/adaptive_guarded/full_margin)'
         type: boolean
         default: false
         required: true

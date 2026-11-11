@@ -45,10 +45,10 @@ jobs:
           print("LIVE_EXECUTION_ARM_MATCHES_EXPECTED:",live_arm)
           print("FULL_MARGIN_ARM_MATCHES_EXPECTED:",full_arm)
           print("NVIDIA_KEY_SECRET_CONFIGURED:",nvidia)
-          print("CAPITAL_MODE_VALID:",cap in ("guarded","full_margin"))
+          print("CAPITAL_MODE_VALID:",cap in ("guarded","adaptive_guarded","full_margin"))
           print("NO_LIVE_TRADING_IN_THIS_JOB:",mode=="dry_run" and enable=="NO")
           assert mode=="dry_run" and enable=="NO"
-          assert cap in ("guarded","full_margin")
+          assert cap in ("guarded","adaptive_guarded","full_margin")
           # Not asserting arm: report missing/mismatch fact without
           # misleadingly claiming that protected secrets can be read.
           PY

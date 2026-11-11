@@ -37,6 +37,13 @@ REENTRY_COOLDOWN_MS = 10 * 60 * 1000  # wait at least 10m after any fully closed
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
+# Opt-in adaptive sizing: preserve 20x isolated leverage without deploying full margin.
+# These are PLANNED initial-stop budgets, not caps on realized losses.
+ADAPTIVE_GUARDED_MODE = 'adaptive_guarded'
+ADAPTIVE_EQUITY_RISK_FRACTION = Decimal('0.02')  # <= 2% free USDT equity at initial stop
+ADAPTIVE_MARGIN_CAP_FRACTION = Decimal('0.20')  # <= 20% of free USDT equity as isolated margin
+ADAPTIVE_NOTIONAL_CAP_FRACTION = Decimal('4.0')  # <= 4x free USDT equity notional, despite 20x leverage
+
 MAX_REPORT_AGE_S = 180
 # OKX candle timestamps identify the OPEN of the 15-minute interval, not its close.
 CANDLE_INTERVAL_MS = 15 * 60 * 1000
@@ -103,7 +110,7 @@ def check_mode(mode, env):
     if mode not in ('dry_run', 'demo', 'live'):
         raise ExecutionBlocked('Unsupported execution mode')
     capital_mode = env.get('OKX_CAPITAL_MODE', 'guarded').lower()
-    if capital_mode not in ('guarded', FULL_MARGIN_MODE):
+    if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE):
         raise ExecutionBlocked('Unsupported capital allocation mode')
     if mode == 'dry_run':
         return
@@ -421,6 +428,30 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
             raise OpportunityRiskRejected('Full-margin stop implies over 10% equity planned loss; refuse order')
         if contracts * per_contract > equity * LEVERAGE:
             raise ExecutionBlocked('Full-margin leverage invariant failed')
+        return contracts
+    if capital_mode == ADAPTIVE_GUARDED_MODE:
+        # Size down to respect stop loss instead of refusing a whole-margin
+        # position that violates the planned risk budget.
+        if exchange_max is None:
+            raise ExecutionBlocked('Adaptive sizing requires a fresh OKX max-size quote')
+        exchange_limit=dec(exchange_max)
+        if exchange_limit<=0:
+            raise CandidateRejected('OKX reports no capacity for adaptive position')
+        notional_budget=min(equity*ADAPTIVE_EQUITY_RISK_FRACTION/stop_fraction,
+                            equity*ADAPTIVE_NOTIONAL_CAP_FRACTION,
+                            equity*ADAPTIVE_MARGIN_CAP_FRACTION*LEVERAGE)
+        contracts=floor_step(min(notional_budget/per_contract,exchange_limit),lot)
+        if contracts < minimum or contracts<=0:
+            raise CandidateRejected('Adaptive risk budget cannot cover exchange minimum; no order')
+        notional=contracts*per_contract
+        if notional*stop_fraction > equity*ADAPTIVE_EQUITY_RISK_FRACTION:
+            raise ExecutionBlocked('Adaptive per-stop equity-risk invariant failed')
+        if notional > equity*ADAPTIVE_NOTIONAL_CAP_FRACTION:
+            raise ExecutionBlocked('Adaptive gross-notional invariant failed')
+        if notional/LEVERAGE > equity*ADAPTIVE_MARGIN_CAP_FRACTION:
+            raise ExecutionBlocked('Adaptive isolated-margin invariant failed')
+        if contracts>exchange_limit:
+            raise ExecutionBlocked('Adaptive exchange max-size invariant failed')
         return contracts
     if capital_mode != 'guarded':
         raise ExecutionBlocked('Unknown capital allocation')

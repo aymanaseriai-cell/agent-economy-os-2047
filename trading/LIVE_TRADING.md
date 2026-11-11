@@ -164,3 +164,25 @@ To safely test TITAN Omega, open the GitHub workflow **Run workflow** menu, sele
 Choosing `purpose=run` while owner stop switches remain active now fails early with an explicit actionable `STOP INTERLOCK` error before launching the continuous worker. A second independent check inside `check_mode` rejects real-money orders if the owner stop switch is YES; the chain step also stops if either flag is disabled. This is intentionally **fail-closed**, not a fake green live trading run. Tests cover the stop interlock, safe research selection, and guarding manual live runs. Live mode requires a separate explicit user decision to lift both stop switches; these patches do not change either flag.
 
 The new ten Omega roles are experimental research diagnostics, not validated quantum algorithms. Persistent realized-PnL drawdown protection and open-position exchange reconciliation still need further engineering before safe unattended 20x/full-margin exposure.
+
+## 2026-11-11: Adaptive 20x position sizing (the observed full-margin veto)
+
+Repeated real runs at 12:08 UTC generated a legitimate Omega candidate but produced
+`RISK_REJECTED_NO_ORDER` because full-margin 20x planned stop loss was >10% equity.
+Rather than lower any risk-veto or force a market order, the new
+`OKX_CAPITAL_MODE=adaptive_guarded` keeps the requested **20x isolated leverage**
+and sizes **down** to a maximum planned **2% of available USDT equity at the initial stop**,
+with **<=20% of available equity in initial isolated margin** and
+**<=4x available equity in gross notional**. Stop risk is *estimated*, never a
+maximum realized loss guarantee (gap, liquidation, slippage, fees, funding, platform
+failure). It also clamps contracts to current OKX `max-size`, lot step and
+minimum. If even the exchange minimum is too large, the candidate is rejected,
+not force-filled. The historic `full_margin` mode and its 10% stop-risk veto
+remain unchanged and independently armed for compatibility.
+
+No changes to the 6-agent/7-system/10-Omega vetoes, no forced or guaranteed entries,
+no change to protective TP/SL verification or 10-minute post-exit cooldown.
+The workflow's runtime repository variable sets the selected allocation mode;
+a job already running retains its start-of-run configuration. New job runs use
+the updated variable. A persistent cumulative loss kill switch is still absent:
+the strategy remains high-risk and should undergo forward testing before scaling.
