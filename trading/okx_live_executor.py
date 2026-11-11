@@ -271,8 +271,21 @@ def market_preflight(client, signal):
     t,inst=ticker[0],instruments[0]
     if t.get('instId')!=symbol or inst.get('instId')!=symbol or inst.get('state')!='live':
         raise CandidateRejected('Instrument inactive or mismatched')
-    if inst.get('ctType') != 'linear' or inst.get('settleCcy') != 'USDT' or inst.get('ctValCcy') != symbol.split('-')[0]:
-        raise CandidateRejected('Unsupported contract multiplier currency or derivative type')
+    parts=symbol.split('-')
+    if (len(parts)!=3 or parts[1:]!=['USDT','SWAP']
+            or inst.get('ctType')!='linear' or inst.get('settleCcy')!='USDT'
+            or inst.get('ctValCcy')!=parts[0]
+            or inst.get('ruleType') not in (None,'','normal')):
+        raise CandidateRejected('Unsupported or pre-market contract')
+    # The signal scan's leverage check is not an execution authorization.
+    # Reconfirm public max leverage with a fresh instrument lookup before
+    # modifying account leverage or placing a real order.
+    try:
+        advertised_max=dec(inst.get('lever','0'))
+    except (ValueError,TypeError,ArithmeticError):
+        raise CandidateRejected('Exchange maximum leverage not verifiable')
+    if not advertised_max.is_finite() or advertised_max < LEVERAGE:
+        raise CandidateRejected('Contract does not advertise 20x leverage')
     last,bid,ask=dec(t['last']),dec(t['bidPx']),dec(t['askPx'])
     if min(last,bid,ask)<=0 or bid>ask:
         raise CandidateRejected('Invalid or crossed market')

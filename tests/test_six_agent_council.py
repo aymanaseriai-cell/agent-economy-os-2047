@@ -1,6 +1,6 @@
 import unittest
 from trading.six_agent_council import (
-    candles, select_markets, volume_profile, auction_cartographer,
+    candles, select_markets, eligible_20x_instruments, volume_profile, auction_cartographer,
     tape_detective, derivatives_intelligence, structure_navigator,
     risk_marshal, liquidity_sentinel, summarize_agents,
 )
@@ -24,13 +24,45 @@ class TestCouncil(unittest.TestCase):
                      "asks": [["100.01", "100", "0", "1"] for _ in range(20)],
                      "ts": "0"}
 
-    def test_only_crypto_usdt_swaps(self):
+    @staticmethod
+    def instruments_for(rows, *, lever="20"):
+        return [{"instId":r["instId"],"state":"live",
+                 "ctType":"linear","settleCcy":"USDT",
+                 "ctValCcy":r["instId"].split("-")[0],
+                 "ruleType":"normal","lever":lever} for r in rows]
+
+    def test_only_verified_live_twenty_x_usdt_swaps(self):
         rows = [
             {"instId": "BTC-USDT-SWAP", "last": "100", "bidPx": "99.99", "askPx": "100.01", "volCcy24h": "500000"},
             {"instId": "SNDK-USDT-SWAP", "last": "100", "bidPx": "99.99", "askPx": "100.01", "volCcy24h": "500000"},
             {"instId": "BTC-USD-SWAP", "last": "100", "bidPx": "99.99", "askPx": "100.01", "volCcy24h": "500000"},
         ]
-        self.assertEqual([x["symbol"] for x in select_markets(rows, 10)], ["BTC-USDT-SWAP"])
+        instruments=self.instruments_for(rows)
+        instruments[1]["lever"]="10"
+        eligible=eligible_20x_instruments(instruments)
+        self.assertEqual([x["symbol"] for x in select_markets(rows, 10, eligible=eligible)],
+                         ["BTC-USDT-SWAP"])
+        self.assertEqual(select_markets(rows,10),[])  # Missing metadata never falls back.
+
+    def test_new_20x_coin_enters_without_any_fixed_allowlist(self):
+        rows = [{"instId":"NEW2026-USDT-SWAP","last":"2","bidPx":"1.999",
+                 "askPx":"2.001","volCcy24h":"15000000"}]
+        eligible=eligible_20x_instruments(self.instruments_for(rows))
+        self.assertEqual([x["symbol"] for x in select_markets(rows,12,eligible=eligible)],
+                         ["NEW2026-USDT-SWAP"])
+
+    def test_20x_universe_rejects_suspended_premarket_cross_and_underlevered(self):
+        rows=[{"instId":s+"-USDT-SWAP","last":"100","bidPx":"99.99",
+               "askPx":"100.01","volCcy24h":"500000"}
+              for s in ("BTC","ETH","SOL","XRP","ADA")]
+        inst=self.instruments_for(rows)
+        inst[0]["state"]="suspend"
+        inst[1]["lever"]="19"
+        inst[2]["ruleType"]="pre_market"
+        inst[3]["ctType"]="inverse"
+        good=eligible_20x_instruments(inst)
+        self.assertEqual(good,frozenset({"ADA-USDT-SWAP"}))
+        self.assertEqual(select_markets(rows,12,eligible=good)[0]["symbol"],"ADA-USDT-SWAP")
 
 
     def test_rotation_diversifies_liquid_universe_without_relaxing_filters(self):
@@ -40,15 +72,16 @@ class TestCouncil(unittest.TestCase):
                  "last":"100","bidPx":"99.99","askPx":"100.01",
                  "volCcy24h":str(500000-i*10000)}
                 for i,symbol in enumerate(symbols)]
-        top = select_markets(rows,12)
-        next_page = select_markets(rows,12,rotation_epoch=1)
+        eligible=eligible_20x_instruments(self.instruments_for(rows))
+        top = select_markets(rows,12,eligible=eligible)
+        next_page = select_markets(rows,12,rotation_epoch=1,eligible=eligible)
         self.assertEqual(len(top),12)
         self.assertEqual(len(next_page),12)
         self.assertNotEqual([x["symbol"] for x in top],
                             [x["symbol"] for x in next_page])
         self.assertIn("UNI-USDT-SWAP",[x["symbol"] for x in next_page])
         self.assertEqual({x["symbol"] for x in next_page},
-                         {x["symbol"] for x in select_markets(rows,12,rotation_epoch=1)})
+                         {x["symbol"] for x in select_markets(rows,12,rotation_epoch=1,eligible=eligible)})
         for market in next_page:
             self.assertGreaterEqual(market["turnover_usdt_est"],15_000_000)
             self.assertLessEqual(market["spread_bp"],25)
@@ -59,8 +92,9 @@ class TestCouncil(unittest.TestCase):
                 for x in ["BTC","ETH","SOL","XRP"]]
         data.append({"instId":"ADA-USDT-SWAP","last":"100",
                      "bidPx":"99.99","askPx":"100.01","volCcy24h":"1000"})
+        eligible=eligible_20x_instruments(self.instruments_for(data))
         self.assertNotIn("ADA-USDT-SWAP",
-                         [x["symbol"] for x in select_markets(data,3,rotation_epoch=200)])
+                         [x["symbol"] for x in select_markets(data,3,rotation_epoch=200,eligible=eligible)])
 
     def test_candles_exclude_unfinished(self):
         rows = [["0", "1", "2", "0.5", "1.5", "1", "1", "100", "1"],

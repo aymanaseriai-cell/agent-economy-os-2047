@@ -29,7 +29,8 @@ from urllib.request import Request, urlopen
 API = "https://www.okx.com"
 MIN_TURNOVER_USDT_EST = 15_000_000
 MAX_SPREAD_BP = 25.0
-ALLOWED_CRYPTO = frozenset("BTC ETH SOL XRP DOGE ADA LINK AVAX DOT LTC TRX BCH ETC ATOM UNI APT ARB SUI NEAR HYPE ZEC PEPE SHIB WLD TON OP INJ TIA SEI XLM FIL JUP ENA AAVE TAO PYTH RENDER FET GRT LDO ONDO ICP ETHFI PENDLE WIF BONK BNB SKY SAND MANA CRV COMP MKR GALA ENS RUNE FTM KAS".split())
+MIN_ADVERTISED_SWAP_LEVERAGE = 20  # OKX public instrument 'lever' is the max leverage
+# No manually maintained coin allowlist: public OKX instruments is authoritative.
 
 
 def number(value, default=0.0):
@@ -79,12 +80,40 @@ def candles(data):
     return sorted(by_ts.values(), key=lambda b: b["ts"])
 
 
-def select_markets(rows, count, *, rotation_epoch=None):
+def eligible_20x_instruments(instruments):
+    """Fail-closed dynamic OKX universe: live linear USDT SWAPs supporting 20x.
+
+    The public max leverage does not guarantee the user's personal leverage
+    tier. The private executor must check fresh instrument data again.
+    """
+    eligible = set()
+    for item in instruments:
+        symbol = item.get("instId", "")
+        parts = symbol.split("-")
+        if len(parts) != 3 or parts[1:] != ["USDT", "SWAP"] or not parts[0]:
+            continue
+        if item.get("state") != "live" or item.get("ctType") != "linear":
+            continue
+        if item.get("settleCcy") != "USDT" or item.get("ctValCcy") != parts[0]:
+            continue
+        if item.get("ruleType") not in (None, "", "normal"):
+            continue
+        if number(item.get("lever")) < MIN_ADVERTISED_SWAP_LEVERAGE:
+            continue
+        eligible.add(symbol)
+    return frozenset(eligible)
+
+
+def select_markets(rows, count, *, rotation_epoch=None, eligible=None):
+    """Inspect all 20x-eligible contracts, then apply turnover/spread filters.
+
+    Missing eligibility information yields no candidates; no fallback whitelist.
+    """
+    valid = frozenset(eligible or ())
     result = []
     for ticker in rows:
         instrument = ticker.get("instId", "")
-        parts = instrument.split("-")
-        if len(parts) != 3 or parts[1:] != ["USDT", "SWAP"] or parts[0] not in ALLOWED_CRYPTO:
+        if instrument not in valid:
             continue
         last, bid, ask = (number(ticker.get(key)) for key in ("last", "bidPx", "askPx"))
         if last <= 0 or bid <= 0 or ask < bid:
@@ -388,8 +417,12 @@ def main():
         parser.error("--top must be in 1..12")
     try:
         rotation_epoch = int(time.time() // 30) if args.rotate_universe else None
+        # The symbol universe is discovered anew from the exchange, including
+        # newly listed swaps; no pinned/handwritten ticker list can go stale.
+        instrument_rows = okx_get("/api/v5/public/instruments", {"instType": "SWAP"})
+        eligible = eligible_20x_instruments(instrument_rows)
         pool = select_markets(okx_get("/api/v5/market/tickers", {"instType": "SWAP"}),
-                              args.top, rotation_epoch=rotation_epoch)
+                              args.top, rotation_epoch=rotation_epoch, eligible=eligible)
         results, errors = [], []
         for market in pool:
             try:
@@ -403,6 +436,8 @@ def main():
                   "omega_system_count": 10, "omega_qubo_best_symbol": qubo_pick(results),
                   "orders_placed": 0, "timeframe_main": "15m", "volume_profile_window": "48h_approx",
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
+                  "minimum_exchange_advertised_leverage": MIN_ADVERTISED_SWAP_LEVERAGE,
+                  "exchange_eligible_20x_symbols": len(eligible),
                   "markets_selected": len(pool), "markets_analyzed": len(results),
                   "actionable_research_labels": sum(x["signal"] != "WAIT" for x in results),
                   "results": results, "errors": errors,
@@ -412,6 +447,9 @@ def main():
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("SIX AGENTS + QUANT2037: selected=", len(pool), "analyzed=", len(results),
               "signals=", report["actionable_research_labels"], "errors=", len(errors))
+        print("TITAN 20X SWAP UNIVERSE: eligible=", len(eligible),
+              "selected_for_this_scan=",len(pool),
+              "liquidity_min_usdt=",MIN_TURNOVER_USDT_EST)
         print("TITAN MARKET POOL: rotated=", bool(args.rotate_universe),
               "symbols=", ",".join(x["symbol"] for x in pool))
         print("TITAN SIGNAL DIAGNOSTICS: core_candidates=",

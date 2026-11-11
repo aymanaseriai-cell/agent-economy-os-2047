@@ -232,3 +232,20 @@ retains its separate 2%-at-stop and 20%-of-available-equity margin caps.
 20x leverage remains high risk: stops do not guarantee realized-loss limits.
 Never claim guaranteed or continuously fully invested performance; production
 requires additional persistent drawdown monitoring and exchange reconciliation.
+
+
+## 2026-11-11: Automatic discovery of *all* 20x-eligible OKX linear USDT perpetuals
+The public scanner now loads `GET /api/v5/public/instruments?instType=SWAP`
+**on every research scan**, builds an exchange-authoritative eligible universe,
+and removes the manual coin allowlist. It admits only `state=live`,
+`ctType=linear`, `settleCcy=USDT`, appropriate `ctValCcy`, normally
+traded contracts with an advertised maximum leverage `lever >= 20`.
+Market-selection retains strict >=15M USDT estimated 24h turnover and <=25bp
+spread checks. Execution checks the same instrument fields and fresh max
+leverage again before any 20x isolated position request; individual customer
+limits and OKX can still block a 20x setting. The recurring worker rotates
+through batches of **up to 12** candidates, so "all" means the eligible
+universe is considered over successive scans, NOT that every coin is analyzed
+at once or that every 20x contract is guaranteed a trade. Ten open positions
+remain a maximum, not a target, and all existing aggregate risk limits are kept.
+No weak/no-consensus orders are forced.

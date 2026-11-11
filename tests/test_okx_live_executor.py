@@ -777,3 +777,49 @@ class TenPositionAccountCapTests(unittest.TestCase):
         with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
             check_mode('live',{**env,'OKX_CAPITAL_MODE':'full_margin',
                                'OKX_FULL_MARGIN_ARM':FULL_MARGIN_ARM})
+
+class ExchangeAdvertisedTwentyXGateTests(unittest.TestCase):
+    def test_market_preflight_rejects_leverage_under_20_without_order(self):
+        from trading.okx_live_executor import market_preflight, CandidateRejected
+        from unittest.mock import patch
+        now=int(time.time()*1000)
+        class PublicOnly:
+            def __init__(self, lever): self.lever=lever; self.calls=[]
+            def request(self,method,path,params=None,auth=True):
+                self.calls.append((method,path))
+                if path=='/api/v5/market/ticker':
+                    return [{'instId':'BTC-USDT-SWAP','last':'100',
+                             'bidPx':'99.99','askPx':'100.01','volCcy24h':'500000',
+                             'ts':str(now)}]
+                if path=='/api/v5/public/instruments':
+                    return [{'instId':'BTC-USDT-SWAP','state':'live',
+                             'ctType':'linear','settleCcy':'USDT','ctValCcy':'BTC',
+                             'ruleType':'normal','lever':self.lever}]
+                raise AssertionError('Should be public GET only')
+        sig={'symbol':'BTC-USDT-SWAP','quote_price':100}
+        for lever in ('10','19.99','',None,'NaN'):
+            client=PublicOnly(lever)
+            with self.assertRaises(CandidateRejected):
+                market_preflight(client,sig)
+            self.assertTrue(all(m=='GET' for m,_ in client.calls))
+        allowed=PublicOnly('20')
+        with patch('trading.okx_live_executor.time.time',return_value=now/1000):
+            _,inst=market_preflight(allowed,sig)
+        self.assertEqual(inst['lever'],'20')
+
+    def test_live_rejects_illiquid_even_when_twenty_x_supported(self):
+        from trading.okx_live_executor import market_preflight, CandidateRejected
+        now=int(time.time()*1000)
+        class Tiny:
+            def request(self,method,path,params=None,auth=True):
+                if path=='/api/v5/market/ticker':
+                    return [{'instId':'BTC-USDT-SWAP','last':'100',
+                             'bidPx':'99.99','askPx':'100.01',
+                             'volCcy24h':'1000','ts':str(now)}]
+                if path=='/api/v5/public/instruments':
+                    return [{'instId':'BTC-USDT-SWAP','state':'live',
+                             'ctType':'linear','settleCcy':'USDT',
+                             'ctValCcy':'BTC','lever':'20'}]
+                raise AssertionError(path)
+        with self.assertRaisesRegex(CandidateRejected,'turnover'):
+            market_preflight(Tiny(),{'symbol':'BTC-USDT-SWAP','quote_price':100})
