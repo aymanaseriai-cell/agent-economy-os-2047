@@ -26,8 +26,8 @@ from trading.nvidia_execution_gate import GateRejected, _fresh_report
 ALLOWED_DOMAINS = {'https://www.okx.com', 'https://eea.okx.com', 'https://us.okx.com'}
 MODE_ARM = {'demo': 'CONFIRM_DEMO_ORDER', 'live': 'I_ACCEPT_REAL_MONEY_LOSS'}
 CLIENT_PREFIX = 'Q37'
-LEVERAGE = 10  # capped, never computed automatically from account size
-MAX_LEVERAGE = 10
+LEVERAGE = 20  # explicit user-requested isolated 20x; never computed from equity
+MAX_LEVERAGE = 20
 MIN_24H_TURNOVER_USDT = 15_000_000
 MAX_SPREAD_BP = Decimal('15')
 EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial stop, *not* guaranteed realised loss
@@ -221,8 +221,20 @@ def choose_signal(report, now_ms=None):
             continue
         # Only best consensus; one position at a time.
         margin = (x.get('ordinal_buy_points',0) - x.get('ordinal_sell_points',0)) if x['signal']=='LONG' else (x.get('ordinal_sell_points',0)-x.get('ordinal_buy_points',0))
-        selected.append((margin,x))
-    return max(selected,key=lambda k:k[0])[1] if selected else None
+        # Omega's one-of-N-or-WAIT QUBO score ranks faster, net-of-model-cost
+        # target scenarios only when all 10 diagnostics are present and veto-free.
+        # Compatibility: older research-only reports retain ordinal ordering.
+        omega_count=x.get('omega_system_count')
+        if omega_count is not None:
+            if omega_count != 10 or x.get('omega_veto_reasons'):
+                continue
+            score=dec(x.get('omega_rank_score', 0))
+            if score<=0:
+                continue
+            selected.append((score,margin,x))
+            continue
+        selected.append((Decimal(margin),margin,x))
+    return max(selected,key=lambda k:(k[0],k[1]))[2] if selected else None
 
 
 def estimate_turnover(ticker):
@@ -382,7 +394,7 @@ def get_prices(signal,ticker,inst):
 def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded', exchange_max=None):
     """Determine contract quantity; full-margin mode needs an independently armed execution path.
 
-    Full-margin target is up to 100% of *available* USDT isolated margin at 10x,
+    Full-margin target is up to 100% of *available* USDT isolated margin at 20x,
     subject to exchange max size, lot step, planned-stop budget and trading fees.
     This is NOT a maximum-realized-loss guarantee.
     """
@@ -526,6 +538,14 @@ def execute(report, client, mode, env, *, allow_post=True):
     # Explicitly armed full_margin remains protected by check_mode's separate
     # full-margin arm, contract_size's 10%-planned-stop-risk rejection, and all
     # original exchange-side checks. No fixed 24h entry count is imposed.
+    # When explicitly requested by the GitHub worker, old non-Omega reports
+    # must never bypass the new proof/optimization gate in live execution.
+    if env.get('OKX_REQUIRE_OMEGA') == 'YES':
+        if report.get('omega_system_count') != 10:
+            raise ExecutionBlocked('Missing TITAN Omega 10-system research report')
+        for item in report.get('results', []):
+            if item.get('signal') in ('LONG','SHORT') and item.get('omega_system_count') != 10:
+                raise ExecutionBlocked('Candidate lacks verified TITAN Omega evidence')
     signal=choose_signal(report)
     if signal is None:
         return 'NO_CONSENSUS'

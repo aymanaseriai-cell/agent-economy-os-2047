@@ -58,6 +58,7 @@ jobs:
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
@@ -96,6 +97,7 @@ jobs:
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}

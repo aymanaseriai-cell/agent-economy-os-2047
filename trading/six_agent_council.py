@@ -18,8 +18,10 @@ from pathlib import Path
 # Script and package invocation are both supported.
 if __package__:
     from .quant2037 import evaluate_advanced
+    from .titan_omega import evaluate_omega, qubo_pick
 else:
     from quant2037 import evaluate_advanced
+    from titan_omega import evaluate_omega, qubo_pick
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -93,6 +95,7 @@ def select_markets(rows, count):
             continue
         result.append({"symbol": instrument, "last": last, "bid": bid, "ask": ask,
                        "turnover_usdt_est": round(turnover), "spread_bp": round(spread_bp, 3)})
+    # A liquid universe is scanned first; Omega ranks *qualified* targets afterward.
     return sorted(result, key=lambda z: z["turnover_usdt_est"], reverse=True)[:count]
 
 
@@ -352,6 +355,14 @@ def analyze_market(ticker):
     # Seven quantitative diagnostic systems now validate the original six-agent consensus.
     advanced = evaluate_advanced(bars15, book_rows[0], trade_rows, record)
     record.update(advanced)
+    # Ten Omega research diagnostics inspect risk and rank expected target speed.
+    # Existing six-agent and seven-system vetoes remain mandatory.
+    omega = evaluate_omega(bars15, bars1h, bars4h, book_rows[0], trade_rows,
+                           ticker, funding_rows[0] if funding_rows else {},
+                           oi_rows[0] if oi_rows else {}, mark_rows[0] if mark_rows else {}, record)
+    record.update(omega)
+    if record["signal"] in ("LONG", "SHORT") and omega["omega_veto_reasons"]:
+        record["signal"] = "WAIT"
     if derivatives_errors or not funding_rows or not oi_rows or not mark_rows:
         record["advanced_veto_reasons"].append("missing_or_unavailable_derivatives_data")
         record["signal"] = "WAIT"
@@ -378,6 +389,7 @@ def main():
         report = {"utc_timestamp": datetime.now(timezone.utc).isoformat(),
                   "mode": "SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY", "genuine_llm_agents": 0,
                   "core_specialist_agents": 6, "advanced_quant_systems": 7,
+                  "omega_system_count": 10, "omega_qubo_best_symbol": qubo_pick(results),
                   "orders_placed": 0, "timeframe_main": "15m", "volume_profile_window": "48h_approx",
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
                   "markets_selected": len(pool), "markets_analyzed": len(results),

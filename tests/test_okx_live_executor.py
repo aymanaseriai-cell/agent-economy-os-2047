@@ -82,11 +82,11 @@ class TestLiveSafety(unittest.TestCase):
         env['OKX_FULL_MARGIN_ARM']=FULL_MARGIN_ARM
         check_mode('demo', env)
 
-    def test_full_margin_uses_up_to_available_margin_at_10x(self):
+    def test_full_margin_uses_up_to_available_margin_at_20x(self):
         inst={'ctVal':'1','lotSz':'1','minSz':'1'}
         quantity=contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
                                capital_mode='full_margin',exchange_max='1000')
-        self.assertEqual(quantity, Decimal('100'))  # $10k notional = 10x free USDT.
+        self.assertEqual(quantity, Decimal('200'))  # $20k notional = 20x free USDT.
         limited=contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
                               capital_mode='full_margin',exchange_max='32')
         self.assertEqual(limited,Decimal('32'))
@@ -660,3 +660,17 @@ class ComprehensivePreOrderVetoTests(unittest.TestCase):
                     side_effect=GateRejected("Market report timestamp unavailable"))):
             with self.assertRaisesRegex(ExecutionBlocked,"timestamp unavailable"):
                 execute(report,Preflight(),"live",self.env())
+
+
+class OmegaExecutionSelectionTests(unittest.TestCase):
+    def test_vetoed_or_nonpositive_rank_cannot_trade(self):
+        s=make_signal()
+        s.update(omega_system_count=10, omega_rank_score=0.1, omega_veto_reasons=['adversary'])
+        self.assertIsNone(choose_signal({'results':[s]}))
+        s['omega_veto_reasons']=[]
+        s['omega_rank_score']=0
+        self.assertIsNone(choose_signal({'results':[s]}))
+
+    def test_omega_report_required_under_explicit_guard(self):
+        with self.assertRaisesRegex(ExecutionBlocked,'Missing TITAN Omega'):
+            execute({'results':[make_signal()]},object(),'dry_run',{'OKX_REQUIRE_OMEGA':'YES'})
