@@ -1,0 +1,31 @@
+name: TITAN Omega multi-position full-margin exposure study (NO TRADES)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  portfolio-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test read-only allocation planner
+        run: python -m unittest tests.test_okx_multi_position_research -v
+      - name: Scan 12 public OKX markets without secrets
+        run: python -m trading.six_agent_council --top 12 --out reports/okx_six_agents.json
+      - name: Simulate three concurrent positions at 20x using 100 percent of hypothetical equity
+        run: python -m trading.okx_multi_position_research --slots 3 --report reports/okx_six_agents.json --out reports/okx_multi_position_research.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: multi-position-research-only
+          path: |
+            reports/okx_six_agents.json
+            reports/okx_multi_position_research.json
+          retention-days: 3
+          if-no-files-found: ignore
