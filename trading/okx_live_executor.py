@@ -33,7 +33,7 @@ MAX_SPREAD_BP = Decimal('15')
 EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial stop, *not* guaranteed realised loss
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
-REENTRY_COOLDOWN_MS = 10 * 60 * 1000  # wait at least 10m after any fully closed SWAP position
+REENTRY_COOLDOWN_MS = 30 * 1000  # minimum 30 seconds after exchange-confirmed full SWAP close
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
@@ -364,7 +364,7 @@ def daily_order_limit(client, *, now_ms=None, candidate_id=None):
 
 
 def enforce_exit_cooldown(client, *, now_ms=None):
-    """Block all new entries for 10 minutes after a full SWAP close or liquidation.
+    """Block all new entries for 30 seconds after a full SWAP close or liquidation.
 
     Reads OKX's durable exchange-side position history, so a GitHub runner
     restarting does not erase the cooldown. Never infer exits from an absent
@@ -650,7 +650,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         raise
     clordid=client_order_id(signal)
     # Check the latest 24h history for duplicate client order IDs, not a numeric trade limit.
-    # A second entry is only considered after the exchange-verified 10m exit cooldown.
+    # A second entry is only considered after the exchange-verified 30-second exit cooldown.
     try:
         daily_order_limit(client,candidate_id=clordid)  # Exchange-confirmed anti-replay.
     except DuplicateCandidateRejected:
@@ -760,6 +760,11 @@ def main():
         if args.verify_only:
             if not all(env.get(k) for k in ('OKX_API_KEY','OKX_SECRET_KEY','OKX_PASSPHRASE')):
                 raise ExecutionBlocked('Cannot verify: encrypted OKX API secrets are missing')
+            # Validate exact live/full-margin arming without posting any orders.
+            # A missing or mismatched repository secret fails the dry validation
+            # before anyone attempts an unattended LIVE workflow.
+            if args.mode in ('live','demo'):
+                check_mode(args.mode,env)
             client=OKX(env)
             config=client.request('GET','/api/v5/account/config')
             if len(config)!=1:

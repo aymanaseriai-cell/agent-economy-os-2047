@@ -281,3 +281,25 @@ this path without placing orders. The monitor logs only `open`, `limit`,
 and `remaining` slot counts, not sensitive balances or symbols.
 Actual new orders still require independent signals, active protection,
 risk budget, sufficient free equity, and valid exchange leverage.
+
+
+## 2026-11-11: Single position, 30-second post-exit cooldown, separately armed full margin
+The owner's updated plan replaces the 10-position portfolio target with
+`OKX_MAX_ACTIVE_POSITIONS=1`. The executor and read-only monitor now enforce
+the **same account-wide single-open-SWAP-position rule**; if a position exists,
+the worker waits and cannot stack a second position. If a full close,
+liquidation or ADL close is present in OKX authenticated
+`/api/v5/account/positions-history`, the earliest *eligible* subsequent
+entry is 30 seconds after the server-stamped close time. The monitor
+checks the close state every 10 seconds during cooldown. Additional public
+analysis and GitHub runner scheduling may delay the next trade; 30 seconds
+is a minimum and **not a promised execution time**.
+`OKX_CAPITAL_MODE=full_margin` is an optional account-risking allocation
+up to available equity with isolated 20x leverage. It requires a separately
+configured `OKX_FULL_MARGIN_ARM` secret and existing explicit live arming.
+No 100% utilization or profit is guaranteed: a 10% planned stop-risk veto,
+instrument limits, contract steps, fees, protection verification and weak
+signals can refuse an entry. Liquidation, fees or slippage can cause a total
+or greater-than-planned loss. No realized-drawdown kill switch has yet been
+implemented, so unattended full-margin compounding carries significant
+downside.

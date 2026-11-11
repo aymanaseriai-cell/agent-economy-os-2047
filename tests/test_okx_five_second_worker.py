@@ -229,7 +229,7 @@ class AutoResumeWorkerTests(unittest.TestCase):
         self.assertEqual(result,0)
         self.assertEqual(calls.count("trading.okx_resume_monitor"),4)
         self.assertEqual(calls.count("trading.six_agent_council"),2)
-        self.assertEqual(delays,[5,30,30])
+        self.assertEqual(delays,[5,30,10])
 
     def test_first_fill_does_not_block_second_when_portfolio_has_free_slots(self):
         # Distinct from legacy single-position logic: with an existing
@@ -487,3 +487,24 @@ class BoundedSessionAndStatusSafetyTests(unittest.TestCase):
             return done(args,"UNCLASSIFIED_STATUS") if args[2]=="trading.okx_live_executor" else done(args)
         self.assertEqual(loop(max_cycles=3,run=run,clock=lambda:0.),3)
         self.assertEqual(calls.count("trading.okx_live_executor"),1)
+
+class FastCooldownPollingTests(unittest.TestCase):
+    def test_waiting_for_exit_cooldown_uses_ten_second_read_only_poll(self):
+        calls=[]; sleeps=[]; now=[0.]
+        states=iter(('COOLDOWN_ACTIVE','FLAT_ELIGIBLE'))
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=='trading.okx_resume_monitor':
+                return subprocess.CompletedProcess(
+                    cmd,0,'OKX MONITOR RESULT: '+next(states)+'\n','')
+            if cmd[2]=='trading.okx_live_executor':
+                return done(cmd,'NO_CONSENSUS')
+            return done(cmd)
+        with patch.dict(os.environ,{'OKX_AUTOREENTRY_ENABLED':'YES'}):
+            result=loop(max_cycles=1,resume_after_protected_fill=True,
+                        run=run,clock=lambda:now[0],
+                        sleep=lambda t:(sleeps.append(t),now.__setitem__(0,now[0]+t)))
+        self.assertEqual(result,0)
+        self.assertEqual(sleeps,[10])
+        self.assertEqual(calls.count('trading.okx_resume_monitor'),2)
+        self.assertEqual(calls.count('trading.okx_live_executor'),1)

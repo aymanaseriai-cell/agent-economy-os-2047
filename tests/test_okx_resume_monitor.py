@@ -66,6 +66,14 @@ class ResumeMonitorTests(unittest.TestCase):
                             "uTime":str(now-2000)}])
         self.assertEqual(inspect_account_state(c),"COOLDOWN_ACTIVE")
 
+    def test_just_after_thirty_seconds_allows_fresh_scans(self):
+        import time
+        now=int(time.time()*1000)
+        c=FakeOKX(history=[{'instType':'SWAP','type':'2',
+                            'uTime':str(now-31*1000)}])
+        self.assertEqual(inspect_account_state(c,max_positions=1),
+                         'FLAT_ELIGIBLE')
+
     def test_expired_cooldown_allows_new_scan(self):
         import time
         now=int(time.time()*1000)

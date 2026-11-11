@@ -103,7 +103,7 @@ class TestLiveSafety(unittest.TestCase):
             contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
                           capital_mode='full_margin')
 
-    def test_reentry_blocks_until_10_minutes_after_full_close(self):
+    def test_reentry_blocks_until_30_seconds_after_full_close(self):
         class History:
             def __init__(self, rows):
                 self.rows=rows
@@ -113,11 +113,15 @@ class TestLiveSafety(unittest.TestCase):
                     raise AssertionError('Unexpected API request')
                 return self.rows
         clock=1_800_000_000_000
-        full={'instType':'SWAP','type':'2','uTime':str(clock-9*60*1000)}
+        full={'instType':'SWAP','type':'2','uTime':str(clock-29*1000)}
         with self.assertRaisesRegex(ExecutionBlocked, 'cooldown active'):
             enforce_exit_cooldown(History([full]), now_ms=clock)
-        enforce_exit_cooldown(History([full]), now_ms=clock+60*1000)
+        enforce_exit_cooldown(History([full]), now_ms=clock+1000)
         enforce_exit_cooldown(History([]), now_ms=clock)
+        recent={'instType':'SWAP','type':'2','uTime':str(clock-30*1000)}
+        enforce_exit_cooldown(History([recent]),now_ms=clock)
+        old={'instType':'SWAP','type':'2','uTime':str(clock-9*60*1000)}
+        enforce_exit_cooldown(History([old]),now_ms=clock)
 
     def test_liquidation_and_adl_closures_trigger_cooldown(self):
         clock=1_800_000_000_000
@@ -842,3 +846,28 @@ class CryptocurrencyOnlyTwentyXGateTests(unittest.TestCase):
                 raise AssertionError(path)
         with self.assertRaisesRegex(CandidateRejected,'pre-market contract'):
             market_preflight(Equity(),{'symbol':'SOXL-USDT-SWAP','quote_price':100})
+
+class OnePositionFullMarginThirtySecondTests(unittest.TestCase):
+    def test_single_full_margin_live_mode_is_explicitly_armed(self):
+        from trading.okx_live_executor import check_mode, ExecutionBlocked
+        env={'OKX_CAPITAL_MODE':'full_margin',
+             'OKX_MAX_ACTIVE_POSITIONS':'1',
+             'OKX_FULL_MARGIN_ARM':FULL_MARGIN_ARM,
+             'OKX_EXECUTION_ARM':MODE_ARM['live'],
+             'OKX_ENABLE_REAL_TRADING':'YES','OKX_STOP_CONTINUOUS':'NO',
+             'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST'}
+        check_mode('live',env)
+        with self.assertRaisesRegex(ExecutionBlocked,'separately armed'):
+            check_mode('live',{**env,'OKX_FULL_MARGIN_ARM':''})
+        with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
+            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':'2'})
+        with self.assertRaisesRegex(ExecutionBlocked,'Maximum open positions'):
+            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':'11'})
+
+    def test_liquidation_does_not_get_cooldown_exemption(self):
+        from trading.okx_live_executor import enforce_exit_cooldown, ExecutionBlocked
+        class History:
+            def request(self,method,path,params=None):
+                return [{'instType':'SWAP','type':'3','uTime':'1800000000000'}]
+        with self.assertRaises(ExecutionBlocked):
+            enforce_exit_cooldown(History(),now_ms=1800000000000+10000)

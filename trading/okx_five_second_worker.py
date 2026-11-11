@@ -9,7 +9,7 @@ cron cannot schedule every five seconds; its minimum is five minutes.
 Uses the public 6+7 scanner and guarded executor. Normal one-off mode stops
 after submitting an order. Separately armed auto-reentry mode only resumes after
 a FILLED_PROTECTED result, repeatedly verifies open-position protection and
-exchange-recorded ten-minute cooldown, and stops on all unknown states.
+exchange-recorded thirty-second cooldown, and stops on all unknown states.
 No blind order retries and no new write endpoints.
 """
 from __future__ import annotations
@@ -96,11 +96,13 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                       file=sys.stderr,flush=True)
                 return 3
             if states[0] in MONITOR_WAIT_STATES:
-                pause=30
+                # More frequent read-only checks for the requested 30-second
+                # cooldown; keep lower-frequency checks for open positions.
+                pause=10 if states[0]=="COOLDOWN_ACTIVE" else 30
                 if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
                     print("TITAN bounded runtime reached",flush=True)
                     return 0
-                print("TITAN monitor: "+states[0]+"; no new order, poll again after 30s",
+                print("TITAN monitor: "+states[0]+f"; no new order, poll again after {pause}s",
                       flush=True)
                 sleep(pause)
                 continue
@@ -180,12 +182,12 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             # The monitor's earlier snapshot can precede the appearance of a
             # freshly closed OKX position in positions-history. The executor's
             # second check remains authoritative. Do NOT enter; poll again.
-            pause=30
+            pause=10
             if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
                 print("TITAN bounded runtime reached",flush=True)
                 return 0
-            print("TITAN executor verified 10m exit cooldown; no order; "
-                  "returning to read-only monitoring after 30s",flush=True)
+            print("TITAN executor verified 30s exit cooldown; no order; "
+                  "returning to read-only monitoring after 10s",flush=True)
             sleep(pause)
             continue
         if status=="FILLED_PROTECTED" and resume_after_protected_fill:
