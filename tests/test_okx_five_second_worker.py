@@ -295,7 +295,7 @@ class AutoResumeWorkerTests(unittest.TestCase):
 class CooldownRacingMonitorTests(unittest.TestCase):
     def test_cooldown_after_flat_monitor_continues_and_rechecks(self):
         # Monitor sees FLAT before the closure reaches OKX history; executor
-        # discovers new 10m cooldown. No order is attempted; chain survives.
+        # discovers new 30-second cooldown. No order is attempted; chain survives.
         now=[0.0]; calls=[]; pauses=[]
         states=iter(("FLAT_ELIGIBLE","COOLDOWN_ACTIVE","FLAT_ELIGIBLE"))
         outcomes=iter(("REENTRY_COOLDOWN_NO_ORDER","NO_CONSENSUS"))
@@ -317,7 +317,7 @@ class CooldownRacingMonitorTests(unittest.TestCase):
         self.assertEqual(calls.count("trading.okx_resume_monitor"),3)
         self.assertEqual(calls.count("trading.six_agent_council"),2)
         self.assertEqual(calls.count("trading.okx_live_executor"),2)
-        self.assertEqual(pauses,[30,30])
+        self.assertEqual(pauses,[10,10])
 
     def test_no_recurring_opt_in_cannot_accept_cooldown_status(self):
         def fake_run(cmd,timeout):

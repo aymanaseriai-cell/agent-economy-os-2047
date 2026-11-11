@@ -408,7 +408,7 @@ class CooldownRaceSafetyTests(unittest.TestCase):
         clock=1_800_000_000_000
         class History:
             def request(self,method,path,params=None):
-                return [{"instType":"SWAP","type":"2","uTime":str(clock-30_000)}]
+                return [{"instType":"SWAP","type":"2","uTime":str(clock-29_000)}]
         with self.assertRaises(ReentryCooldownActive):
             enforce_exit_cooldown(History(),now_ms=clock)
 
