@@ -194,6 +194,16 @@ def read_report(path, now_ms=None):
         raise ExecutionBlocked('Expected exactly six agents and seven systems')
     if report.get('errors'):
         raise ExecutionBlocked('Market scan had data errors; fail closed')
+    if report.get('all_eligible_batch'):
+        if (report.get('market_scan_complete') is not True
+                or not isinstance(report.get('markets_selected'),int)
+                or report['markets_selected'] < 1
+                or report.get('markets_analyzed') != report['markets_selected']):
+            raise ExecutionBlocked('Incomplete full-universe scan: refuse order')
+        # A full batch must cover all safety/liquidity-passing contracts,
+        # even when they are not selected for real-money execution.
+        if report.get('markets_screened_for_liquidity',0) < report['markets_selected']:
+            raise ExecutionBlocked('Invalid exchange-universe coverage count')
     timestamp = datetime.fromisoformat(report['utc_timestamp'].replace('Z', '+00:00'))
     age = now_ms / 1000 - timestamp.timestamp()
     if not 0 <= age < MAX_REPORT_AGE_S:

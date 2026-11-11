@@ -303,3 +303,26 @@ signals can refuse an entry. Liquidation, fees or slippage can cause a total
 or greater-than-planned loss. No realized-drawdown kill switch has yet been
 implemented, so unattended full-margin compounding carries significant
 downside.
+
+
+## 2026-11-11: One-cycle full 20x cryptocurrency universe screening
+Public research and the explicitly armed LIVE workflow now pass
+`--all-eligible` to the scanner. Every OKX instrument classified as
+cryptocurrency and advertising >=20x for linear USDT swaps is screened
+for fresh market turnover and bid/ask spread **within that cycle**.
+All candidates passing existing >=15M USDT 24h volume and <=25 bp spread
+requirements are deep-analyzed with 6 bounded concurrent public-data
+workers (six original agents, seven quant systems, ten Omega diagnostics).
+This replaces rolling slices of 20. Thin/spready contracts are *considered
+and excluded*, never bought simply to achieve nominal 100% coverage.
+The exchange's currently eligible instrument count can change over time.
+The resulting report records total screened, deep candidates, completion
+counts, and per-symbol errors; `read_report` refuses real execution if
+a full-universe scan is partial or any API/data failure occurs.
+Public calls still hit OKX rate limits, so a large universe or transient
+errors can cause the 160s bounded public scan to fail closed without a
+trade, instead of silently using a partial report. The bot keeps the
+owner's existing single-position, 20x, 30-second minimum post-exit
+cooldown, full-margin stop-risk veto, and protected-order checks.
+This is not actual quantum computing, not a validated statistical edge,
+and does not guarantee order placement or profits.

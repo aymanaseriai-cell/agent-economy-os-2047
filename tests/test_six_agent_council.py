@@ -1,6 +1,6 @@
 import unittest
 from trading.six_agent_council import (
-    candles, select_markets, eligible_20x_instruments, volume_profile, auction_cartographer,
+    candles, select_markets, eligible_20x_instruments, analyze_market_batch, volume_profile, auction_cartographer,
     tape_detective, derivatives_intelligence, structure_navigator,
     risk_marshal, liquidity_sentinel, summarize_agents,
 )
@@ -91,6 +91,44 @@ class TestCouncil(unittest.TestCase):
         self.assertEqual(len(selected),20)
         self.assertEqual(len({x["symbol"] for x in selected}),20)
         self.assertTrue(all(x["turnover_usdt_est"]>=15000000 for x in selected))
+
+    def test_all_eligible_batch_analyzes_every_liquid_symbol_in_one_cycle(self):
+        from unittest.mock import patch
+        symbols=[f"C{i:03d}" for i in range(227)]
+        data=[{"instId":symbol+"-USDT-SWAP","last":"100",
+               "bidPx":"99.99","askPx":"100.01",
+               "volCcy24h":str(500000 if i%5 else 1000)}
+              for i,symbol in enumerate(symbols)]
+        eligible=eligible_20x_instruments(self.instruments_for(data))
+        # All 227 are screened by ticker, but illiquid ones cannot trade.
+        pool=select_markets(data,len(data),eligible=eligible)
+        self.assertEqual(len(eligible),227)
+        self.assertEqual(len(pool),181)
+        with patch('trading.six_agent_council.analyze_market',
+                   side_effect=lambda m:{'symbol':m['symbol'],'signal':'WAIT'}):
+            outcomes,errors=analyze_market_batch(pool,concurrency=6)
+        self.assertEqual(len(outcomes),len(pool))
+        self.assertFalse(errors)
+        self.assertEqual([x['symbol'] for x in outcomes],
+                         [x['symbol'] for x in pool])
+
+    def test_parallel_batch_accounts_for_failures_without_silent_missing_symbols(self):
+        from unittest.mock import patch
+        pool=[{'symbol':'BTC-USDT-SWAP'},{'symbol':'ETH-USDT-SWAP'},
+              {'symbol':'SOL-USDT-SWAP'}]
+        def attempt(m):
+            if m['symbol']=='ETH-USDT-SWAP':
+                raise ValueError('unsupported market')
+            return {'symbol':m['symbol'],'signal':'WAIT'}
+        with patch('trading.six_agent_council.analyze_market',
+                   side_effect=attempt):
+            results,errors=analyze_market_batch(pool,concurrency=3)
+        self.assertEqual([x['symbol'] for x in results],
+                         ['BTC-USDT-SWAP','SOL-USDT-SWAP'])
+        self.assertEqual(len(errors),1)
+        self.assertEqual(errors[0]['symbol'],'ETH-USDT-SWAP')
+        with self.assertRaises(ValueError):
+            analyze_market_batch(pool,concurrency=7)
 
     def test_rotation_diversifies_liquid_universe_without_relaxing_filters(self):
         symbols = ["BTC","ETH","SOL","XRP","DOGE","ADA","LINK","AVAX",

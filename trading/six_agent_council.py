@@ -7,6 +7,7 @@ Do not interpret the six agents as independent LLM processes or as predictive or
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import math
 import statistics
@@ -410,9 +411,39 @@ def analyze_market(ticker):
     return record
 
 
+def analyze_market_batch(pool, *, concurrency=6):
+    """Analyze every qualifying instrument in one bounded parallel batch.
+
+    The underlying API functions perform public GETs only. Each submitted
+    instrument produces exactly one result or an explicit per-symbol error.
+    Preserve the deterministic liquidity ordering despite completion races.
+    """
+    if not 1 <= concurrency <= 6:
+        raise ValueError("Parallel public-API request cap must be 1..6")
+    ordered_results = {}
+    ordered_errors = {}
+    with ThreadPoolExecutor(max_workers=concurrency) as executor:
+        tasks = {executor.submit(analyze_market, market): (idx, market["symbol"])
+                 for idx, market in enumerate(pool)}
+        for finished in as_completed(tasks):
+            idx, symbol = tasks[finished]
+            try:
+                ordered_results[idx] = finished.result()
+            except Exception as exc:
+                ordered_errors[idx] = {"symbol": symbol, "reason": str(exc)[:160]}
+    results = [ordered_results[i] for i in sorted(ordered_results)]
+    errors = [ordered_errors[i] for i in sorted(ordered_errors)]
+    if len(results) + len(errors) != len(pool):
+        raise RuntimeError("Partial scan accounting mismatch; fail closed")
+    return results, errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--top", type=int, default=6)
+    parser.add_argument("--all-eligible", action="store_true",
+                        help="In one batch screen ALL current 20x crypto contracts, "
+                             "then deep-analyze ALL that pass the safety/liquidity gate")
     parser.add_argument("--rotate-universe", action="store_true",
                         help="Cycle through all liquid eligible 20x crypto symbols")
     parser.add_argument("--out", default="reports/okx_six_agents.json")
@@ -425,15 +456,24 @@ def main():
         # newly listed swaps; no pinned/handwritten ticker list can go stale.
         instrument_rows = okx_get("/api/v5/public/instruments", {"instType": "SWAP"})
         eligible = eligible_20x_instruments(instrument_rows)
-        pool = select_markets(okx_get("/api/v5/market/tickers", {"instType": "SWAP"}),
-                              args.top, rotation_epoch=rotation_epoch, eligible=eligible)
-        results, errors = [], []
-        for market in pool:
-            try:
-                results.append(analyze_market(market))
-            except Exception as exc:
-                errors.append({"symbol": market["symbol"], "reason": str(exc)[:160]})
-            time.sleep(0.4)
+        tickers = okx_get("/api/v5/market/tickers", {"instType": "SWAP"})
+        screened = sum(row.get("instId") in eligible for row in tickers)
+        if args.all_eligible:
+            # Screen the ENTIRE exchange-eligible universe in this cycle.
+            # Securities with weak liquidity/spreads are still checked, but
+            # are never sent into the expensive technical analyzer or orders.
+            pool = select_markets(tickers, len(tickers), eligible=eligible)
+            results, errors = analyze_market_batch(pool, concurrency=6)
+        else:
+            pool = select_markets(tickers, args.top,
+                                  rotation_epoch=rotation_epoch, eligible=eligible)
+            results, errors = [], []
+            for market in pool:
+                try:
+                    results.append(analyze_market(market))
+                except Exception as exc:
+                    errors.append({"symbol": market["symbol"], "reason": str(exc)[:160]})
+                time.sleep(0.4)
         report = {"utc_timestamp": datetime.now(timezone.utc).isoformat(),
                   "mode": "SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY", "genuine_llm_agents": 0,
                   "core_specialist_agents": 6, "advanced_quant_systems": 7,
@@ -442,6 +482,11 @@ def main():
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
                   "minimum_exchange_advertised_leverage": MIN_ADVERTISED_SWAP_LEVERAGE,
                   "exchange_eligible_20x_symbols": len(eligible),
+                  "all_eligible_batch": bool(args.all_eligible),
+                  "markets_screened_for_liquidity": screened,
+                  "markets_excluded_by_liquidity_or_spread": screened-len(pool) if args.all_eligible else None,
+                  "deep_analysis_workers": 6 if args.all_eligible else 1,
+                  "market_scan_complete": len(results)+len(errors)==len(pool),
                   "markets_selected": len(pool), "markets_analyzed": len(results),
                   "actionable_research_labels": sum(x["signal"] != "WAIT" for x in results),
                   "results": results, "errors": errors,
@@ -451,6 +496,11 @@ def main():
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("SIX AGENTS + QUANT2037: selected=", len(pool), "analyzed=", len(results),
               "signals=", report["actionable_research_labels"], "errors=", len(errors))
+        print("TITAN SAME-BATCH UNIVERSE: all_eligible=", args.all_eligible,
+              "screened=",screened, "qualified_for_deep_analysis=",len(pool),
+              "completed=",len(results)+len(errors),
+              "workers=", 6 if args.all_eligible else 1,
+              "complete=", report["market_scan_complete"])
         print("TITAN 20X SWAP UNIVERSE: eligible=", len(eligible),
               "selected_for_this_scan=",len(pool),
               "liquidity_min_usdt=",MIN_TURNOVER_USDT_EST)
@@ -479,7 +529,9 @@ def main():
         for err in errors:
             print("DATA ERROR", err["symbol"], err["reason"])
         print("Full evidence report:", path)
-        return 0 if results else 2
+        # A rejected or unavailable liquid market is never hidden; the LIVE
+        # executor rejects reports with any per-symbol API/data errors.
+        return 0 if results and report["market_scan_complete"] else 2
     except Exception as exc:
         print("Public scan error, no trades attempted:", exc, file=sys.stderr)
         return 1

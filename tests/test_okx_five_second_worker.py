@@ -55,6 +55,18 @@ class FiveSecondWorkerTests(unittest.TestCase):
         self.assertEqual([x[2] for x in calls],
                          ["trading.six_agent_council","trading.okx_live_executor"])
 
+    def test_one_full_universe_scan_dispatches_single_report_to_guarded_executor(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append((args,timeout))
+            return done(args,'NO_CONSENSUS') if args[2]=='trading.okx_live_executor' else done(args)
+        self.assertEqual(loop(max_cycles=1,top=20,all_eligible=True,
+                              run=run,clock=lambda:0.,sleep=lambda _:None),0)
+        self.assertEqual([c[0][2] for c in calls],
+                         ['trading.six_agent_council','trading.okx_live_executor'])
+        self.assertIn('--all-eligible',calls[0][0])
+        self.assertEqual(calls[0][1],160)
+
     def test_dry_run_signal_continues_research_without_order(self):
         calls=[]; pauses=[]
         def run(args,timeout):

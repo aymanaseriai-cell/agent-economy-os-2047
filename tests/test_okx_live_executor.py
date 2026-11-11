@@ -871,3 +871,30 @@ class OnePositionFullMarginThirtySecondTests(unittest.TestCase):
                 return [{'instType':'SWAP','type':'3','uTime':'1800000000000'}]
         with self.assertRaises(ExecutionBlocked):
             enforce_exit_cooldown(History(),now_ms=1800000000000+10000)
+
+class FullUniverseCompletenessGateTests(unittest.TestCase):
+    def test_live_report_must_include_all_liquid_candidates_with_no_scan_errors(self):
+        from trading.okx_live_executor import read_report, ExecutionBlocked
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from datetime import datetime,timezone
+        now=int(time.time()*1000)
+        sample={'mode':'SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY',
+                'core_specialist_agents':6,'advanced_quant_systems':7,
+                'utc_timestamp':datetime.fromtimestamp(now/1000,timezone.utc).isoformat(),
+                'errors':[],'results':[],
+                'all_eligible_batch':True,'market_scan_complete':True,
+                'markets_selected':10,'markets_analyzed':9,
+                'markets_screened_for_liquidity':227}
+        with TemporaryDirectory() as tmp:
+            path=Path(tmp)/'r.json'
+            path.write_text(json.dumps(sample))
+            with self.assertRaisesRegex(ExecutionBlocked,'Incomplete full-universe'):
+                read_report(path,now_ms=now)
+            sample['markets_analyzed']=10
+            path.write_text(json.dumps(sample))
+            self.assertTrue(read_report(path,now_ms=now)['market_scan_complete'])
+            sample['errors']=[{'symbol':'BTC-USDT-SWAP','reason':'timeout'}]
+            path.write_text(json.dumps(sample))
+            with self.assertRaisesRegex(ExecutionBlocked,'data errors'):
+                read_report(path,now_ms=now)

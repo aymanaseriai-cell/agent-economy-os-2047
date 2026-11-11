@@ -46,7 +46,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
          max_runtime_seconds=0, top=12, report="reports/okx_six_agents.json",
          run:Callable=command, clock:Callable=time.monotonic,
          sleep:Callable=time.sleep, graceful_public_deadline=False,
-         resume_after_protected_fill=False):
+         resume_after_protected_fill=False, all_eligible=False):
     """Fail-closed full analysis, then executor; 5-sec pause between decisions.
 
     0 max_cycles = unlimited. 0 max_runtime = unlimited.
@@ -111,10 +111,16 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         # Hold back 15 seconds for a controlled exit at the end of a GitHub
         # public-research job. The earlier code gave the scan all remaining
         # seconds and flagged normal deadline exhaustion as a hard failure.
-        scan_timeout=(90 if remaining is None else
-                      min(90, max(1, remaining - 15 if graceful_public_deadline else remaining)))
+        # Full-universe research has more work than a 20-market serial scan.
+        # A longer bounded PUBLIC-only timeout never relaxes private order
+        # status handling or the worker's fail-closed behavior.
+        public_limit = 160 if all_eligible else 90
+        scan_timeout=(public_limit if remaining is None else
+                      min(public_limit, max(1, remaining - 15 if graceful_public_deadline else remaining)))
         scan_command=[sys.executable,"-m","trading.six_agent_council",
                       "--top",str(top),"--out",report]
+        if all_eligible:
+            scan_command.append("--all-eligible")
         # Recurring live work should inspect more than the same 12 symbols
         # indefinitely; public rotation never relaxes an execution veto.
         if resume_after_protected_fill:
@@ -122,12 +128,12 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         scan=run(scan_command,timeout=scan_timeout)
         if scan.returncode!=0:
             if (graceful_public_deadline and scan.returncode==124
-                    and scan_timeout<90):
+                    and scan_timeout<public_limit):
                 print("TITAN public research window ended during an incomplete final scan; "
                       "no orders, previous completed scans retained",flush=True)
                 return 0
             if (resume_after_protected_fill and max_runtime_seconds
-                    and scan.returncode==124 and scan_timeout<90):
+                    and scan.returncode==124 and scan_timeout<public_limit):
                 # Only the public scanner was interrupted by the known bounded
                 # GitHub session deadline; no private executor or order began.
                 # Treat as clean handoff, never as a successful scan or trade.
@@ -235,6 +241,9 @@ def main():
     parser.add_argument("--resume-after-protected-fill",action="store_true",
                         help="Explicitly armed read-only monitoring after protected fill")
     parser.add_argument("--top",type=int,default=12)
+    parser.add_argument("--all-eligible",action="store_true",
+                        help="Screen all current 20x crypto swaps in a single cycle; "
+                             "parallel deep-analysis of the full liquid subset")
     parser.add_argument("--report",default="reports/okx_six_agents.json")
     args=parser.parse_args()
     try:
@@ -242,7 +251,8 @@ def main():
                     max_runtime_seconds=args.max_runtime_seconds,
                     top=args.top,report=args.report,
                     graceful_public_deadline=args.graceful_public_deadline,
-                    resume_after_protected_fill=args.resume_after_protected_fill)
+                    resume_after_protected_fill=args.resume_after_protected_fill,
+                    all_eligible=args.all_eligible)
     except ValueError as exc:
         print("Invalid TITAN configuration: "+str(exc),file=sys.stderr)
         return 2
