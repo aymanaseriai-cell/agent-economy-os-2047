@@ -218,13 +218,15 @@ class TestCouncil(unittest.TestCase):
         core={"signal":"LONG","agents":[],
               "ordinal_buy_points":3,"ordinal_sell_points":2}
         no_directional={"system":"neutral","vote":0,"risk":"PASS"}
-        with patch('trading.quant2037.jump_sentinel',return_value=no_directional), \\
-             patch('trading.quant2037.permutation_entropy',return_value=no_directional), \\
-             patch('trading.quant2037.variance_ratio',return_value=no_directional), \\
-             patch('trading.quant2037.value_migration',return_value=no_directional), \\
-             patch('trading.quant2037.depth_fragility',return_value=no_directional), \\
-             patch('trading.quant2037.flow_acceleration',return_value=no_directional), \\
-             patch('trading.quant2037.counterfactual_stability',return_value=no_directional):
+        with (
+            patch('trading.quant2037.jump_sentinel',return_value=no_directional),
+            patch('trading.quant2037.permutation_entropy',return_value=no_directional),
+            patch('trading.quant2037.variance_ratio',return_value=no_directional),
+            patch('trading.quant2037.value_migration',return_value=no_directional),
+            patch('trading.quant2037.depth_fragility',return_value=no_directional),
+            patch('trading.quant2037.flow_acceleration',return_value=no_directional),
+            patch('trading.quant2037.counterfactual_stability',return_value=no_directional),
+        ):
             x=evaluate_advanced([],{},[],core)
         self.assertEqual(x['signal'],'WAIT')
         self.assertIn('no_independent_quant_confirmation',
