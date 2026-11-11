@@ -341,3 +341,16 @@ a maximum of one open position, adaptive guarded sizing, and the 30-second
 minimum after a full exit are unchanged. More signals may be considered,
 but no actual order or return is promised. Ordinal scores are NOT model
 probabilities; the speculative strategy is not backtested to a verified edge.
+
+
+## 2026-11-11: Public signal-funnel forensic audit (no trade behavior changes)
+`trading/okx_signal_audit.py` reads only the research JSON from a completed
+public scan, showing how many core directional candidates pass the independent
+quantitative gate and Omega's net-cost/edge vetoes. Every LIVE/research GitHub
+Actions job prints `TITAN AUDIT` counters, writes a public-only JSON artifact,
+and shows a table in its GitHub job summary. It never reads OKX secrets,
+credentials, position/order data or sends orders. A rejection at the seven-system
+stage is NOT treated as an Omega pass simply because Omega was evaluated with
+`WAIT`. This is transparent instrumentation, not backtesting. **Live strategy,
+capital/risk limits, protected-order checks and confirmation thresholds are
+unchanged.** Do not waive a hard safety gate simply to force order volume.

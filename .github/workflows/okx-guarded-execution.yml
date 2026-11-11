@@ -142,6 +142,17 @@ jobs:
           path: reports/okx_six_agents.json
           retention-days: 3
           if-no-files-found: ignore
+      - name: Summarize PUBLIC signal gates (NO orders, NO secrets)
+        if: (inputs.purpose == 'run' || inputs.purpose == 'research') && always()
+        continue-on-error: true
+        run: python -m trading.okx_signal_audit --report reports/okx_six_agents.json --out reports/okx_signal_audit.json --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: (inputs.purpose == 'run' || inputs.purpose == 'research') && always()
+        with:
+          name: okx-public-signal-funnel-only
+          path: reports/okx_signal_audit.json
+          retention-days: 3
+          if-no-files-found: ignore
       - name: Chain another session after 20 seconds (clean bounded exit only)
         if: >-
           ${{ inputs.purpose == 'run' && inputs.confirm_live == true && inputs.continuous == true && inputs.confirm_continuous_live == true && steps.worker.outcome == 'success' }}
