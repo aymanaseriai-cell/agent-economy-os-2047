@@ -116,7 +116,7 @@ jobs:
           if [[ "$OKX_AUTOREENTRY_ENABLED" == 'YES' ]]; then
             extra_args+=(--resume-after-protected-fill)
           fi
-          python -m trading.okx_five_second_worker --interval-seconds 5 --max-runtime-seconds 245 --report reports/okx_six_agents.json "${extra_args[@]}" | tee "$RUNNER_TEMP/okx_worker.log"
+          python -m trading.okx_five_second_worker --interval-seconds 5 --top 20 --max-runtime-seconds 245 --report reports/okx_six_agents.json "${extra_args[@]}" | tee "$RUNNER_TEMP/okx_worker.log"
         env:
           OKX_EXECUTION_MODE: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}

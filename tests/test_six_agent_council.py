@@ -79,6 +79,19 @@ class TestCouncil(unittest.TestCase):
                          ["BTC-USDT-SWAP"])
 
 
+    def test_twenty_symbol_public_batch_has_no_duplicate_and_no_weak_liquidity(self):
+        names=("BTC","ETH","SOL","XRP","DOGE","ADA","LINK","AVAX",
+               "DOT","LTC","TRX","BCH","ETC","ATOM","UNI","SUI",
+               "NEAR","TAO","FIL","AAVE","ZEC")
+        rows=[{"instId":n+"-USDT-SWAP","last":"100",
+               "bidPx":"99.99","askPx":"100.01",
+               "volCcy24h":str(500000-i*5000)} for i,n in enumerate(names)]
+        eligibility=eligible_20x_instruments(self.instruments_for(rows))
+        selected=select_markets(rows,20,eligible=eligibility,rotation_epoch=1)
+        self.assertEqual(len(selected),20)
+        self.assertEqual(len({x["symbol"] for x in selected}),20)
+        self.assertTrue(all(x["turnover_usdt_est"]>=15000000 for x in selected))
+
     def test_rotation_diversifies_liquid_universe_without_relaxing_filters(self):
         symbols = ["BTC","ETH","SOL","XRP","DOGE","ADA","LINK","AVAX",
                    "DOT","LTC","TRX","BCH","ETC","ATOM","UNI","SUI"]

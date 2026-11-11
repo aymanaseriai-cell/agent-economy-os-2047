@@ -44,6 +44,17 @@ class FiveSecondWorkerTests(unittest.TestCase):
         self.assertIn("--rotate-universe",scans[0])
         self.assertEqual(sum(cmd[2]=="trading.okx_live_executor" for cmd in calls),1)
 
+    def test_twenty_coin_scan_is_allowed_and_still_uses_same_guarded_executor(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args)
+            return done(args,"NO_CONSENSUS") if args[2]=="trading.okx_live_executor" else done(args)
+        self.assertEqual(loop(max_cycles=1,top=20,run=run,
+                              clock=lambda:0.,sleep=lambda _:None),0)
+        self.assertIn("20",calls[0])
+        self.assertEqual([x[2] for x in calls],
+                         ["trading.six_agent_council","trading.okx_live_executor"])
+
     def test_dry_run_signal_continues_research_without_order(self):
         calls=[]; pauses=[]
         def run(args,timeout):
@@ -177,7 +188,7 @@ class FiveSecondWorkerTests(unittest.TestCase):
     def test_refuse_faster_than_five_seconds(self):
         with self.assertRaises(ValueError):loop(interval_seconds=1)
         with self.assertRaises(ValueError):loop(interval_seconds=10)
-        with self.assertRaises(ValueError):loop(top=13)
+        with self.assertRaises(ValueError):loop(top=21)
         with self.assertRaises(ValueError):loop(max_cycles=-1)
         with self.assertRaises(ValueError):loop(max_runtime_seconds=-1)
 

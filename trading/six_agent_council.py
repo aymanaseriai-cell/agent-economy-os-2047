@@ -414,11 +414,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--top", type=int, default=6)
     parser.add_argument("--rotate-universe", action="store_true",
-                        help="Cycle through all liquid eligible symbols rather than repeating top 12")
+                        help="Cycle through all liquid eligible 20x crypto symbols")
     parser.add_argument("--out", default="reports/okx_six_agents.json")
     args = parser.parse_args()
-    if not 1 <= args.top <= 12:
-        parser.error("--top must be in 1..12")
+    if not 1 <= args.top <= 20:
+        parser.error("--top must be in 1..20")
     try:
         rotation_epoch = int(time.time() // 30) if args.rotate_universe else None
         # The symbol universe is discovered anew from the exchange, including
@@ -456,6 +456,18 @@ def main():
               "liquidity_min_usdt=",MIN_TURNOVER_USDT_EST)
         print("TITAN MARKET POOL: rotated=", bool(args.rotate_universe),
               "symbols=", ",".join(x["symbol"] for x in pool))
+
+        # Precise, audit-friendly reasons: don't confuse an exchange/order
+        # failure with the strategy deciding to WAIT on unconfirmed evidence.
+        advanced_reasons={}
+        omega_reasons={}
+        for market_result in results:
+            for reason in market_result.get("advanced_veto_reasons", []):
+                advanced_reasons[reason]=advanced_reasons.get(reason,0)+1
+            for reason in market_result.get("omega_veto_reasons", []):
+                omega_reasons[reason]=omega_reasons.get(reason,0)+1
+        print("TITAN VETO BREAKDOWN: advanced=",json.dumps(advanced_reasons,sort_keys=True),
+              "omega=",json.dumps(omega_reasons,sort_keys=True))
         print("TITAN SIGNAL DIAGNOSTICS: core_candidates=",
               sum(x.get("core_signal_before_advanced") in ("LONG","SHORT") for x in results),
               "omega_vetoes=", sum(bool(x.get("omega_veto_reasons")) for x in results),

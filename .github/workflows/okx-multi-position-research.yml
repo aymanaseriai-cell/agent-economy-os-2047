@@ -16,8 +16,8 @@ jobs:
           python-version: '3.12'
       - name: Test read-only allocation planner
         run: python -m unittest tests.test_okx_multi_position_research -v
-      - name: Scan 12 public OKX markets without secrets
-        run: python -m trading.six_agent_council --top 12 --rotate-universe --out reports/okx_six_agents.json
+      - name: Scan up to 20 public OKX markets without secrets
+        run: python -m trading.six_agent_council --top 20 --rotate-universe --out reports/okx_six_agents.json
       - name: Simulate three concurrent positions at 20x using 100 percent of hypothetical equity
         run: python -m trading.okx_multi_position_research --slots 3 --report reports/okx_six_agents.json --out reports/okx_multi_position_research.json
       - uses: actions/upload-artifact@v4

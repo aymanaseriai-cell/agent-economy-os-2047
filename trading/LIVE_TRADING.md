@@ -258,3 +258,14 @@ fresh order preflight require `instCategory="1"`, OKX's documented crypto
 asset class. The scanner rejects absent or unknown categories (fail closed)
 rather than assuming every USDT-SWAP is cryptocurrency. Equity categories,
 including highly liquid SOXL/SNDK, cannot become bot candidates.
+
+
+## 2026-11-11: wider screened universe per cycle and granular veto diagnostics
+The recurring LIVE worker now scans up to 20 verified high-turnover liquid
+crypto 20x symbols each cycle (was 12), rotating across the exchange-qualified
+universe. This increases candidate discovery without removing any six-agent,
+seven-quant, ten Omega, spread, instrument, risk, leverage, stop, or cooldown
+checks. Exact advanced/Omega veto reason counters are printed to logs so zero
+trades can be traced to specific evidence gates. The scanner's 90-second
+per-cycle timeout remains: exceptionally slow public APIs can still abort
+the worker, and a live market order is NEVER forced for utilization goals.

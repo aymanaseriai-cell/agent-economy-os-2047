@@ -57,8 +57,8 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         raise ValueError("Auto re-entry requires explicit OKX_AUTOREENTRY_ENABLED=YES")
     if interval_seconds!=INTERVAL_SECONDS:
         raise ValueError("TITAN 5-second cadence is fixed at 5 seconds")
-    if not 1<=top<=12:
-        raise ValueError("top must be 1..12")
+    if not 1<=top<=20:
+        raise ValueError("top must be 1..20")
     if max_cycles<0 or max_runtime_seconds<0:
         raise ValueError("Nonnegative cycle/runtime limits required")
     if not isinstance(report,str) or not report or report.startswith("-"):
