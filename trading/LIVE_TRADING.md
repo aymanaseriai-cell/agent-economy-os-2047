@@ -249,3 +249,12 @@ universe is considered over successive scans, NOT that every coin is analyzed
 at once or that every 20x contract is guaranteed a trade. Ten open positions
 remain a maximum, not a target, and all existing aggregate risk limits are kept.
 No weak/no-consensus orders are forced.
+
+
+### Crypto category only
+OKX also lists stock, ETF, forex, commodity and bond USDT swaps with 20x.
+To implement the owner's request for **cryptocurrencies only**, the scanner and
+fresh order preflight require `instCategory="1"`, OKX's documented crypto
+asset class. The scanner rejects absent or unknown categories (fail closed)
+rather than assuming every USDT-SWAP is cryptocurrency. Equity categories,
+including highly liquid SOXL/SNDK, cannot become bot candidates.

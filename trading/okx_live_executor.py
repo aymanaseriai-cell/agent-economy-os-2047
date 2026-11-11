@@ -273,6 +273,7 @@ def market_preflight(client, signal):
         raise CandidateRejected('Instrument inactive or mismatched')
     parts=symbol.split('-')
     if (len(parts)!=3 or parts[1:]!=['USDT','SWAP']
+            or str(inst.get('instCategory',''))!='1'
             or inst.get('ctType')!='linear' or inst.get('settleCcy')!='USDT'
             or inst.get('ctValCcy')!=parts[0]
             or inst.get('ruleType') not in (None,'','normal')):

@@ -794,7 +794,7 @@ class ExchangeAdvertisedTwentyXGateTests(unittest.TestCase):
                 if path=='/api/v5/public/instruments':
                     return [{'instId':'BTC-USDT-SWAP','state':'live',
                              'ctType':'linear','settleCcy':'USDT','ctValCcy':'BTC',
-                             'ruleType':'normal','lever':self.lever}]
+                             'instCategory':'1','ruleType':'normal','lever':self.lever}]
                 raise AssertionError('Should be public GET only')
         sig={'symbol':'BTC-USDT-SWAP','quote_price':100}
         for lever in ('10','19.99','',None,'NaN'):
@@ -819,7 +819,26 @@ class ExchangeAdvertisedTwentyXGateTests(unittest.TestCase):
                 if path=='/api/v5/public/instruments':
                     return [{'instId':'BTC-USDT-SWAP','state':'live',
                              'ctType':'linear','settleCcy':'USDT',
-                             'ctValCcy':'BTC','lever':'20'}]
+                             'ctValCcy':'BTC','instCategory':'1','lever':'20'}]
                 raise AssertionError(path)
         with self.assertRaisesRegex(CandidateRejected,'turnover'):
             market_preflight(Tiny(),{'symbol':'BTC-USDT-SWAP','quote_price':100})
+
+class CryptocurrencyOnlyTwentyXGateTests(unittest.TestCase):
+    def test_stock_perpetual_cannot_trade_even_with_20x(self):
+        from trading.okx_live_executor import market_preflight, CandidateRejected
+        now=int(time.time()*1000)
+        class Equity:
+            def request(self,method,path,params=None,auth=True):
+                if method!='GET':
+                    raise AssertionError('No orders should be posted')
+                if path=='/api/v5/market/ticker':
+                    return [{'instId':'SOXL-USDT-SWAP','last':'100','bidPx':'99.99',
+                             'askPx':'100.01','volCcy24h':'1000000','ts':str(now)}]
+                if path=='/api/v5/public/instruments':
+                    return [{'instId':'SOXL-USDT-SWAP','state':'live',
+                             'instCategory':'3','ctType':'linear',
+                             'settleCcy':'USDT','ctValCcy':'SOXL','lever':'50'}]
+                raise AssertionError(path)
+        with self.assertRaisesRegex(CandidateRejected,'pre-market contract'):
+            market_preflight(Equity(),{'symbol':'SOXL-USDT-SWAP','quote_price':100})

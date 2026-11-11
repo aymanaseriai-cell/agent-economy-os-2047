@@ -92,6 +92,10 @@ def eligible_20x_instruments(instruments):
         parts = symbol.split("-")
         if len(parts) != 3 or parts[1:] != ["USDT", "SWAP"] or not parts[0]:
             continue
+        # instCategory=1 identifies crypto; 3/4/5/6 represent TradFi assets.
+        # Unknown category is excluded rather than guessing from ticker names.
+        if str(item.get("instCategory", "")) != "1":
+            continue
         if item.get("state") != "live" or item.get("ctType") != "linear":
             continue
         if item.get("settleCcy") != "USDT" or item.get("ctValCcy") != parts[0]:

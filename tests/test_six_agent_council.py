@@ -27,7 +27,7 @@ class TestCouncil(unittest.TestCase):
     @staticmethod
     def instruments_for(rows, *, lever="20"):
         return [{"instId":r["instId"],"state":"live",
-                 "ctType":"linear","settleCcy":"USDT",
+                 "ctType":"linear","settleCcy":"USDT","instCategory":"1",
                  "ctValCcy":r["instId"].split("-")[0],
                  "ruleType":"normal","lever":lever} for r in rows]
 
@@ -63,6 +63,20 @@ class TestCouncil(unittest.TestCase):
         good=eligible_20x_instruments(inst)
         self.assertEqual(good,frozenset({"ADA-USDT-SWAP"}))
         self.assertEqual(select_markets(rows,12,eligible=good)[0]["symbol"],"ADA-USDT-SWAP")
+
+
+    def test_equity_forex_metals_bonds_and_unknown_category_never_enter_crypto_scan(self):
+        rows=[{"instId":asset+"-USDT-SWAP","last":"100",
+               "bidPx":"99.99","askPx":"100.01","volCcy24h":"500000"}
+              for asset in ("BTC","NVDA","SOXL","XAU","EURUSDT","US30Y","NEWUNKNOWN")]
+        instruments=self.instruments_for(rows)
+        for inst,category in zip(instruments,("1","3","3","4","5","6","")):
+            inst["instCategory"]=category
+            inst["lever"]="50"  # high leverage does NOT override asset class
+        eligible=eligible_20x_instruments(instruments)
+        self.assertEqual(eligible,frozenset({"BTC-USDT-SWAP"}))
+        self.assertEqual([x["symbol"] for x in select_markets(rows,12,eligible=eligible)],
+                         ["BTC-USDT-SWAP"])
 
 
     def test_rotation_diversifies_liquid_universe_without_relaxing_filters(self):
