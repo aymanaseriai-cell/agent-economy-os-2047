@@ -898,3 +898,118 @@ class FullUniverseCompletenessGateTests(unittest.TestCase):
             path.write_text(json.dumps(sample))
             with self.assertRaisesRegex(ExecutionBlocked,'data errors'):
                 read_report(path,now_ms=now)
+
+
+class BuySellExecutionPipelineSmokeTests(unittest.TestCase):
+    """Synthetic fully-confirmed signals exercise both protected order paths.
+
+    Every OKX call is intercepted locally: no account, credentials or real
+    trades are involved. This does not validate a strategy's profitability.
+    """
+
+    @staticmethod
+    def _live_env():
+        return {
+            'OKX_EXECUTION_MODE':'live','OKX_ENABLE_REAL_TRADING':'YES',
+            'OKX_STOP_CONTINUOUS':'NO','OKX_EXECUTION_ARM':MODE_ARM['live'],
+            'OKX_API_KEY':'FAKE_TEST_ONLY','OKX_SECRET_KEY':'FAKE_TEST_ONLY',
+            'OKX_PASSPHRASE':'FAKE_TEST_ONLY',
+            'OKX_CAPITAL_MODE':'adaptive_guarded',
+            'OKX_MAX_ACTIVE_POSITIONS':'1','OKX_REQUIRE_OMEGA':'YES',
+            'OKX_AUTOREENTRY_ENABLED':'YES',
+        }
+
+    def _test_direction(self, direction, expected_side):
+        from datetime import datetime, timezone
+        sig=make_signal()
+        sig['signal']=direction
+        sig['omega_system_count']=10
+        sig['omega_veto_reasons']=[]
+        sig['omega_rank_score']=Decimal('0.15')
+        if direction=='SHORT':
+            sig['agents'][-1]['evidence']={
+                'indicative_stop_not_an_order':Decimal('102'),
+                'indicative_target_not_an_order':Decimal('96'),
+            }
+            sig['ordinal_sell_points']=5
+            sig['ordinal_buy_points']=0
+        report={
+            'mode':'SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY',
+            'utc_timestamp':datetime.now(timezone.utc).isoformat(),
+            'omega_system_count':10,'results':[sig],
+        }
+        class MockOKX:
+            def __init__(self):
+                self.orders=[]
+                self.leverage=[]
+            def request(self,method,path,params=None,body=None):
+                if (method,path)==('POST','/api/v5/account/set-leverage'):
+                    self.leverage.append(body)
+                    return [{'lever':'20'}]
+                if (method,path)==('GET','/api/v5/account/max-size'):
+                    return [{'maxBuy':'100','maxSell':'100'}]
+                if (method,path) in (
+                        ('GET','/api/v5/account/positions'),
+                        ('GET','/api/v5/trade/orders-pending')):
+                    return []
+                if (method,path)==('POST','/api/v5/trade/order'):
+                    self.orders.append(body)
+                    return [{'sCode':'0'}]
+                raise AssertionError('Unexpected mock OKX call: '+str((method,path)))
+        c=MockOKX()
+        stop,target=(Decimal('98'),Decimal('104')) if direction=='LONG' else (
+            Decimal('102'),Decimal('96'))
+        with (patch('trading.okx_live_executor.market_preflight',
+                    return_value=({'last':'100','bidPx':'99.99','askPx':'100.01'},
+                                  {'ctVal':'1','lotSz':'1','minSz':'1','tickSz':'0.1'})),
+              patch('trading.okx_live_executor.account_preflight',
+                    return_value=Decimal('1000')),
+              patch('trading.okx_live_executor.enforce_exit_cooldown') as cooldown,
+              patch('trading.okx_live_executor.daily_order_limit',
+                    return_value=0) as history,
+              patch('trading.okx_live_executor.get_prices',
+                    return_value=(Decimal('100'),stop,target,Decimal('.02'))),
+              patch('trading.okx_live_executor.contract_size',
+                    return_value=Decimal('2')) as sizing,
+              patch('trading.okx_live_executor._fresh_report'),
+              patch('trading.okx_live_executor.inspect_after_submit',
+                    return_value='FILLED_PROTECTED') as protected):
+            result=execute(report,c,'live',self._live_env())
+        self.assertEqual(result,'FILLED_PROTECTED')
+        self.assertEqual(len(c.orders),1)
+        self.assertEqual(c.orders[0]['side'],expected_side)
+        self.assertEqual(c.orders[0]['ordType'],'market')
+        self.assertEqual(c.orders[0]['posSide'],'net')
+        self.assertEqual(c.orders[0]['tdMode'],'isolated')
+        self.assertEqual(c.orders[0]['sz'],'2')
+        attached=c.orders[0]['attachAlgoOrds']
+        self.assertEqual(len(attached),1)
+        self.assertEqual(attached[0]['slTriggerPx'],str(stop))
+        self.assertEqual(attached[0]['tpTriggerPx'],str(target))
+        self.assertEqual(attached[0]['slOrdPx'],'-1')
+        self.assertEqual(attached[0]['tpOrdPx'],'-1')
+        self.assertEqual(c.leverage[0]['lever'],'20')
+        self.assertEqual(history.call_count,2)
+        self.assertEqual(cooldown.call_count,2)
+        self.assertEqual(sizing.call_args.kwargs['capital_mode'],'adaptive_guarded')
+        protected.assert_called_once()
+
+    def test_fully_confirmed_long_creates_buy_with_bracket_orders(self):
+        self._test_direction('LONG','buy')
+
+    def test_fully_confirmed_short_creates_sell_with_bracket_orders(self):
+        self._test_direction('SHORT','sell')
+
+    def test_vetoed_signals_never_send_buy_or_sell(self):
+        sig=make_signal()
+        sig['omega_system_count']=10
+        sig['omega_veto_reasons']=['multiverse_no_positive_net_edge']
+        sig['omega_rank_score']=Decimal('0')
+        report={'omega_system_count':10,'results':[sig]}
+        class NoRequests:
+            def request(self,*args,**kwargs):
+                raise AssertionError('Unexpected exchange request for rejected signal')
+        self.assertEqual(
+            execute(report,NoRequests(),'live',self._live_env()),
+            'NO_CONSENSUS'
+        )
