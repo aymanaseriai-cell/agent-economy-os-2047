@@ -269,3 +269,15 @@ checks. Exact advanced/Omega veto reason counters are printed to logs so zero
 trades can be traced to specific evidence gates. The scanner's 90-second
 per-cycle timeout remains: exceptionally slow public APIs can still abort
 the worker, and a live market order is NEVER forced for utilization goals.
+
+
+## Audit: one filled order does not lock out remaining nine portfolio slots
+The recurring worker enters exchange-state monitor after `FILLED_PROTECTED`.
+A verified protected open position with remaining aggregate margin/risk
+budget must produce `PORTFOLIO_ELIGIBLE`, not the old exclusive-position
+waiting state. The next vetted scan may reach the executor for a DIFFERENT
+market while the first position is still open. New regression tests cover
+this path without placing orders. The monitor logs only `open`, `limit`,
+and `remaining` slot counts, not sensitive balances or symbols.
+Actual new orders still require independent signals, active protection,
+risk budget, sufficient free equity, and valid exchange leverage.

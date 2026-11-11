@@ -122,3 +122,28 @@ class PortfolioCapacityMonitorTests(unittest.TestCase):
     def test_monitor_blocks_more_than_ten(self):
         with self.assertRaisesRegex(ExecutionBlocked,'Invalid portfolio capacity'):
             inspect_account_state(FakeOKX(),max_positions=11)
+
+class ExplicitOpenPositionSlotTests(unittest.TestCase):
+    def test_one_held_slot_still_allows_second_through_tenth(self):
+        from unittest.mock import patch
+        from decimal import Decimal
+        state={'symbols':frozenset({'BTC-USDT-SWAP'}),
+               'total':Decimal('1000'),'free':Decimal('800'),
+               'planned':Decimal('10'),'notional':Decimal('1000')}
+        with patch('trading.okx_portfolio_guard.snapshot',return_value=state),\
+             patch('builtins.print') as printer:
+            status=inspect_account_state(FakeOKX(),max_positions=10)
+        self.assertEqual(status,'PORTFOLIO_ELIGIBLE')
+        self.assertTrue(any('open=1 limit=10 remaining=9' in c.args[0]
+                            for c in printer.call_args_list))
+
+    def test_tenth_slot_is_hard_capacity_gate(self):
+        from unittest.mock import patch
+        symbols=frozenset(f"ALT{i}-USDT-SWAP" for i in range(10))
+        with patch('trading.okx_portfolio_guard.snapshot',
+                   return_value={'symbols':symbols}),\
+             patch('builtins.print') as printer:
+            status=inspect_account_state(FakeOKX(),max_positions=10)
+        self.assertEqual(status,'POSITION_OPEN_PROTECTED')
+        self.assertTrue(any('open=10 limit=10 remaining=0' in c.args[0]
+                            for c in printer.call_args_list))

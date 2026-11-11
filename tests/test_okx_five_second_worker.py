@@ -231,6 +231,34 @@ class AutoResumeWorkerTests(unittest.TestCase):
         self.assertEqual(calls.count("trading.six_agent_council"),2)
         self.assertEqual(delays,[5,30,30])
 
+    def test_first_fill_does_not_block_second_when_portfolio_has_free_slots(self):
+        # Distinct from legacy single-position logic: with an existing
+        # protected position and remaining slots, a second fresh signal is
+        # allowed to reach the executor. No mocked order is actually sent.
+        scans=[];clock=[0.];delays=[]
+        monitor_states=iter(('FLAT_ELIGIBLE','PORTFOLIO_ELIGIBLE'))
+        executor_results=iter(('FILLED_PROTECTED','NO_CONSENSUS'))
+        def fake_run(cmd,timeout):
+            scans.append(cmd[2])
+            if cmd[2]=='trading.okx_resume_monitor':
+                return subprocess.CompletedProcess(
+                    cmd,0,
+                    'OKX PORTFOLIO SLOTS: open=1 limit=10 remaining=9\\n'
+                    'OKX MONITOR RESULT: '+next(monitor_states)+'\\n','')
+            if cmd[2]=='trading.okx_live_executor':
+                return done(cmd,next(executor_results))
+            return done(cmd)
+        def sleep(t): delays.append(t);clock[0]+=t
+        with patch.dict(os.environ,{'OKX_AUTOREENTRY_ENABLED':'YES',
+                                    'OKX_MAX_ACTIVE_POSITIONS':'10'}):
+            result=loop(max_cycles=2,resume_after_protected_fill=True,
+                        run=fake_run,clock=lambda:clock[0],sleep=sleep)
+        self.assertEqual(result,0)
+        self.assertEqual(scans.count('trading.okx_resume_monitor'),2)
+        self.assertEqual(scans.count('trading.six_agent_council'),2)
+        self.assertEqual(scans.count('trading.okx_live_executor'),2)
+        self.assertEqual(delays,[5])
+
     def test_unprotected_open_position_stops_immediately(self):
         calls=[]
         def run(cmd,timeout):

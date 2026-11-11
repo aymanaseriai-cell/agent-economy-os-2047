@@ -28,7 +28,13 @@ def inspect_account_state(client, *, max_positions=1) -> str:
             state=snapshot(client)
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Portfolio monitor: '+str(exc)) from exc
-        if len(state['symbols']) >= max_positions:
+        # Expose only aggregate slot utilization, never user balances,
+        # positions, API credentials, or individual instrument details.
+        active_count=len(state['symbols'])
+        print(f'OKX PORTFOLIO SLOTS: open={active_count} '
+              f'limit={max_positions} remaining={max_positions-active_count}',
+              flush=True)
+        if active_count >= max_positions:
             return 'POSITION_OPEN_PROTECTED'
         try:
             enforce_exit_cooldown(client)
