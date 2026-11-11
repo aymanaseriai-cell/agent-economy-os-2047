@@ -81,3 +81,21 @@ class ResumeMonitorTests(unittest.TestCase):
 
 if __name__=="__main__":
     unittest.main()
+
+class PortfolioCapacityMonitorTests(unittest.TestCase):
+    def test_existing_protected_position_allows_other_market(self):
+        from unittest.mock import patch
+        from decimal import Decimal
+        snap={'symbols':frozenset({'BTC-USDT-SWAP'}),
+              'total':Decimal('1000'),'free':Decimal('800'),
+              'planned':Decimal('20'),'notional':Decimal('2000')}
+        with patch('trading.okx_portfolio_guard.snapshot',return_value=snap):
+            self.assertEqual(inspect_account_state(FakeOKX(),max_positions=2),
+                             'PORTFOLIO_ELIGIBLE')
+
+    def test_two_positions_wait_for_exit(self):
+        from unittest.mock import patch
+        with patch('trading.okx_portfolio_guard.snapshot',
+                   return_value={'symbols':frozenset({'BTC-USDT-SWAP','ETH-USDT-SWAP'})}):
+            self.assertEqual(inspect_account_state(FakeOKX(),max_positions=2),
+                             'POSITION_OPEN_PROTECTED')

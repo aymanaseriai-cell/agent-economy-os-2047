@@ -726,3 +726,29 @@ class AdaptiveGuardedSizingTests(unittest.TestCase):
         self.assertLessEqual(ADAPTIVE_MARGIN_CAP_FRACTION,Decimal('0.20'))
         self.assertLessEqual(ADAPTIVE_NOTIONAL_CAP_FRACTION,Decimal('4.0'))
 
+
+class OptionalMultiPositionEntryTests(unittest.TestCase):
+    def test_only_two_and_separate_arm_in_real_mode(self):
+        env={'OKX_EXECUTION_ARM':MODE_ARM['live'],
+             'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST',
+             'OKX_ENABLE_REAL_TRADING':'YES','OKX_EXECUTION_MODE':'live',
+             'OKX_STOP_CONTINUOUS':'NO',
+             'OKX_CAPITAL_MODE':'adaptive_guarded',
+             'OKX_MAX_ACTIVE_POSITIONS':'2','OKX_PORTFOLIO_ARM':'YES'}
+        check_mode('live',env)
+        with self.assertRaisesRegex(ExecutionBlocked,'separate portfolio arm'):
+            check_mode('live',{**env,'OKX_PORTFOLIO_ARM':'NO'})
+        with self.assertRaisesRegex(ExecutionBlocked,'Maximum open positions'):
+            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':'3'})
+        with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
+            check_mode('live',{**env,'OKX_CAPITAL_MODE':'guarded'})
+
+    def test_choose_excludes_already_held_market(self):
+        sig=make_signal()
+        copy=dict(sig)
+        copy['symbol']='ETH-USDT-SWAP'
+        report={'results':[sig,copy]}
+        self.assertEqual(choose_signal(report,exclude_symbols={'BTC-USDT-SWAP'})['symbol'],
+                         'ETH-USDT-SWAP')
+        self.assertIsNone(choose_signal(report,exclude_symbols={'BTC-USDT-SWAP',
+                                                                'ETH-USDT-SWAP'}))

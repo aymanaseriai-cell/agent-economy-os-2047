@@ -17,8 +17,25 @@ from trading.okx_live_executor import (
 STATES = frozenset(("FLAT_ELIGIBLE", "POSITION_OPEN_PROTECTED", "COOLDOWN_ACTIVE"))
 
 
-def inspect_account_state(client) -> str:
+def inspect_account_state(client, *, max_positions=1) -> str:
     """One conservative snapshot. A second exchange preflight still gates entry."""
+    if max_positions == 2:
+        from trading.okx_portfolio_guard import snapshot, sizing_equity, UnsafePortfolio
+        try:
+            state=snapshot(client)
+        except UnsafePortfolio as exc:
+            raise ExecutionBlocked('Portfolio monitor: '+str(exc)) from exc
+        if len(state['symbols'])>=2:
+            return 'POSITION_OPEN_PROTECTED'
+        try:
+            enforce_exit_cooldown(client)
+        except ReentryCooldownActive:
+            return 'COOLDOWN_ACTIVE'
+        if sizing_equity(state)<=0:
+            return 'POSITION_OPEN_PROTECTED'
+        return 'PORTFOLIO_ELIGIBLE' if state['symbols'] else 'FLAT_ELIGIBLE'
+    if max_positions != 1:
+        raise ExecutionBlocked('Invalid portfolio capacity')
     config=client.request('GET','/api/v5/account/config')
     if len(config)!=1 or config[0].get('posMode')!='net_mode':
         raise ExecutionBlocked('Monitor: expected OKX net_mode')
@@ -62,7 +79,7 @@ def main() -> int:
             print('OKX MONITOR RESULT: FLAT_ELIGIBLE',flush=True)
             return 0
         check_mode(mode,env)
-        state=inspect_account_state(OKX(env))
+        state=inspect_account_state(OKX(env),max_positions=int(env.get('OKX_MAX_ACTIVE_POSITIONS','1')))
         print('OKX MONITOR RESULT: '+state,flush=True)
         return 0
     except ExecutionBlocked as exc:

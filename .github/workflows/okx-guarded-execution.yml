@@ -63,6 +63,8 @@ jobs:
           OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
+          OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
@@ -122,6 +124,8 @@ jobs:
           OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
+          OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}

@@ -91,7 +91,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             states=[line.partition("OKX MONITOR RESULT: ")[2].strip()
                     for line in mon.stdout.splitlines()
                     if line.startswith("OKX MONITOR RESULT: ")]
-            if len(states)!=1 or states[0] not in MONITOR_WAIT_STATES | {"FLAT_ELIGIBLE"}:
+            if len(states)!=1 or states[0] not in MONITOR_WAIT_STATES | {"FLAT_ELIGIBLE", "PORTFOLIO_ELIGIBLE"}:
                 print("TITAN ambiguous account monitoring result; stop",
                       file=sys.stderr,flush=True)
                 return 3
@@ -151,7 +151,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             return 3
         status=statuses[0]
         if status in ("RISK_REJECTED_NO_ORDER", "CANDIDATE_REJECTED_NO_ORDER",
-                      "STALE_SIGNAL_NO_ORDER"):
+                      "STALE_SIGNAL_NO_ORDER", "PORTFOLIO_CAPACITY_NO_ORDER"):
             if not resume_after_protected_fill:
                 print("TITAN unexpected candidate-veto status without recurring authorization; stop",
                       file=sys.stderr,flush=True)

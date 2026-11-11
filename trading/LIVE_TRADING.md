@@ -186,3 +186,20 @@ The workflow's runtime repository variable sets the selected allocation mode;
 a job already running retains its start-of-run configuration. New job runs use
 the updated variable. A persistent cumulative loss kill switch is still absent:
 the strategy remains high-risk and should undergo forward testing before scaling.
+
+
+## Optional real two-position guarded portfolio (not full-margin)
+Use `OKX_MAX_ACTIVE_POSITIONS=2`, `OKX_PORTFOLIO_ARM=YES` only alongside
+`OKX_CAPITAL_MODE=adaptive_guarded`, explicitly armed real execution and
+the existing protected recurring worker. This is NOT an all-capital trading
+promise: positions remain at most 2, combined planned-at-stop exposure <=5%
+total equity, and combined approximate initial isolated margin <=50% equity,
+with existing per-position <=2% stop risk and <=20% available equity margin.
+The portfolio snapshot inspects current isolated SWAP positions and verifies
+one complete TP/SL pair per position using authenticated read-only endpoints.
+A second check immediately before entry verifies symbols and budget again.
+Unknown protection, margin, balances or orders fail closed. Positions remain
+open on the exchange even when GitHub Actions is stopped; stopping this
+workflow does not close any position. Total loss can exceed estimated stops.
+Do NOT enable live two-position mode until CI passes and a user explicitly
+initiates the workflow with the real-trading confirmations.

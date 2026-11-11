@@ -116,6 +116,13 @@ def check_mode(mode, env):
         return
     if capital_mode == FULL_MARGIN_MODE and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
         raise ExecutionBlocked('Full-margin allocation not separately armed')
+    slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
+    if slots_raw not in ('1','2'):
+        raise ExecutionBlocked('Maximum open positions must be 1 or 2')
+    if slots_raw == '2':
+        if (capital_mode != ADAPTIVE_GUARDED_MODE
+                or env.get('OKX_PORTFOLIO_ARM') != 'YES'):
+            raise ExecutionBlocked('Two-position mode requires adaptive_guarded and separate portfolio arm')
     if env.get('OKX_EXECUTION_ARM') != MODE_ARM[mode]:
         raise ExecutionBlocked('Execution not armed: OKX_EXECUTION_ARM does not match selected mode')
     if mode == 'live' and env.get('OKX_ENABLE_REAL_TRADING') != 'YES':
@@ -193,7 +200,7 @@ def read_report(path, now_ms=None):
     return report
 
 
-def choose_signal(report, now_ms=None):
+def choose_signal(report, now_ms=None, *, exclude_symbols=()):
     now_ms = int(time.time() * 1000) if now_ms is None else now_ms
     selected=[]
     for x in report.get('results', []):
@@ -218,6 +225,8 @@ def choose_signal(report, now_ms=None):
         if not ms or not 0 <= now_ms-candle_close_ms <= MAX_AGE_SINCE_CANDLE_CLOSE_MS:
             continue
         symbol=x.get('symbol','')
+        if symbol in exclude_symbols:
+            continue
         if not symbol.endswith('-USDT-SWAP'):
             continue
         stop_data=x['agents'][-1]['evidence']
@@ -582,9 +591,22 @@ def execute(report, client, mode, env, *, allow_post=True):
     signal=choose_signal(report)
     if signal is None:
         return 'NO_CONSENSUS'
-    # For a dry run, never access any private endpoint or submit any order.
+    # Dry-run stays public-only, even with portfolio settings.
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
+    multi = env.get('OKX_MAX_ACTIVE_POSITIONS','1') == '2'
+    account_before = None
+    if multi:
+        from trading.okx_portfolio_guard import snapshot, UnsafePortfolio
+        try:
+            account_before=snapshot(client)
+        except UnsafePortfolio as exc:
+            raise ExecutionBlocked('Portfolio validation failed: '+str(exc)) from exc
+        if len(account_before['symbols'])>=2:
+            return 'PORTFOLIO_CAPACITY_NO_ORDER'
+        signal=choose_signal(report,exclude_symbols=account_before['symbols'])
+        if signal is None:
+            return 'NO_CONSENSUS'
     # NVIDIA research is isolated in okx-nvidia-advisory.yml: never imported,
     # queried, or evaluated in the execution/order path. Quantitative signals
     # and mandatory exchange-side risk controls remain the only entry gates.
@@ -594,7 +616,13 @@ def execute(report, client, mode, env, *, allow_post=True):
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
             return 'CANDIDATE_REJECTED_NO_ORDER'
         raise
-    equity=account_preflight(client)
+    if multi:
+        from trading.okx_portfolio_guard import sizing_equity
+        equity=sizing_equity(account_before)
+        if equity<=0:
+            return 'RISK_REJECTED_NO_ORDER'
+    else:
+        equity=account_preflight(client)
     try:
         enforce_exit_cooldown(client)
     except ReentryCooldownActive:
@@ -638,6 +666,14 @@ def execute(report, client, mode, env, *, allow_post=True):
             return ('RISK_REJECTED_NO_ORDER' if isinstance(exc,OpportunityRiskRejected)
                     else 'CANDIDATE_REJECTED_NO_ORDER')
         raise
+    if multi:
+        from trading.okx_portfolio_guard import check_new, UnsafePortfolio
+        try:
+            check_new(account_before,contracts*dec(inst['ctVal'])*price,stop_fraction)
+        except UnsafePortfolio:
+            if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+                return 'RISK_REJECTED_NO_ORDER'
+            raise
     if contracts > dec(allowed[0].get(max_side,'0')):
         raise ExecutionBlocked('Insufficient exchange margin for sized order')
     # Re-check bot order frequency and open positions immediately before placing.
@@ -647,10 +683,21 @@ def execute(report, client, mode, env, *, allow_post=True):
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
             return 'CANDIDATE_REJECTED_NO_ORDER'
         raise
-    if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
-        raise ExecutionBlocked('Position changed before order placement')
-    if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
-        raise ExecutionBlocked('Orders appeared before placement')
+    if multi:
+        # Re-fetch every exposure/protective order directly from OKX near submit.
+        from trading.okx_portfolio_guard import snapshot, check_new, UnsafePortfolio
+        try:
+            latest=snapshot(client)
+            if latest['symbols']!=account_before['symbols']:
+                raise ExecutionBlocked('Portfolio changed since first account snapshot')
+            check_new(latest,contracts*dec(inst['ctVal'])*price,stop_fraction)
+        except UnsafePortfolio as exc:
+            raise ExecutionBlocked('Pre-order portfolio veto: '+str(exc)) from exc
+    else:
+        if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
+            raise ExecutionBlocked('Position changed before order placement')
+        if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
+            raise ExecutionBlocked('Orders appeared before placement')
     try:
         enforce_exit_cooldown(client)  # Re-check immediately before any live or demo order.
     except ReentryCooldownActive:
