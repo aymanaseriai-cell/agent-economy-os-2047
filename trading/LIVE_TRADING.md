@@ -153,3 +153,14 @@ The user-requested 20x isolated leverage constant is implemented in `trading/okx
 The GitHub workflow requires Omega evidence (`OKX_REQUIRE_OMEGA=YES`) before any live execution attempt. Run in paper mode and check empirical forward results before any real trade. This is not a claim of verified quantum computation, a fully autonomous strategy laboratory, or guaranteed 24/7 hosting.
 
 **STOP remains in force:** The GitHub execution workflow was disabled manually; `OKX_ENABLE_REAL_TRADING=NO` and `OKX_STOP_CONTINUOUS=YES`. Source-code updates do not re-enable real orders. A reliable persistent PnL and transaction ledger, independent exchange-risk daemon, and actual out-of-sample calibration are still required before unattended live 20x trading; Github's ephemeral runner is not persistent storage.
+
+
+## 2026-11-11: Owner stop interlock + public research mode
+
+The owner stopped LIVE trading and both stop flags are intentionally set: `OKX_ENABLE_REAL_TRADING=NO`, `OKX_STOP_CONTINUOUS=YES`. Earlier workflow runs requested `purpose=run`; they correctly failed at the authenticated monitor before any new order (`Live disabled: OKX_ENABLE_REAL_TRADING must be YES`). This is a safety stop, **not a reason to remove the guard or automatically resume trading**.
+
+To safely test TITAN Omega, open the GitHub workflow **Run workflow** menu, select `purpose=research`, and leave all live confirmations unchecked. This option runs the public scanner and dry-run executor WITHOUT credentials, without authenticated balance access, without OKX POST calls, and without automatically chaining sessions. Public research artifacts can be downloaded from the run page. `purpose=validate` separately checks credentials using read-only OKX endpoints, without a trade.
+
+Choosing `purpose=run` while owner stop switches remain active now fails early with an explicit actionable `STOP INTERLOCK` error before launching the continuous worker. A second independent check inside `check_mode` rejects real-money orders if the owner stop switch is YES; the chain step also stops if either flag is disabled. This is intentionally **fail-closed**, not a fake green live trading run. Tests cover the stop interlock, safe research selection, and guarding manual live runs. Live mode requires a separate explicit user decision to lift both stop switches; these patches do not change either flag.
+
+The new ten Omega roles are experimental research diagnostics, not validated quantum algorithms. Persistent realized-PnL drawdown protection and open-position exchange reconciliation still need further engineering before safe unattended 20x/full-margin exposure.

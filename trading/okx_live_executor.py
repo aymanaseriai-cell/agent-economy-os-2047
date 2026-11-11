@@ -113,6 +113,8 @@ def check_mode(mode, env):
         raise ExecutionBlocked('Execution not armed: OKX_EXECUTION_ARM does not match selected mode')
     if mode == 'live' and env.get('OKX_ENABLE_REAL_TRADING') != 'YES':
         raise ExecutionBlocked('Live disabled: OKX_ENABLE_REAL_TRADING must be YES')
+    if mode == 'live' and env.get('OKX_STOP_CONTINUOUS') == 'YES':
+        raise ExecutionBlocked('Owner stop flag is active: OKX_STOP_CONTINUOUS=YES')
     if not all(env.get(k) for k in ('OKX_API_KEY','OKX_SECRET_KEY','OKX_PASSPHRASE')):
         raise ExecutionBlocked('Missing API credentials in environment (never put them in source code)')
 
