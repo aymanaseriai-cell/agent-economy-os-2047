@@ -1,6 +1,4 @@
 import unittest
-from unittest.mock import patch
-
 from trading.okx_run_policy import preflight
 from trading.okx_live_executor import ExecutionBlocked, check_mode, MODE_ARM
 
@@ -28,7 +26,7 @@ class WorkflowStopInterlockTests(unittest.TestCase):
         ok={"OKX_ENABLE_REAL_TRADING":"YES", "OKX_STOP_CONTINUOUS":"NO",
             "OKX_EXECUTION_MODE":"live"}
         self.assertEqual(preflight("run", ok),"LIVE_ARMING_PREFLIGHT_PASSED")
-        with self.assertRaisesRegex(ValueError, "mode=live"):
+        with self.assertRaisesRegex(ValueError, "OKX_EXECUTION_MODE=live"):
             preflight("run", {**ok, "OKX_EXECUTION_MODE":"dry_run"})
 
     def test_executor_cannot_bypass_owner_stop_even_if_live_enable_yes(self):
