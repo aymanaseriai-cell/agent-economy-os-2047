@@ -117,12 +117,13 @@ def check_mode(mode, env):
     if capital_mode == FULL_MARGIN_MODE and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
         raise ExecutionBlocked('Full-margin allocation not separately armed')
     slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
-    if slots_raw not in ('1','2'):
-        raise ExecutionBlocked('Maximum open positions must be 1 or 2')
-    if slots_raw == '2':
+    from trading.okx_portfolio_guard import MAX_POSITIONS
+    if not slots_raw.isdecimal() or not 1 <= int(slots_raw) <= MAX_POSITIONS:
+        raise ExecutionBlocked('Maximum open positions must be between 1 and 10')
+    if int(slots_raw) > 1:
         if (capital_mode != ADAPTIVE_GUARDED_MODE
                 or env.get('OKX_PORTFOLIO_ARM') != 'YES'):
-            raise ExecutionBlocked('Two-position mode requires adaptive_guarded and separate portfolio arm')
+            raise ExecutionBlocked('Multi-position mode requires adaptive_guarded and separate portfolio arm')
     if env.get('OKX_EXECUTION_ARM') != MODE_ARM[mode]:
         raise ExecutionBlocked('Execution not armed: OKX_EXECUTION_ARM does not match selected mode')
     if mode == 'live' and env.get('OKX_ENABLE_REAL_TRADING') != 'YES':
@@ -594,7 +595,8 @@ def execute(report, client, mode, env, *, allow_post=True):
     # Dry-run stays public-only, even with portfolio settings.
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
-    multi = env.get('OKX_MAX_ACTIVE_POSITIONS','1') == '2'
+    max_positions = int(env.get('OKX_MAX_ACTIVE_POSITIONS','1'))
+    multi = max_positions > 1
     account_before = None
     if multi:
         from trading.okx_portfolio_guard import snapshot, UnsafePortfolio
@@ -602,7 +604,7 @@ def execute(report, client, mode, env, *, allow_post=True):
             account_before=snapshot(client)
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Portfolio validation failed: '+str(exc)) from exc
-        if len(account_before['symbols'])>=2:
+        if len(account_before['symbols']) >= max_positions:
             return 'PORTFOLIO_CAPACITY_NO_ORDER'
         signal=choose_signal(report,exclude_symbols=account_before['symbols'])
         if signal is None:

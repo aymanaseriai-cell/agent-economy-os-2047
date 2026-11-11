@@ -42,9 +42,34 @@ class MultiPositionGuardTests(unittest.TestCase):
         p=pos();p["mgnMode"]="cross"
         with self.assertRaisesRegex(UnsafePortfolio,"Non-isolated"):
             snapshot(Fake([p],[algo()]))
-    def test_more_than_two_fails(self):
+    def test_ten_individually_protected_positions_pass_and_eleventh_fails(self):
+        names = ("BTC", "ETH", "SOL", "XRP", "DOGE", "ADA",
+                 "LINK", "AVAX", "DOT", "LTC", "TRX")
+        covered = []
+        protective = []
+        for name in names:
+            p=pos(name+"-USDT-SWAP")
+            p["notionalUsd"]="100"
+            covered.append(p)
+            protective.append(algo(name+"-USDT-SWAP"))
+        state=snapshot(Fake(covered[:10],protective[:10]))
+        self.assertEqual(len(state["symbols"]),10)
+        self.assertEqual(state["planned"],Decimal("10"))
+        self.assertEqual(state["notional"],Decimal("1000"))
         with self.assertRaisesRegex(UnsafePortfolio,"Too many"):
-            snapshot(Fake([pos("BTC-USDT-SWAP"),pos("ETH-USDT-SWAP"),pos("SOL-USDT-SWAP")]))
+            snapshot(Fake(covered,protective))
+
+    def test_unprotected_tenth_position_blocks_all_new_entries(self):
+        names=("BTC","ETH","SOL","XRP","DOGE","ADA","LINK","AVAX","DOT","LTC")
+        positions=[]
+        algos=[]
+        for name in names:
+            p=pos(name+"-USDT-SWAP")
+            p["notionalUsd"]="100"
+            positions.append(p)
+            algos.append(algo(name+"-USDT-SWAP"))
+        with self.assertRaisesRegex(UnsafePortfolio,"TP/SL"):
+            snapshot(Fake(positions,algos[:-1]))
     def test_no_pending_orders(self):
         with self.assertRaisesRegex(UnsafePortfolio,"Outstanding"):
             snapshot(Fake(pending=[{"ordId":"123"}]))

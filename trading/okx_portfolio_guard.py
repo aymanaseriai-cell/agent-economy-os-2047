@@ -8,7 +8,7 @@ from decimal import Decimal, InvalidOperation
 class UnsafePortfolio(RuntimeError):
     pass
 
-MAX_POSITIONS = 2
+MAX_POSITIONS = 10
 RISK_CAP = Decimal("0.05")
 MARGIN_CAP = Decimal("0.50")
 LEVERAGE = Decimal("20")

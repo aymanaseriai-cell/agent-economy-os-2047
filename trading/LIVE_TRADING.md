@@ -215,3 +215,20 @@ trade confirmations are unchanged. A wider effective opportunity universe
 does NOT imply a validated trading edge, 100% margin use, a profit target or
 a guaranteed increase in executed trades. Each scan remains bounded at 12
 symbols to respect existing GitHub Action time limits.
+
+
+## 2026-11-11: Explicitly armed portfolio capacity up to 10 separate swap positions
+The previously configured 2-position option accepts capacities 1 through 10
+using GitHub Actions variable `OKX_MAX_ACTIVE_POSITIONS`. Capacities >1
+require `OKX_PORTFOLIO_ARM=YES` and `OKX_CAPITAL_MODE=adaptive_guarded`.
+Every open isolated USDT swap must have one verifiable TP+SL pair; missing,
+orphaned or ambiguous exchange orders fail closed. A tenth qualifying
+instrument may open while nine different symbols are held if remaining
+risk/margin budget permits. An eleventh is blocked. **This is a maximum
+capacity, not an instruction to trade without a qualifying signal.**
+All positions together still have a **5%-of-equity planned-at-stop limit**
+and **50%-of-equity initial isolated margin limit**. The position sizer
+retains its separate 2%-at-stop and 20%-of-available-equity margin caps.
+20x leverage remains high risk: stops do not guarantee realized-loss limits.
+Never claim guaranteed or continuously fully invested performance; production
+requires additional persistent drawdown monitoring and exchange reconciliation.

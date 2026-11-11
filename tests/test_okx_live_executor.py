@@ -728,7 +728,7 @@ class AdaptiveGuardedSizingTests(unittest.TestCase):
 
 
 class OptionalMultiPositionEntryTests(unittest.TestCase):
-    def test_only_two_and_separate_arm_in_real_mode(self):
+    def test_up_to_ten_and_separate_arm_in_real_mode(self):
         env={'OKX_EXECUTION_ARM':MODE_ARM['live'],
              'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST',
              'OKX_ENABLE_REAL_TRADING':'YES','OKX_EXECUTION_MODE':'live',
@@ -738,8 +738,11 @@ class OptionalMultiPositionEntryTests(unittest.TestCase):
         check_mode('live',env)
         with self.assertRaisesRegex(ExecutionBlocked,'separate portfolio arm'):
             check_mode('live',{**env,'OKX_PORTFOLIO_ARM':'NO'})
-        with self.assertRaisesRegex(ExecutionBlocked,'Maximum open positions'):
-            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':'3'})
+        for capacity in ('1','2','5','9','10'):
+            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':capacity})
+        for capacity in ('0','11','x','-2','1.5'):
+            with self.assertRaisesRegex(ExecutionBlocked,'Maximum open positions'):
+                check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':capacity})
         with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
             check_mode('live',{**env,'OKX_CAPITAL_MODE':'guarded'})
 
@@ -752,3 +755,25 @@ class OptionalMultiPositionEntryTests(unittest.TestCase):
                          'ETH-USDT-SWAP')
         self.assertIsNone(choose_signal(report,exclude_symbols={'BTC-USDT-SWAP',
                                                                 'ETH-USDT-SWAP'}))
+
+class TenPositionAccountCapTests(unittest.TestCase):
+    def test_limit_one_is_valid_without_portfolio_arm(self):
+        env={'OKX_EXECUTION_ARM':MODE_ARM['live'],
+             'OKX_API_KEY':'T','OKX_SECRET_KEY':'T','OKX_PASSPHRASE':'T',
+             'OKX_ENABLE_REAL_TRADING':'YES','OKX_STOP_CONTINUOUS':'NO',
+             'OKX_CAPITAL_MODE':'guarded',
+             'OKX_MAX_ACTIVE_POSITIONS':'1','OKX_PORTFOLIO_ARM':'NO'}
+        check_mode('live',env)
+
+    def test_all_higher_capacities_need_adaptive_and_explicit_arm(self):
+        env={'OKX_EXECUTION_ARM':MODE_ARM['live'],
+             'OKX_API_KEY':'T','OKX_SECRET_KEY':'T','OKX_PASSPHRASE':'T',
+             'OKX_ENABLE_REAL_TRADING':'YES','OKX_STOP_CONTINUOUS':'NO',
+             'OKX_CAPITAL_MODE':'adaptive_guarded',
+             'OKX_MAX_ACTIVE_POSITIONS':'10','OKX_PORTFOLIO_ARM':'YES'}
+        check_mode('live',env)
+        with self.assertRaisesRegex(ExecutionBlocked,'separate portfolio arm'):
+            check_mode('live',{**env,'OKX_PORTFOLIO_ARM':'NO'})
+        with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
+            check_mode('live',{**env,'OKX_CAPITAL_MODE':'full_margin',
+                               'OKX_FULL_MARGIN_ARM':FULL_MARGIN_ARM})

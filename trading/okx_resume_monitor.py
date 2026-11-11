@@ -14,18 +14,21 @@ from trading.okx_live_executor import (
     OKX, ExecutionBlocked, ReentryCooldownActive, check_mode, dec, enforce_exit_cooldown,
 )
 
-STATES = frozenset(("FLAT_ELIGIBLE", "POSITION_OPEN_PROTECTED", "COOLDOWN_ACTIVE"))
+STATES = frozenset(("FLAT_ELIGIBLE", "PORTFOLIO_ELIGIBLE", "POSITION_OPEN_PROTECTED", "COOLDOWN_ACTIVE"))
 
 
 def inspect_account_state(client, *, max_positions=1) -> str:
     """One conservative snapshot. A second exchange preflight still gates entry."""
-    if max_positions == 2:
+    from trading.okx_portfolio_guard import MAX_POSITIONS
+    if not 1 <= max_positions <= MAX_POSITIONS:
+        raise ExecutionBlocked('Invalid portfolio capacity')
+    if max_positions > 1:
         from trading.okx_portfolio_guard import snapshot, sizing_equity, UnsafePortfolio
         try:
             state=snapshot(client)
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Portfolio monitor: '+str(exc)) from exc
-        if len(state['symbols'])>=2:
+        if len(state['symbols']) >= max_positions:
             return 'POSITION_OPEN_PROTECTED'
         try:
             enforce_exit_cooldown(client)

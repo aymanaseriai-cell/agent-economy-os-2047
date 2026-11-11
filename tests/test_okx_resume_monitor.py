@@ -99,3 +99,26 @@ class PortfolioCapacityMonitorTests(unittest.TestCase):
                    return_value={'symbols':frozenset({'BTC-USDT-SWAP','ETH-USDT-SWAP'})}):
             self.assertEqual(inspect_account_state(FakeOKX(),max_positions=2),
                              'POSITION_OPEN_PROTECTED')
+
+    def test_nine_protected_positions_leave_one_available(self):
+        from unittest.mock import patch
+        from decimal import Decimal
+        symbols=frozenset(f"ALT{i}-USDT-SWAP" for i in range(9))
+        snap={'symbols':symbols,'total':Decimal('1000'),
+              'free':Decimal('800'),'planned':Decimal('5'),
+              'notional':Decimal('1000')}
+        with patch('trading.okx_portfolio_guard.snapshot',return_value=snap):
+            self.assertEqual(inspect_account_state(FakeOKX(),max_positions=10),
+                             'PORTFOLIO_ELIGIBLE')
+
+    def test_ten_positions_are_monitored_without_new_entry(self):
+        from unittest.mock import patch
+        symbols=frozenset(f"ALT{i}-USDT-SWAP" for i in range(10))
+        with patch('trading.okx_portfolio_guard.snapshot',
+                   return_value={'symbols':symbols}):
+            self.assertEqual(inspect_account_state(FakeOKX(),max_positions=10),
+                             'POSITION_OPEN_PROTECTED')
+
+    def test_monitor_blocks_more_than_ten(self):
+        with self.assertRaisesRegex(ExecutionBlocked,'Invalid portfolio capacity'):
+            inspect_account_state(FakeOKX(),max_positions=11)
