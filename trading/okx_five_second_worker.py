@@ -111,8 +111,13 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         # seconds and flagged normal deadline exhaustion as a hard failure.
         scan_timeout=(90 if remaining is None else
                       min(90, max(1, remaining - 15 if graceful_public_deadline else remaining)))
-        scan=run([sys.executable,"-m","trading.six_agent_council",
-                  "--top",str(top),"--out",report],timeout=scan_timeout)
+        scan_command=[sys.executable,"-m","trading.six_agent_council",
+                      "--top",str(top),"--out",report]
+        # Recurring live work should inspect more than the same 12 symbols
+        # indefinitely; public rotation never relaxes an execution veto.
+        if resume_after_protected_fill:
+            scan_command.append("--rotate-universe")
+        scan=run(scan_command,timeout=scan_timeout)
         if scan.returncode!=0:
             if (graceful_public_deadline and scan.returncode==124
                     and scan_timeout<90):

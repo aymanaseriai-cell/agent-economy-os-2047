@@ -79,7 +79,7 @@ def candles(data):
     return sorted(by_ts.values(), key=lambda b: b["ts"])
 
 
-def select_markets(rows, count):
+def select_markets(rows, count, *, rotation_epoch=None):
     result = []
     for ticker in rows:
         instrument = ticker.get("instId", "")
@@ -95,8 +95,15 @@ def select_markets(rows, count):
             continue
         result.append({"symbol": instrument, "last": last, "bid": bid, "ask": ask,
                        "turnover_usdt_est": round(turnover), "spread_bp": round(spread_bp, 3)})
-    # A liquid universe is scanned first; Omega ranks *qualified* targets afterward.
-    return sorted(result, key=lambda z: z["turnover_usdt_est"], reverse=True)[:count]
+    # Always apply identical spread/liquidity constraints before any rotation.
+    ordered = sorted(result, key=lambda z: z["turnover_usdt_est"], reverse=True)
+    if rotation_epoch is None or len(ordered) <= count:
+        return ordered[:count]
+    # Cycle across verified liquid markets without a growing per-cycle request
+    # burden. Epoch only changes which symbols are observed, NEVER signal gates.
+    pages = (len(ordered) + count - 1) // count
+    first = (int(rotation_epoch) % pages) * count
+    return [ordered[(first+i) % len(ordered)] for i in range(count)]
 
 
 def result(name, vote, strength, detail, veto=False):
@@ -373,12 +380,16 @@ def analyze_market(ticker):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--top", type=int, default=6)
+    parser.add_argument("--rotate-universe", action="store_true",
+                        help="Cycle through all liquid eligible symbols rather than repeating top 12")
     parser.add_argument("--out", default="reports/okx_six_agents.json")
     args = parser.parse_args()
     if not 1 <= args.top <= 12:
         parser.error("--top must be in 1..12")
     try:
-        pool = select_markets(okx_get("/api/v5/market/tickers", {"instType": "SWAP"}), args.top)
+        rotation_epoch = int(time.time() // 30) if args.rotate_universe else None
+        pool = select_markets(okx_get("/api/v5/market/tickers", {"instType": "SWAP"}),
+                              args.top, rotation_epoch=rotation_epoch)
         results, errors = [], []
         for market in pool:
             try:
@@ -401,6 +412,13 @@ def main():
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("SIX AGENTS + QUANT2037: selected=", len(pool), "analyzed=", len(results),
               "signals=", report["actionable_research_labels"], "errors=", len(errors))
+        print("TITAN MARKET POOL: rotated=", bool(args.rotate_universe),
+              "symbols=", ",".join(x["symbol"] for x in pool))
+        print("TITAN SIGNAL DIAGNOSTICS: core_candidates=",
+              sum(x.get("core_signal_before_advanced") in ("LONG","SHORT") for x in results),
+              "omega_vetoes=", sum(bool(x.get("omega_veto_reasons")) for x in results),
+              "advanced_vetoes=", sum(bool(x.get("advanced_veto_reasons")) for x in results),
+              "consensus_entries=", report["actionable_research_labels"])
         for x in results:
             print(x["symbol"], x["signal"], "bull=", x["ordinal_buy_points"],
                   "bear=", x["ordinal_sell_points"], "agents=", len(x["agents"]))

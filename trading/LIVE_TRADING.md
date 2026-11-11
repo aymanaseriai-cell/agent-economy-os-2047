@@ -203,3 +203,15 @@ open on the exchange even when GitHub Actions is stopped; stopping this
 workflow does not close any position. Total loss can exceed estimated stops.
 Do NOT enable live two-position mode until CI passes and a user explicitly
 initiates the workflow with the real-trading confirmations.
+
+
+## 2026-11-11: Diversified liquid-market rotation without forcing trades
+Live recurring scans now rotate their public 12-symbol batch across the
+entire approved, spread-limited, turnover >=15M USDT whitelist using
+30-second time buckets. This prevents repeatedly searching only the highest
+12 by turnover. The six-agent, seven-system and ten Omega proof gates,
+market-data validity, equity sizing, leverage, risk limits, and real
+trade confirmations are unchanged. A wider effective opportunity universe
+does NOT imply a validated trading edge, 100% margin use, a profit target or
+a guaranteed increase in executed trades. Each scan remains bounded at 12
+symbols to respect existing GitHub Action time limits.

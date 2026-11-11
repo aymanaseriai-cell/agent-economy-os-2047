@@ -23,6 +23,27 @@ class FiveSecondWorkerTests(unittest.TestCase):
         self.assertEqual(pauses,[5,5,5])
         self.assertEqual(sum(x[0][2]=="trading.six_agent_council" for x in calls),4)
 
+
+    def test_recurring_live_rotates_liquid_markets_without_changing_executor(self):
+        calls=[]
+        clock=[0.]
+        def run(args,timeout):
+            calls.append(args)
+            if args[2]=="trading.okx_resume_monitor":
+                return subprocess.CompletedProcess(args,0,"OKX MONITOR RESULT: FLAT_ELIGIBLE\n","")
+            if args[2]=="trading.okx_live_executor":
+                return done(args,"NO_CONSENSUS")
+            return done(args)
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            self.assertEqual(loop(max_cycles=1,top=12,
+                                  resume_after_protected_fill=True,
+                                  run=run,clock=lambda:clock[0],
+                                  sleep=lambda n:clock.__setitem__(0,clock[0]+n)),0)
+        scans=[cmd for cmd in calls if cmd[2]=="trading.six_agent_council"]
+        self.assertEqual(len(scans),1)
+        self.assertIn("--rotate-universe",scans[0])
+        self.assertEqual(sum(cmd[2]=="trading.okx_live_executor" for cmd in calls),1)
+
     def test_dry_run_signal_continues_research_without_order(self):
         calls=[]; pauses=[]
         def run(args,timeout):
