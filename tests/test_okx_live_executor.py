@@ -1013,3 +1013,83 @@ class BuySellExecutionPipelineSmokeTests(unittest.TestCase):
             execute(report,NoRequests(),'live',self._live_env()),
             'NO_CONSENSUS'
         )
+
+
+class NinetySixPercentMarginTests(unittest.TestCase):
+    """Full 96% allocation is target, not a forced trade or unlimited loss."""
+
+    @staticmethod
+    def contract():
+        return {'ctVal':'1','lotSz':'1','minSz':'1'}
+
+    @staticmethod
+    def mode_env():
+        return {
+            'OKX_EXECUTION_ARM':MODE_ARM['live'],
+            'OKX_ENABLE_REAL_TRADING':'YES',
+            'OKX_STOP_CONTINUOUS':'NO',
+            'OKX_EXECUTION_MODE':'live',
+            'OKX_API_KEY':'fake','OKX_SECRET_KEY':'fake',
+            'OKX_PASSPHRASE':'fake',
+            'OKX_CAPITAL_MODE':'margin_96',
+            'OKX_MAX_ACTIVE_POSITIONS':'1',
+            'OKX_FULL_MARGIN_ARM':FULL_MARGIN_ARM,
+        }
+
+    def test_margin_96_requires_separate_full_margin_risk_arm(self):
+        env=self.mode_env()
+        check_mode('live',env)
+        with self.assertRaisesRegex(ExecutionBlocked,'separately armed'):
+            check_mode('live',{**env,'OKX_FULL_MARGIN_ARM':''})
+        with self.assertRaisesRegex(ExecutionBlocked,'Owner stop'):
+            check_mode('live',{**env,'OKX_STOP_CONTINUOUS':'YES'})
+        with self.assertRaisesRegex(ExecutionBlocked,'disabled'):
+            check_mode('live',{**env,'OKX_ENABLE_REAL_TRADING':'NO'})
+        with self.assertRaisesRegex(ExecutionBlocked,'adaptive_guarded'):
+            check_mode('live',{**env,'OKX_MAX_ACTIVE_POSITIONS':'2'})
+
+    def test_96_percent_of_available_equity_at_20x(self):
+        # 1000 USDT available, 20x, 96% initial isolated margin = 19200 notional.
+        q=contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                        Decimal('0.005'),capital_mode='margin_96',exchange_max='1000')
+        self.assertEqual(q,Decimal('192'))
+        self.assertEqual(q*Decimal('100')/Decimal('20'),Decimal('960'))
+        self.assertEqual(Decimal('1000')-q*Decimal('100')/Decimal('20'),Decimal('40'))
+        # Original full_margin mode remains unchanged.
+        full=contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                           Decimal('0.005'),capital_mode='full_margin',
+                           exchange_max='1000')
+        self.assertEqual(full,Decimal('200'))
+
+    def test_margin_96_rounds_down_to_contract_step_and_exchange_limit(self):
+        i={'ctVal':'1','lotSz':'0.25','minSz':'0.25'}
+        q=contract_size(i,Decimal('100'),Decimal('1000'),Decimal('0.005'),
+                        capital_mode='margin_96',exchange_max='20.63')
+        self.assertEqual(q,Decimal('20.50'))
+        self.assertLessEqual(q,Decimal('20.63'))
+        self.assertLessEqual(q*Decimal('100')/Decimal('20'),Decimal('960'))
+
+    def test_margin_96_does_not_remove_10_pct_planned_stop_hard_veto(self):
+        from trading.okx_live_executor import OpportunityRiskRejected
+        with self.assertRaises(OpportunityRiskRejected):
+            contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                          Decimal('0.01'),capital_mode='margin_96',
+                          exchange_max='1000')
+        # 0.5% at 96% margin and 20x is 9.6% planned equity risk.
+        self.assertEqual(
+            contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                          Decimal('0.005'),capital_mode='margin_96',
+                          exchange_max='1000'),Decimal('192'))
+
+    def test_margin_96_refuses_unverified_or_too_small_exchange_capacity(self):
+        with self.assertRaisesRegex(ExecutionBlocked,'fresh OKX max-size'):
+            contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                          Decimal('0.005'),capital_mode='margin_96')
+        with self.assertRaises(ExecutionBlocked):
+            contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                          Decimal('0.005'),capital_mode='margin_96',
+                          exchange_max='0')
+        with self.assertRaises(ExecutionBlocked):
+            contract_size(self.contract(),Decimal('100'),Decimal('1'),
+                          Decimal('0.005'),capital_mode='margin_96',
+                          exchange_max='1000')

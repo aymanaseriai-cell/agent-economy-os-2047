@@ -27,12 +27,12 @@ on:
         default: false
         required: true
       resume_after_exit:
-        description: 'After a PROTECTED fill, monitor OKX and seek a fresh trade >=30s after exchange-confirmed full exit (guarded/adaptive_guarded/full_margin)'
+        description: 'After a PROTECTED fill, monitor OKX and seek a fresh trade >=30s after exchange-confirmed full exit (guarded/adaptive_guarded/full_margin/margin_96)'
         type: boolean
         default: false
         required: true
       confirm_repeat_entries:
-        description: 'I authorize recurring entries with NO fixed daily count; full_margin can liquidate my account'
+        description: 'I authorize recurring entries with NO fixed daily count; full_margin/margin_96 can liquidate my account'
         type: boolean
         default: false
         required: true

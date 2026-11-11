@@ -354,3 +354,25 @@ stage is NOT treated as an Omega pass simply because Omega was evaluated with
 `WAIT`. This is transparent instrumentation, not backtesting. **Live strategy,
 capital/risk limits, protected-order checks and confirmation thresholds are
 unchanged.** Do not waive a hard safety gate simply to force order volume.
+
+
+## 2026-11-11: Owner-requested 96% available-margin mode (stopped until manual start)
+`OKX_CAPITAL_MODE=margin_96` targets **at most 96% of authenticated available
+USDT isolated margin** as initial margin on one market order at **20x**
+(approximately 19.2x the usable USDT balance in notional, before costs).
+This is not 96% of total multi-asset account equity, and cannot guarantee
+an exact allocation due to contract increments, fees, leverage restrictions
+and exchange max-size. It does NOT adjust any existing OKX position.
+
+This remains an exceptionally high liquidation-risk mode: only ~4% free
+margin is targeted before fees/price movement, and even small adverse price
+moves can rapidly erase the allocated margin. As with original `full_margin`,
+separate `OKX_FULL_MARGIN_ARM` and all live authorization switches are
+mandatory. The **existing 10% of available-equity planned stop-loss veto**
+remains in place, so the bot will reject many otherwise valid signals
+rather than force a 96%-margin trade when the required stop is wider.
+Order protection, 20x limit, one-open-position-only, 30-second minimum
+post-exit wait, all 6+7+10 signal gates, and duplicate-order and exchange
+health preflights are unchanged. A newly started workflow must be manually
+authorized; changing the configuration does not place trades. No verified
+profit edge or hard realized-loss cap exists.
