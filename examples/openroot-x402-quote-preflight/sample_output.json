@@ -1,0 +1,12 @@
+{
+  "disclaimer": "Offline quote consistency only; owner authorization and on-chain settlement remain separate.",
+  "eligible": true,
+  "errors": [],
+  "max_micro_usdc": "10000",
+  "network": "eip155:8453",
+  "offered_micro_usdc": "10000",
+  "payment_authorized": false,
+  "payment_executed": false,
+  "resource": "https://merchant.example/api/receipt",
+  "schema": "agent-economy.x402-v2-quote-preflight.v1"
+}

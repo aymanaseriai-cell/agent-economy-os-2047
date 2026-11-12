@@ -1,0 +1,16 @@
+{
+  "x402Version": 2,
+  "resource": {
+    "url": "https://merchant.example/api/receipt"
+  },
+  "accepts": [
+    {
+      "scheme": "exact",
+      "network": "eip155:8453",
+      "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
+      "payTo": "0x935ad91b70c6d0769871416c5904d06fbf9ef586",
+      "amount": "10000",
+      "maxTimeoutSeconds": 300
+    }
+  ]
+}
