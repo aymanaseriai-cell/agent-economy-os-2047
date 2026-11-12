@@ -1,4 +1,4 @@
-"""Read-only account-wide position protection and aggregate risk for 20x swaps.
+"""Read-only account-wide position protection and aggregate risk for isolated swaps.
 
 Never places, changes, or closes orders. Requires per-symbol combined TP and
 SL; missing metadata or ambiguous protection stops all new entries.
@@ -22,7 +22,7 @@ def num(value, field):
         raise UnsafePortfolio("Non-finite "+field)
     return v
 
-def snapshot(client):
+def snapshot(client, *, require_position_leverage=False):
     cfg = client.request("GET","/api/v5/account/config")
     if len(cfg) != 1 or cfg[0].get("posMode") != "net_mode":
         raise UnsafePortfolio("Only OKX net_mode permitted")
@@ -48,7 +48,7 @@ def snapshot(client):
         algos.extend(a for a in q if str(a.get("instId","")).endswith("-SWAP"))
     if any(a.get("instId") not in symbols for a in algos):
         raise UnsafePortfolio("Orphan or unrelated protective order")
-    used=Decimal("0"); planned=Decimal("0")
+    used=Decimal("0"); planned=Decimal("0"); margin_used=Decimal("0")
     for pos in active:
         sym=pos["instId"]
         paired=[a for a in algos if a.get("instId")==sym and
@@ -62,6 +62,14 @@ def snapshot(client):
         qty=num(pos["pos"],"position")
         fraction=(max(Decimal("0"), mark-sl)/mark if qty>0 else
                   max(Decimal("0"), sl-mark)/mark)
+        leverage_raw = pos.get("lever")
+        if leverage_raw in (None,"") and require_position_leverage:
+            raise UnsafePortfolio("Existing position leverage missing")
+        position_leverage = num(leverage_raw if leverage_raw not in (None,"") else LEVERAGE,
+                                "position leverage")
+        if not Decimal("1") <= position_leverage <= Decimal("100"):
+            raise UnsafePortfolio("Invalid existing position leverage")
+        margin_used += value / position_leverage
         used+=value
         planned+=value*fraction
     bal=client.request("GET","/api/v5/account/balance",params={"ccy":"USDT"})
@@ -74,23 +82,24 @@ def snapshot(client):
     free=num(usd.get("availEq") or usd.get("availBal"),"free collateral")
     if total<=0 or free<=0:
         raise UnsafePortfolio("No available equity")
-    if planned>total*RISK_CAP or used/LEVERAGE>total*MARGIN_CAP:
+    if planned>total*RISK_CAP or margin_used>total*MARGIN_CAP:
         raise UnsafePortfolio("Existing aggregate risk above permitted limits")
     return {"symbols":frozenset(symbols),"total":total,"free":min(free,total),
-            "planned":planned,"notional":used}
+            "planned":planned,"notional":used,"margin_used":margin_used}
 
-def sizing_equity(snap):
+def sizing_equity(snap, *, leverage=LEVERAGE):
     """Max equity input for the existing 2%-stop, 20%-margin adaptive sizer."""
     from trading.okx_live_executor import ADAPTIVE_EQUITY_RISK_FRACTION, ADAPTIVE_MARGIN_CAP_FRACTION
     risk_left=snap["total"]*RISK_CAP-snap["planned"]
-    margin_left=snap["total"]*MARGIN_CAP-snap["notional"]/LEVERAGE
+    margin_left=snap["total"]*MARGIN_CAP-snap.get("margin_used",snap["notional"]/LEVERAGE)
     if risk_left<=0 or margin_left<=0:
         return Decimal("0")
     return min(snap["free"],risk_left/ADAPTIVE_EQUITY_RISK_FRACTION,
                margin_left/ADAPTIVE_MARGIN_CAP_FRACTION)
 
-def check_new(snap, notional, stop_fraction):
+def check_new(snap, notional, stop_fraction, *, leverage=LEVERAGE):
     if snap["planned"]+notional*stop_fraction>snap["total"]*RISK_CAP:
         raise UnsafePortfolio("Aggregate stop risk would exceed limit")
-    if (snap["notional"]+notional)/LEVERAGE>snap["total"]*MARGIN_CAP:
+    effective_margin = snap.get("margin_used",snap["notional"]/LEVERAGE)
+    if effective_margin + notional / num(leverage,"new leverage") > snap["total"]*MARGIN_CAP:
         raise UnsafePortfolio("Aggregate margin would exceed limit")
