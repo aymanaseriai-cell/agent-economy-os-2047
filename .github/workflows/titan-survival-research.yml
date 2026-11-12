@@ -1,0 +1,41 @@
+name: TITAN SURVIVAL-8 (public research only; never trade)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  eight-agent-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test eight research agents without credentials
+        run: python -m unittest discover -s tests -p test_titan_survival_council.py -v
+      - name: Enforce research-only environment
+        env:
+          OKX_EXECUTION_MODE: dry_run
+          OKX_ENABLE_REAL_TRADING: 'NO'
+          OKX_STOP_CONTINUOUS: 'YES'
+        run: python -m trading.okx_run_policy --purpose research
+      - name: Public six-agent scanner (NO private account/order API)
+        env:
+          OKX_EXECUTION_MODE: dry_run
+          OKX_ENABLE_REAL_TRADING: 'NO'
+          OKX_STOP_CONTINUOUS: 'YES'
+          OKX_AUTOREENTRY_ENABLED: 'NO'
+          OKX_REQUIRE_OMEGA: 'YES'
+        run: python -m trading.six_agent_council --top 20 --all-eligible --out reports/okx_six_agents.json
+      - name: Eight-agent risk and variable-leverage research
+        run: python -m trading.titan_survival_council --report reports/okx_six_agents.json --out reports/titan_survival_eight.json --summary "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-survival-eight-no-orders
+          path: reports/titan_survival_eight.json
+          retention-days: 7
+          if-no-files-found: ignore
