@@ -241,7 +241,7 @@ class AutoResumeWorkerTests(unittest.TestCase):
         self.assertEqual(result,0)
         self.assertEqual(calls.count("trading.okx_resume_monitor"),4)
         self.assertEqual(calls.count("trading.six_agent_council"),2)
-        self.assertEqual(delays,[5,30,10])
+        self.assertEqual(delays,[5,30,5])
 
     def test_first_fill_does_not_block_second_when_portfolio_has_free_slots(self):
         # Distinct from legacy single-position logic: with an existing
@@ -329,7 +329,40 @@ class CooldownRacingMonitorTests(unittest.TestCase):
         self.assertEqual(calls.count("trading.okx_resume_monitor"),3)
         self.assertEqual(calls.count("trading.six_agent_council"),2)
         self.assertEqual(calls.count("trading.okx_live_executor"),2)
-        self.assertEqual(pauses,[10,10])
+        self.assertEqual(pauses,[5,5])
+
+
+    def test_exchange_30_second_lock_never_shortened_by_faster_polling(self):
+        # Six five-second polls until the exchange itself reports FLAT_ELIGIBLE.
+        # No public scan or order executor is called before the 30s mark.
+        now=[0.0]
+        events=[]
+        pauses=[]
+        def fake_run(cmd, timeout):
+            component=cmd[2]
+            events.append((component,now[0]))
+            if component=="trading.okx_resume_monitor":
+                state="COOLDOWN_ACTIVE" if now[0] < 30 else "FLAT_ELIGIBLE"
+                return subprocess.CompletedProcess(cmd,0,
+                         "OKX MONITOR RESULT: "+state+"\n","")
+            if component=="trading.okx_live_executor":
+                return done(cmd,"NO_CONSENSUS")
+            return done(cmd)
+        def fake_sleep(seconds):
+            pauses.append(seconds)
+            now[0]+=seconds
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            result=loop(max_cycles=1,resume_after_protected_fill=True,
+                        run=fake_run,clock=lambda:now[0],sleep=fake_sleep)
+        self.assertEqual(result,0)
+        self.assertEqual(pauses,[5]*6)
+        self.assertEqual(
+            sum(name=="trading.okx_resume_monitor" for name,_ in events),7)
+        for name,second in events:
+            if name in ("trading.six_agent_council","trading.okx_live_executor"):
+                self.assertGreaterEqual(second,30.0)
+        self.assertEqual(
+            sum(name=="trading.okx_live_executor" for name,_ in events),1)
 
     def test_no_recurring_opt_in_cannot_accept_cooldown_status(self):
         def fake_run(cmd,timeout):
