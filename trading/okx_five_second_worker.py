@@ -24,6 +24,16 @@ from typing import Callable
 INTERVAL_SECONDS = 5
 ALLOWED_NONORDER_STATUSES = frozenset(("NO_CONSENSUS","DRY_RUN_SIGNAL_ONLY"))
 MONITOR_WAIT_STATES = frozenset(("POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE"))
+# Only the public research process can emit this code and exact marker.
+# Never retry private order submission based on exit codes or timeouts.
+PUBLIC_TRANSIENT_SCAN_EXIT = 75
+MAX_CONSECUTIVE_TRANSIENT_SCANS = 3
+
+def has_verified_transient_public_scan(result):
+    return (result.returncode == PUBLIC_TRANSIENT_SCAN_EXIT
+            and isinstance(result.stdout, str)
+            and "TITAN PUBLIC GET TRANSIENT_NO_ORDERS" in result.stdout.splitlines())
+
 
 def command(args, *, timeout):
     """Subprocess is sequential, and any unknown-order timeout aborts."""
@@ -72,6 +82,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             raise ValueError("Graceful public deadline requires NO/dry_run and bounded runtime")
     start=clock()
     scans=0
+    transient_scans=0
     while True:
         if max_cycles and scans>=max_cycles:
             print("TITAN 5-second worker reached cycle limit",flush=True)
@@ -126,6 +137,27 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
         if resume_after_protected_fill:
             scan_command.append("--rotate-universe")
         scan=run(scan_command,timeout=scan_timeout)
+        if has_verified_transient_public_scan(scan):
+            # Recover *only* a public GET failure which was already retried
+            # inside the scanner. The scan is incomplete: NO executor / order.
+            transient_scans += 1
+            if transient_scans > MAX_CONSECUTIVE_TRANSIENT_SCANS:
+                print("TITAN repeated temporary market-data failures; "
+                      "hard stop, independent read-only watchdog continues",
+                      file=sys.stderr, flush=True)
+                return 2
+            delay = min(5 * (2 ** (transient_scans - 1)), 20)
+            if max_cycles and scans >= max_cycles:
+                print("TITAN scan-only cycle limit; no order attempted", flush=True)
+                return 0
+            if max_runtime_seconds and clock()+delay+15>start+max_runtime_seconds:
+                print("TITAN bounded runtime reached; no new market scan started",
+                      flush=True)
+                return 0
+            print("TITAN temporary public data failure; no execution; "
+                  f"fresh scan after {delay}s", flush=True)
+            sleep(delay)
+            continue
         if scan.returncode!=0:
             if (graceful_public_deadline and scan.returncode==124
                     and scan_timeout<public_limit):
@@ -142,6 +174,8 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                 return 0
             print("TITAN market scan failed; stop without orders",file=sys.stderr,flush=True)
             return 2
+        # A completed, error-free public scan clears the transient streak.
+        transient_scans=0
         if graceful_public_deadline and clock()+10 >= start+max_runtime_seconds:
             print("TITAN public research window ended after scan; "
                   "no executor started, no orders",flush=True)
