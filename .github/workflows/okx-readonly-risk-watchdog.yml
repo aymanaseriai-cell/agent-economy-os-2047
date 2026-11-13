@@ -1,0 +1,33 @@
+name: OKX independent read-only risk watchdog
+
+on:
+  workflow_dispatch:
+  schedule:
+    # GitHub Actions supports a 5-minute MINIMUM; scheduled runs may be delayed.
+    - cron: '3-58/5 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: okx-readonly-risk-watchdog
+  cancel-in-progress: false
+
+jobs:
+  risk-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check OKX positions and protection WITHOUT ANY ORDERS
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+        run: python -m trading.okx_risk_watchdog
