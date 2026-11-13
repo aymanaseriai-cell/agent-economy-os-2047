@@ -1,0 +1,42 @@
+name: TITAN 2037 Veto Rescue Lab (PUBLIC READ ONLY)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 5 * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: titan2037-veto-rescue-public-research
+  cancel-in-progress: false
+jobs:
+  research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 16 guarded counterfactual scenarios
+        run: python -m unittest discover -s tests -p test_titan_veto_rescue_lab.py -v
+      - name: Fetch predeclared prospective public research snapshots
+        run: python -m trading.shadow_archive_pull --outdir reports/shadow_archive --limit 180
+      - name: Test rejected core signals with independent 1h future candles
+        run: |
+          python -m trading.titan_veto_rescue_lab \
+            --archive-dir reports/shadow_archive \
+            --out reports/titan_veto_rescue.json
+      - name: Upload only analytical report (NO ORDERS)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan2037-veto-rescue-research
+          path: reports/titan_veto_rescue.json
+          if-no-files-found: ignore
+          retention-days: 30
