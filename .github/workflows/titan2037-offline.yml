@@ -1,0 +1,37 @@
+name: TITAN 2037 offline intelligence (NO ORDERS)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: titan2037-offline-research
+  cancel-in-progress: false
+jobs:
+  offline-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test 10 TITAN offline systems
+        run: python -m unittest discover -s tests -p test_titan2037_suite.py -v
+      - name: Emit offline capability report (NO TRADES)
+        run: |
+          mkdir -p reports
+          printf '{}\n' > reports/titan2037_input.json
+          python -m trading.titan2037_suite \
+            --evidence reports/titan2037_input.json \
+            --out reports/titan2037_capability_report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan2037-offline-capabilities
+          path: reports/titan2037_capability_report.json
+          if-no-files-found: ignore
+          retention-days: 7
