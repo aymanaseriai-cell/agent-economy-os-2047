@@ -42,22 +42,65 @@ def number(value, default=0.0):
         return default
 
 
+# These error codes describe temporary OKX service/rate-limit problems.
+# Retry only public, unauthenticated GETs. Private order POSTs NEVER use this.
+TRANSIENT_OKX_PUBLIC_CODES = frozenset(("50011", "50013", "50026"))
+TRANSIENT_HTTP_CODES = frozenset((429, 500, 502, 503, 504))
+PUBLIC_GET_MAX_ATTEMPTS = 4
+RECOVERABLE_SCAN_EXIT = 75
+
+
+def transient_market_errors(errors):
+    """All per-market faults must be known temporary public-GET failures."""
+    return bool(errors) and all(
+        isinstance(err, dict)
+        and isinstance(err.get("symbol"), str)
+        and err["symbol"].endswith("-USDT-SWAP")
+        and isinstance(err.get("reason"), str)
+        and err["reason"].startswith("OKX TRANSIENT ")
+        for err in errors
+    )
+
+
 def okx_get(path, params):
-    """Public GET only; network errors are handled per-market by the caller."""
+    """Public GET with capped backoff for OKX 50026, 50011 and HTTP 5xx.
+
+    Retry only immutable public market data. Never reuse partial evidence for
+    execution, never retry any private order, and reject unknown API errors.
+    """
     url = API + path + "?" + urlencode(params)
-    request = Request(url, headers={"Accept": "application/json", "User-Agent": "Six-Agent-Research/1.0"})
-    for attempt in range(3):
+    request = Request(url, headers={"Accept": "application/json",
+                                    "User-Agent": "Six-Agent-Research/1.0"})
+    for attempt in range(PUBLIC_GET_MAX_ATTEMPTS):
+        transient_reason = None
         try:
             with urlopen(request, timeout=16) as response:
                 data = json.load(response)
-            if data.get("code") != "0" or not isinstance(data.get("data"), list):
-                raise ValueError("OKX " + str(data.get("code")) + ": " + str(data.get("msg", ""))[:120])
-            return data["data"]
-        except (HTTPError, URLError, TimeoutError) as exc:
-            if attempt >= 2:
-                raise RuntimeError("OKX API unreachable") from exc
-            time.sleep(0.5 * (attempt + 1))
-    raise RuntimeError("unreachable")
+        except HTTPError as exc:
+            if exc.code not in TRANSIENT_HTTP_CODES:
+                raise RuntimeError("OKX public GET HTTP " + str(exc.code)) from exc
+            transient_reason = "HTTP_" + str(exc.code)
+        except (URLError, TimeoutError, OSError) as exc:
+            transient_reason = "NETWORK"
+        except (ValueError, TypeError) as exc:
+            raise ValueError("Malformed OKX public JSON; no order permitted") from exc
+        else:
+            if not isinstance(data, dict):
+                raise ValueError("Malformed OKX public response; no order permitted")
+            code = str(data.get("code", ""))
+            if code == "0":
+                if not isinstance(data.get("data"), list):
+                    raise ValueError("Malformed OKX public data array; no order permitted")
+                return data["data"]
+            if code not in TRANSIENT_OKX_PUBLIC_CODES:
+                raise ValueError("OKX " + code + ": " + str(data.get("msg", ""))[:120])
+            transient_reason = code
+        if attempt == PUBLIC_GET_MAX_ATTEMPTS - 1:
+            raise RuntimeError("OKX TRANSIENT " + transient_reason +
+                               ": public GET retry budget exhausted; no order")
+        # Bounded exponential delay: 1s, 2s, 4s; avoid hot-looping rate limits.
+        time.sleep(min(2 ** attempt, 4))
+    raise RuntimeError("OKX public GET exhausted; no order")
 
 
 def candles(data):
@@ -542,11 +585,24 @@ def main():
         for err in errors:
             print("DATA ERROR", err["symbol"], err["reason"])
         print("Full evidence report:", path)
-        # A rejected or unavailable liquid market is never hidden; the LIVE
-        # executor rejects reports with any per-symbol API/data errors.
-        return 0 if results and report["market_scan_complete"] else 2
+        # An incomplete scan is NEVER accepted for live trading. When all
+        # per-symbol errors are explicitly transient public GET failures,
+        # request a fresh full scan; never send this partial report to executor.
+        if not results or not report["market_scan_complete"]:
+            return 2
+        if errors:
+            if transient_market_errors(errors):
+                print("TITAN PUBLIC GET TRANSIENT_NO_ORDERS", flush=True)
+                return RECOVERABLE_SCAN_EXIT
+            return 2
+        return 0
     except Exception as exc:
         print("Public scan error, no trades attempted:", exc, file=sys.stderr)
+        # Also recover when the exchange-wide instruments/tickers GET fails
+        # temporarily. No report from an incomplete scan may trigger orders.
+        if str(exc).startswith("OKX TRANSIENT "):
+            print("TITAN PUBLIC GET TRANSIENT_NO_ORDERS", flush=True)
+            return RECOVERABLE_SCAN_EXIT
         return 1
 
 
