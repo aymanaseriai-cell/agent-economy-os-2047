@@ -534,7 +534,7 @@ class BoundedSessionAndStatusSafetyTests(unittest.TestCase):
         self.assertEqual(calls.count("trading.okx_live_executor"),1)
 
 class FastCooldownPollingTests(unittest.TestCase):
-    def test_waiting_for_exit_cooldown_uses_ten_second_read_only_poll(self):
+    def test_waiting_for_exit_cooldown_uses_five_second_read_only_poll(self):
         calls=[]; sleeps=[]; now=[0.]
         states=iter(('COOLDOWN_ACTIVE','FLAT_ELIGIBLE'))
         def run(cmd,timeout):
@@ -550,6 +550,6 @@ class FastCooldownPollingTests(unittest.TestCase):
                         run=run,clock=lambda:now[0],
                         sleep=lambda t:(sleeps.append(t),now.__setitem__(0,now[0]+t)))
         self.assertEqual(result,0)
-        self.assertEqual(sleeps,[10])
+        self.assertEqual(sleeps,[5])
         self.assertEqual(calls.count('trading.okx_resume_monitor'),2)
         self.assertEqual(calls.count('trading.okx_live_executor'),1)
