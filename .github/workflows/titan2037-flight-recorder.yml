@@ -1,0 +1,51 @@
+name: TITAN 2037 Flight Recorder (read only, NO ORDERS)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 * * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: titan2037-flight-recorder
+  cancel-in-progress: false
+jobs:
+  observe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test seven read-only agents
+        run: python -m unittest discover -s tests -p test_titan2037_flight_recorder.py -v
+      - name: Collect completed live-worker job logs (read only)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p reports/flight_logs
+          gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/okx-guarded-execution.yml/runs?per_page=12" \
+            --jq '.workflow_runs[] | select(.status == "completed") | .id' | head -n 8 > "$RUNNER_TEMP/run-ids.txt"
+          while IFS= read -r run_id; do
+            [[ "$run_id" =~ ^[0-9]+$ ]] || exit 1
+            if ! gh run view "$run_id" --log > "reports/flight_logs/${run_id}.log"; then
+              rm -f "reports/flight_logs/${run_id}.log"
+              echo "WARN: historical logs unavailable for ${run_id}"
+            fi
+          done < "$RUNNER_TEMP/run-ids.txt"
+          python -m trading.titan2037_flight_recorder \
+            --log-dir reports/flight_logs \
+            --out reports/titan2037_flight_recorder.json
+      - name: Upload sanitized aggregate only, never raw logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan2037-flight-recorder-readonly
+          path: reports/titan2037_flight_recorder.json
+          if-no-files-found: ignore
+          retention-days: 7
