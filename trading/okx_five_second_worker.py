@@ -22,6 +22,9 @@ import time
 from typing import Callable
 
 INTERVAL_SECONDS = 5
+# Poll exchange-reported cooldown every five seconds without shortening
+# the authoritative 30-second post-exit lock.
+COOLDOWN_POLL_SECONDS = 5
 ALLOWED_NONORDER_STATUSES = frozenset(("NO_CONSENSUS","DRY_RUN_SIGNAL_ONLY"))
 MONITOR_WAIT_STATES = frozenset(("POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE"))
 # Only the public research process can emit this code and exact marker.
@@ -109,7 +112,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             if states[0] in MONITOR_WAIT_STATES:
                 # More frequent read-only checks for the requested 30-second
                 # cooldown; keep lower-frequency checks for open positions.
-                pause=10 if states[0]=="COOLDOWN_ACTIVE" else 30
+                pause=COOLDOWN_POLL_SECONDS if states[0]=="COOLDOWN_ACTIVE" else 30
                 if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
                     print("TITAN bounded runtime reached",flush=True)
                     return 0
@@ -222,12 +225,12 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             # The monitor's earlier snapshot can precede the appearance of a
             # freshly closed OKX position in positions-history. The executor's
             # second check remains authoritative. Do NOT enter; poll again.
-            pause=10
+            pause=COOLDOWN_POLL_SECONDS
             if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
                 print("TITAN bounded runtime reached",flush=True)
                 return 0
             print("TITAN executor verified 30s exit cooldown; no order; "
-                  "returning to read-only monitoring after 10s",flush=True)
+                  "returning to read-only monitoring after 5s",flush=True)
             sleep(pause)
             continue
         if status=="FILLED_PROTECTED" and resume_after_protected_fill:
