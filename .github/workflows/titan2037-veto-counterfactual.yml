@@ -1,0 +1,42 @@
+name: TITAN 2037 Veto Red Team (PUBLIC ONLY, NO ORDERS)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 */6 * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: titan2037-veto-redteam
+  cancel-in-progress: false
+jobs:
+  adversarial-shadow-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test adversarial veto counterfactual with no order routes
+        run: python -m unittest discover -s tests -p test_titan2037_veto_counterfactual.py -v
+      - name: Download predeclared historic PUBLIC research snapshots
+        run: python -m trading.shadow_archive_pull --outdir reports/redteam_archives --limit 180
+      - name: Replay original rejected directional hypotheses on later public candles
+        run: |
+          python -m trading.titan2037_veto_counterfactual \
+            --archive-dir reports/redteam_archives \
+            --out reports/titan2037_veto_counterfactual.json
+      - name: Publish outcome evidence only, no orders or secrets
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan2037-veto-redteam-no-orders
+          path: reports/titan2037_veto_counterfactual.json
+          if-no-files-found: warn
+          retention-days: 14
