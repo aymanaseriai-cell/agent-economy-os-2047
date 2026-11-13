@@ -1,0 +1,37 @@
+name: TITAN 2037 veto forensics (OFFLINE, NO ORDERS)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 */6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: titan2037-sentinels-offline
+  cancel-in-progress: false
+jobs:
+  no-order-forensics:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run 2037 sentinel tests (no market/order API)
+        run: python -m unittest discover -s tests -p test_titan2037_sentinels.py -v
+      - name: Generate honest empty-evidence sentinel report
+        run: |
+          mkdir -p reports
+          printf '{"as_of_ms":0,"episodes":[]}\n' > reports/titan2037_sentinel_input.json
+          python -m trading.titan2037_sentinels \
+            --evidence reports/titan2037_sentinel_input.json \
+            --out reports/titan2037_sentinel_report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan2037-no-order-veto-forensics
+          path: reports/titan2037_sentinel_report.json
+          if-no-files-found: ignore
+          retention-days: 7
