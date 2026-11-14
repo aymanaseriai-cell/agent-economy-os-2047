@@ -109,6 +109,15 @@ jobs:
           fi
           # Explicit full-margin arming remains mandatory within check_mode
           # before any private execution path can submit an OKX order.
+      - name: Check existing OKX risk before LIVE worker (read-only, NO ORDERS)
+        if: inputs.purpose == 'run' && inputs.confirm_live == true
+        run: |
+          python -m trading.okx_risk_watchdog
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
       - name: Five-second continuous worker within bounded GitHub job
         id: worker
         if: inputs.purpose == 'run' && inputs.confirm_live == true

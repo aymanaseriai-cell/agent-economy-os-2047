@@ -23,9 +23,17 @@ def inspect_account_state(client, *, max_positions=1) -> str:
     if not 1 <= max_positions <= MAX_POSITIONS:
         raise ExecutionBlocked('Invalid portfolio capacity')
     if max_positions > 1:
-        from trading.okx_portfolio_guard import snapshot, sizing_equity, UnsafePortfolio
+        from trading.okx_portfolio_guard import (
+            snapshot, sizing_equity, RiskLimitExceeded, UnsafePortfolio,
+        )
         try:
-            state=snapshot(client)
+            state=snapshot(client, require_position_leverage=True)
+        except RiskLimitExceeded as exc:
+            # Coarse category only: never publish private positions or amounts.
+            raise ExecutionBlocked(
+                'Portfolio monitor: RISK_LIMIT_EXCEEDED ('+exc.dimension+
+                '); no new entries; inspect current OKX positions and protection'
+            ) from exc
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Portfolio monitor: '+str(exc)) from exc
         # Expose only aggregate slot utilization, never user balances,
