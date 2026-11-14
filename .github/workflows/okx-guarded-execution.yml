@@ -149,7 +149,7 @@ jobs:
           OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
           OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
       - name: Record public research evidence only (never private account/order data)
-        if: (inputs.purpose == 'run' || inputs.purpose == 'research') && always()
+        if: ${{ always() && (inputs.purpose == 'run' || inputs.purpose == 'research') && hashFiles('reports/okx_six_agents.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: okx-signal-research-only
@@ -157,11 +157,11 @@ jobs:
           retention-days: 3
           if-no-files-found: ignore
       - name: Summarize PUBLIC signal gates (NO orders, NO secrets)
-        if: (inputs.purpose == 'run' || inputs.purpose == 'research') && always()
+        if: ${{ always() && (inputs.purpose == 'run' || inputs.purpose == 'research') && hashFiles('reports/okx_six_agents.json') != '' }}
         continue-on-error: true
         run: python -m trading.okx_signal_audit --report reports/okx_six_agents.json --out reports/okx_signal_audit.json --summary "$GITHUB_STEP_SUMMARY"
       - uses: actions/upload-artifact@v4
-        if: (inputs.purpose == 'run' || inputs.purpose == 'research') && always()
+        if: ${{ always() && (inputs.purpose == 'run' || inputs.purpose == 'research') && hashFiles('reports/okx_signal_audit.json') != '' }}
         with:
           name: okx-public-signal-funnel-only
           path: reports/okx_signal_audit.json

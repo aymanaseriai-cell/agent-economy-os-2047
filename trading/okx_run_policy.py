@@ -22,17 +22,23 @@ def preflight(purpose: str, env: dict[str, str]) -> str:
         return "RESEARCH_ONLY_PUBLIC_NO_ORDERS"
     if purpose == "validate":
         return "READ_ONLY_OKX_CONNECTION_CHECK_NO_ORDERS"
+    blockers = []
     if env.get("OKX_ENABLE_REAL_TRADING") != "YES":
-        raise ValueError("STOP INTERLOCK: OKX_ENABLE_REAL_TRADING=NO. "
-                         "Live orders remain disabled. Use purpose=research for safe scanning; "
-                         "do not enable live trading just to make a job green.")
+        blockers.append(
+            "STOP INTERLOCK: OKX_ENABLE_REAL_TRADING=NO. Live orders remain disabled."
+        )
     if env.get("OKX_STOP_CONTINUOUS") == "YES":
-        raise ValueError("STOP INTERLOCK: OKX_STOP_CONTINUOUS=YES. "
-                         "Owner's stop request is still in force. "
-                         "Use purpose=research for no-order testing.")
+        blockers.append(
+            "STOP INTERLOCK: OKX_STOP_CONTINUOUS=YES. Owner's stop request is still in force."
+        )
     if env.get("OKX_EXECUTION_MODE") != "live":
-        raise ValueError("Live purpose requires independently configured "
-                         "OKX_EXECUTION_MODE=live. Use purpose=research for paper scanning.")
+        blockers.append(
+            "Live purpose requires independently configured OKX_EXECUTION_MODE=live."
+        )
+    if blockers:
+        raise ValueError(" | ".join(blockers)
+                         + " Use purpose=research for no-order testing. "
+                         + "Do not disable protective controls merely to make a job green.")
     return "LIVE_ARMING_PREFLIGHT_PASSED"
 
 
