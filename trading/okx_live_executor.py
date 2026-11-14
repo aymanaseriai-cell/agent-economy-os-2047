@@ -762,14 +762,26 @@ def execute(report, client, mode, env, *, allow_post=True):
         raise
     if multi:
         # Re-fetch every exposure/protective order directly from OKX near submit.
+        # Invalid/ambiguous account state is a fatal failure and never retried.
         from trading.okx_portfolio_guard import snapshot, check_new, UnsafePortfolio
         try:
             latest=snapshot(client, require_position_leverage=dynamic)
-            if latest['symbols']!=account_before['symbols']:
-                raise ExecutionBlocked('Portfolio changed since first account snapshot')
+        except UnsafePortfolio as exc:
+            raise ExecutionBlocked('Pre-order portfolio state not verifiable: '+str(exc)) from exc
+        if latest['symbols']!=account_before['symbols']:
+            raise ExecutionBlocked('Portfolio changed since first account snapshot')
+        try:
             check_new(latest,contracts*dec(inst['ctVal'])*price,stop_fraction,
                       leverage=selected_leverage)
         except UnsafePortfolio as exc:
+            # A known deterministic capacity veto is NOT a system outage.
+            # In explicitly authorized recurring mode skip this candidate,
+            # keep the risk cap intact, and rescan fresh markets. Unknown
+            # safety errors are NOT recoverable, even in recurring mode.
+            if (env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
+                    and str(exc) in ('Aggregate stop risk would exceed limit',
+                                     'Aggregate margin would exceed limit')):
+                return 'RISK_REJECTED_NO_ORDER'
             raise ExecutionBlocked('Pre-order portfolio veto: '+str(exc)) from exc
     else:
         if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):

@@ -1093,3 +1093,98 @@ class NinetySixPercentMarginTests(unittest.TestCase):
             contract_size(self.contract(),Decimal('100'),Decimal('1'),
                           Decimal('0.005'),capital_mode='margin_96',
                           exchange_max='1000')
+
+
+class LastMomentPortfolioVetoRecoveryTests(unittest.TestCase):
+    """A deterministic pre-submit risk veto must not kill the scanner.
+
+    All test endpoint requests are fake. Never sends exchange orders and
+    cannot override the same portfolio risk ceiling.
+    """
+    @staticmethod
+    def _env(*, recurring=True):
+        return {
+            'OKX_EXECUTION_MODE':'live', 'OKX_ENABLE_REAL_TRADING':'YES',
+            'OKX_STOP_CONTINUOUS':'NO', 'OKX_EXECUTION_ARM':MODE_ARM['live'],
+            'OKX_API_KEY':'FAKE_UNIT_TEST', 'OKX_SECRET_KEY':'FAKE_UNIT_TEST',
+            'OKX_PASSPHRASE':'FAKE_UNIT_TEST',
+            'OKX_CAPITAL_MODE':'adaptive_guarded',
+            'OKX_MAX_ACTIVE_POSITIONS':'2', 'OKX_PORTFOLIO_ARM':'YES',
+            'OKX_AUTOREENTRY_ENABLED':'YES' if recurring else 'NO',
+        }
+
+    def _execute(self, *, error, recurring=True, last_snapshot_error=None):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        report={'results':[make_signal()]}
+        holdings={'symbols':frozenset(),'total':Decimal('1000'),
+                  'free':Decimal('1000'),'planned':Decimal('0'),
+                  'notional':Decimal('0'),'margin_used':Decimal('0')}
+        snapshots=[holdings,(last_snapshot_error if last_snapshot_error
+                              is not None else holdings)]
+        class FakeOKX:
+            def __init__(self):
+                self.posted_order_count=0
+            def request(self,method,path,params=None,body=None):
+                if method=='POST' and path=='/api/v5/account/set-leverage':
+                    return [{'lever':'20'}]
+                if method=='GET' and path=='/api/v5/account/max-size':
+                    return [{'maxBuy':'100','maxSell':'100'}]
+                if method=='POST' and path=='/api/v5/trade/order':
+                    self.posted_order_count+=1
+                    raise AssertionError('NO ORDERS PERMITTED IN VETO TEST')
+                raise AssertionError('Unexpected exchange request: '+path)
+        c=FakeOKX()
+        with (patch('trading.okx_live_executor.market_preflight',
+                    return_value=({'last':'100','bidPx':'99.99','askPx':'100.01'},
+                                  {'ctVal':'1','lotSz':'1','minSz':'1','tickSz':'0.1'})),
+              patch('trading.okx_portfolio_guard.snapshot',
+                    side_effect=snapshots) as snapshots_called,
+              patch('trading.okx_portfolio_guard.check_new',
+                    side_effect=[None,error]) as risk_check,
+              patch('trading.okx_live_executor.daily_order_limit',
+                    return_value=0),
+              patch('trading.okx_live_executor.enforce_exit_cooldown'),
+              patch('trading.okx_live_executor.get_prices',
+                    return_value=(Decimal('100'),Decimal('98'),Decimal('104'),
+                                  Decimal('.02'))),
+              patch('trading.okx_live_executor.contract_size',
+                    return_value=Decimal('2'))):
+            try:
+                result=execute(report,c,'live',self._env(recurring=recurring))
+                return result,c.posted_order_count,risk_check.call_count
+            finally:
+                self.assertEqual(c.posted_order_count,0)
+
+    def test_last_moment_stop_risk_rejection_is_recoverable_only_in_recurring_mode(self):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        result,posted,checks=self._execute(
+            error=UnsafePortfolio('Aggregate stop risk would exceed limit'))
+        self.assertEqual(result,'RISK_REJECTED_NO_ORDER')
+        self.assertEqual(posted,0)
+        self.assertEqual(checks,2)
+
+    def test_last_moment_margin_risk_rejection_is_recoverable(self):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        result,posted,checks=self._execute(
+            error=UnsafePortfolio('Aggregate margin would exceed limit'))
+        self.assertEqual(result,'RISK_REJECTED_NO_ORDER')
+        self.assertEqual(posted,0)
+        self.assertEqual(checks,2)
+
+    def test_owner_without_recurring_authorization_gets_hard_block(self):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        with self.assertRaisesRegex(ExecutionBlocked,'Pre-order portfolio veto'):
+            self._execute(error=UnsafePortfolio(
+                'Aggregate stop risk would exceed limit'),recurring=False)
+
+    def test_unknown_risk_error_stops_instead_of_retrying(self):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        with self.assertRaisesRegex(ExecutionBlocked,'Pre-order portfolio veto'):
+            self._execute(error=UnsafePortfolio('Unexpected unsafe state'))
+
+    def test_unverified_fresh_portfolio_stops_instead_of_retrying(self):
+        from trading.okx_portfolio_guard import UnsafePortfolio
+        with self.assertRaisesRegex(ExecutionBlocked,'state not verifiable'):
+            self._execute(error=None,
+                          last_snapshot_error=UnsafePortfolio(
+                              'Position feed not verifiable'))
