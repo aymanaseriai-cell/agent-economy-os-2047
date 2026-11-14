@@ -40,7 +40,12 @@ def snapshot(client, *, require_position_leverage=False):
     rows = client.request("GET","/api/v5/account/positions",params={"instType":"SWAP"})
     if not isinstance(rows,list):
         raise UnsafePortfolio("Position feed not verifiable")
-    active = [p for p in rows if num(p.get("pos","0"),"pos") != 0]
+    active = []
+    for row in rows:
+        if not isinstance(row, dict) or "pos" not in row:
+            raise UnsafePortfolio("Unverifiable position row")
+        if num(row["pos"], "pos") != 0:
+            active.append(row)
     if len(active)>MAX_POSITIONS:
         raise UnsafePortfolio("Too many existing positions")
     symbols=[p.get("instId","") for p in active]

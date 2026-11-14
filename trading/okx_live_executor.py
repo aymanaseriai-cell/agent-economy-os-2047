@@ -346,7 +346,7 @@ def account_preflight(client):
         raise ExecutionBlocked('Account must be in net_mode; no automatic switch')
     # Use isolated USDT margin only; never sweep collateral or use full account.
     positions=client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})
-    if any(dec(p.get('pos','0')) != 0 for p in positions):
+    if any(dec(p.get('pos')) != 0 for p in positions):
         raise ExecutionBlocked('Another swap position exists; this bot manages one at most')
     pending=client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'})
     if pending:
@@ -545,7 +545,7 @@ def emergency_flatten(client, signal, clordid):
     """Best-effort flatten newly opened position. Cannot promise a fill."""
     symbol=signal['symbol']
     pos=client.request('GET','/api/v5/account/positions',params={'instType':'SWAP','instId':symbol})
-    qty=sum(abs(dec(p.get('pos','0'))) for p in pos)
+    qty=sum(abs(dec(p.get('pos'))) for p in pos)
     if qty<=0:
         return 'NO_POSITION_FOUND'
     side='sell' if signal['signal']=='LONG' else 'buy'
@@ -660,7 +660,7 @@ def execute(report, client, mode, env, *, allow_post=True):
     if multi:
         from trading.okx_portfolio_guard import snapshot, UnsafePortfolio
         try:
-            account_before=snapshot(client, require_position_leverage=dynamic)
+            account_before=snapshot(client, require_position_leverage=True)
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Portfolio validation failed: '+str(exc)) from exc
         if len(account_before['symbols']) >= max_positions:
@@ -783,7 +783,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         # Invalid/ambiguous account state is a fatal failure and never retried.
         from trading.okx_portfolio_guard import snapshot, check_new, UnsafePortfolio
         try:
-            latest=snapshot(client, require_position_leverage=dynamic)
+            latest=snapshot(client, require_position_leverage=True)
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Pre-order portfolio state not verifiable: '+str(exc)) from exc
         if latest['symbols']!=account_before['symbols']:
@@ -802,7 +802,7 @@ def execute(report, client, mode, env, *, allow_post=True):
                 return 'RISK_REJECTED_NO_ORDER'
             raise ExecutionBlocked('Pre-order portfolio veto: '+str(exc)) from exc
     else:
-        if any(dec(x.get('pos','0')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
+        if any(dec(x.get('pos')) for x in client.request('GET','/api/v5/account/positions',params={'instType':'SWAP'})):
             raise ExecutionBlocked('Position changed before order placement')
         if client.request('GET','/api/v5/trade/orders-pending',params={'instType':'SWAP'}):
             raise ExecutionBlocked('Orders appeared before placement')
