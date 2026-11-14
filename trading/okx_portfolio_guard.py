@@ -17,11 +17,11 @@ class RiskLimitExceeded(UnsafePortfolio):
         super().__init__("Existing aggregate risk above permitted limits")
 
 MAX_POSITIONS = 10
-RISK_CAP = Decimal("0.05")
+RISK_CAP = Decimal("0.50")
 MARGIN_CAP = Decimal("0.50")
-# Reserve 20% of each existing hard cap when admitting NEW positions.
-# This does not relax the hard limits for positions already open.
-NEW_ENTRY_CAP_FRACTION = Decimal("0.80")
+# New positions may use the full 50% aggregate ceilings.
+# Exceeding either ceiling still blocks trading.
+NEW_ENTRY_CAP_FRACTION = Decimal("1.00")
 LEVERAGE = Decimal("20")
 
 def num(value, field):
