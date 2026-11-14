@@ -20,9 +20,11 @@ from pathlib import Path
 if __package__:
     from .quant2037 import evaluate_advanced
     from .titan_omega import evaluate_omega, qubo_pick
+    from .titan_fast_entry_router import evaluate_fast_entry
 else:
     from quant2037 import evaluate_advanced
     from titan_omega import evaluate_omega, qubo_pick
+    from titan_fast_entry_router import evaluate_fast_entry
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -464,6 +466,11 @@ def analyze_market(ticker):
         record["advanced_veto_reasons"].append("missing_or_unavailable_derivatives_data")
         record["signal"] = "WAIT"
     record["derivatives_data_warnings"] = derivatives_errors
+    # Separate, permissionless opportunity discovery: never changes 'signal'.
+    # No research-only strategy may bypass the full live executor's vetoes.
+    record["fast_entry_research"] = evaluate_fast_entry(
+        bars15, bars1h, bars4h, book_rows[0], trade_rows, ticker,
+        derivatives_healthy=not (derivatives_errors or not funding_rows or not oi_rows or not mark_rows))
     return record
 
 
@@ -545,6 +552,9 @@ def main():
                   "market_scan_complete": len(results)+len(errors)==len(pool),
                   "markets_selected": len(pool), "markets_analyzed": len(results),
                   "actionable_research_labels": sum(x["signal"] != "WAIT" for x in results),
+                  "fast_entry_research_candidates": sum(
+                      x.get("fast_entry_research", {}).get("direction") in ("LONG", "SHORT")
+                      for x in results),
                   "results": results, "errors": errors,
                   "risk_notice": "Heuristic signals only, no proven edge, no order execution, no guaranteed profit."}
         path = Path(args.out)
@@ -579,6 +589,9 @@ def main():
               "omega_vetoes=", sum(bool(x.get("omega_veto_reasons")) for x in results),
               "advanced_vetoes=", sum(bool(x.get("advanced_veto_reasons")) for x in results),
               "consensus_entries=", report["actionable_research_labels"])
+        print("TITAN FAST ENTRY RESEARCH: hypothetical_candidates=",
+              report["fast_entry_research_candidates"], "live_entry_override=NO",
+              "real_orders=0", flush=True)
         for x in results:
             print(x["symbol"], x["signal"], "bull=", x["ordinal_buy_points"],
                   "bear=", x["ordinal_sell_points"], "agents=", len(x["agents"]))
