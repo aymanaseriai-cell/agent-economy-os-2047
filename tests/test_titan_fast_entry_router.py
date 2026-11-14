@@ -47,7 +47,7 @@ class FastEntryResearchTests(unittest.TestCase):
     def test_long_startup_breakout(self):
         r=run(fixture("LONG"))
         self.assertEqual(r["model"],VERSION)
-        self.assertEqual(r["direction"],"LONG")
+        self.assertEqual(r["direction"],"LONG",r)
         self.assertEqual(r["strategy"],"20_bar_breakout")
         self.assertLess(r["stop"],fixture("LONG")[0][-1]["close"])
         self.assertGreater(r["target"],fixture("LONG")[0][-1]["close"])
@@ -56,7 +56,7 @@ class FastEntryResearchTests(unittest.TestCase):
 
     def test_short_startup_breakout(self):
         r=run(fixture("SHORT"))
-        self.assertEqual(r["direction"],"SHORT")
+        self.assertEqual(r["direction"],"SHORT",r)
         self.assertEqual(r["strategy"],"20_bar_breakout")
         self.assertGreater(r["stop"],fixture("SHORT")[0][-1]["close"])
         self.assertLess(r["target"],fixture("SHORT")[0][-1]["close"])
