@@ -67,5 +67,63 @@ class PublicScanWorkerRecoveryTests(unittest.TestCase):
         self.assertEqual(code,0)
         self.assertEqual(calls,["trading.six_agent_council"])
 
+
+    def test_phoenix_recovers_from_four_public_only_outages_then_no_consensus(self):
+        from trading.okx_five_second_worker import MAX_PUBLIC_RECOVERY_BURSTS
+        self.assertEqual(MAX_PUBLIC_RECOVERY_BURSTS,2)
+        calls=[];pauses=[];t=[0.]
+        def run(cmd,timeout):
+            component=cmd[2]
+            calls.append(component)
+            if component=="trading.six_agent_council" and calls.count(component)<=4:
+                return done(cmd,75,"TITAN PUBLIC GET TRANSIENT_NO_ORDERS\n")
+            if component=="trading.okx_live_executor":
+                return done(cmd,0,"OKX EXECUTION RESULT: NO_CONSENSUS\n")
+            return done(cmd)
+        def sleep(sec):
+            pauses.append(sec);t[0]+=sec
+        with patch.dict("os.environ",{"OKX_PUBLIC_RECOVERY_ENABLED":"YES"}):
+            result=loop(max_cycles=5,run=run,clock=lambda:t[0],sleep=sleep)
+        self.assertEqual(result,0)
+        self.assertEqual(calls.count("trading.six_agent_council"),5)
+        self.assertEqual(calls.count("trading.okx_live_executor"),1)
+        self.assertEqual(pauses,[5,10,20,30])
+
+    def test_phoenix_never_retries_unverified_public_error(self):
+        calls=[]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            return done(cmd,75,"not-a-verified-PUBLIC-only-error\n")
+        with patch.dict("os.environ",{"OKX_PUBLIC_RECOVERY_ENABLED":"YES"}):
+            self.assertEqual(loop(max_cycles=15,run=run,clock=lambda:0.,
+                                  sleep=lambda _:None),2)
+        self.assertEqual(calls,["trading.six_agent_council"])
+
+    def test_phoenix_bounded_two_bursts_then_stops(self):
+        calls=[];pauses=[];t=[0.]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            return done(cmd,75,"TITAN PUBLIC GET TRANSIENT_NO_ORDERS\n")
+        def sleep(seconds):
+            pauses.append(seconds);t[0]+=seconds
+        with patch.dict("os.environ",{"OKX_PUBLIC_RECOVERY_ENABLED":"YES"}):
+            result=loop(max_cycles=20,run=run,clock=lambda:t[0],sleep=sleep)
+        self.assertEqual(result,2)
+        self.assertEqual(calls,["trading.six_agent_council"]*12)
+        self.assertEqual(pauses,[5,10,20,30,5,10,20,60,5,10,20])
+
+    def test_phoenix_cannot_restart_after_private_executor_failure(self):
+        calls=[]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=="trading.okx_live_executor":
+                return done(cmd,3,"")
+            return done(cmd)
+        with patch.dict("os.environ",{"OKX_PUBLIC_RECOVERY_ENABLED":"YES"}):
+            result=loop(max_cycles=10,run=run,clock=lambda:0.,sleep=lambda _:None)
+        self.assertEqual(result,3)
+        self.assertEqual(calls,["trading.six_agent_council",
+                                "trading.okx_live_executor"])
+
 if __name__ == "__main__":
     unittest.main()

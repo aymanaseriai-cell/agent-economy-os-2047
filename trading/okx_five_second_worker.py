@@ -31,6 +31,9 @@ MONITOR_WAIT_STATES = frozenset(("POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE"))
 # Never retry private order submission based on exit codes or timeouts.
 PUBLIC_TRANSIENT_SCAN_EXIT = 75
 MAX_CONSECUTIVE_TRANSIENT_SCANS = 3
+# Phoenix handles only verified PUBLIC no-order failures in a bounded loop.
+MAX_PUBLIC_RECOVERY_BURSTS = 2
+PUBLIC_RECOVERY_BASE_BACKOFF_SECONDS = 30
 
 def has_verified_transient_public_scan(result):
     return (result.returncode == PUBLIC_TRANSIENT_SCAN_EXIT
@@ -86,6 +89,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
     start=clock()
     scans=0
     transient_scans=0
+    phoenix_bursts=0
     while True:
         if max_cycles and scans>=max_cycles:
             print("TITAN 5-second worker reached cycle limit",flush=True)
@@ -145,10 +149,29 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             # inside the scanner. The scan is incomplete: NO executor / order.
             transient_scans += 1
             if transient_scans > MAX_CONSECUTIVE_TRANSIENT_SCANS:
-                print("TITAN repeated temporary market-data failures; "
-                      "hard stop, independent read-only watchdog continues",
-                      file=sys.stderr, flush=True)
-                return 2
+                # This marker confirms the scanner never reached a private
+                # execution path in this cycle. Only this specific public
+                # outage may be retried, for at most two extended backoffs.
+                if (os.getenv("OKX_PUBLIC_RECOVERY_ENABLED") != "YES"
+                        or phoenix_bursts >= MAX_PUBLIC_RECOVERY_BURSTS):
+                    print("TITAN repeated temporary market-data failures; "
+                          "hard stop, unknown order states are never retried",
+                          file=sys.stderr, flush=True)
+                    return 2
+                phoenix_bursts += 1
+                delay = PUBLIC_RECOVERY_BASE_BACKOFF_SECONDS * phoenix_bursts
+                transient_scans = 0
+                if max_cycles and scans >= max_cycles:
+                    return 0
+                if max_runtime_seconds and clock()+delay+15>start+max_runtime_seconds:
+                    print("TITAN bounded runtime reached; no new market scan started",
+                          flush=True)
+                    return 0
+                print("TITAN PHOENIX: verified public GET outage; no executor "
+                      f"started for this cycle; bounded retry in {delay}s",
+                      flush=True)
+                sleep(delay)
+                continue
             delay = min(5 * (2 ** (transient_scans - 1)), 20)
             if max_cycles and scans >= max_cycles:
                 print("TITAN scan-only cycle limit; no order attempted", flush=True)
@@ -179,6 +202,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             return 2
         # A completed, error-free public scan clears the transient streak.
         transient_scans=0
+        phoenix_bursts=0
         if graceful_public_deadline and clock()+10 >= start+max_runtime_seconds:
             print("TITAN public research window ended after scan; "
                   "no executor started, no orders",flush=True)
