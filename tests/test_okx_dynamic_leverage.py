@@ -42,7 +42,7 @@ class DynamicLeverageTests(unittest.TestCase):
               "free":Decimal("500")}
         check_new(snap,Decimal("1000"),Decimal(".001"),leverage=100)
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(snap,Decimal("40000"),Decimal(".0001"),leverage=100)
+            check_new(snap,Decimal("50001"),Decimal(".0001"),leverage=100)
 
 if __name__ == "__main__":
     unittest.main()

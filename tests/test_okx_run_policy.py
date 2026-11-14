@@ -46,17 +46,17 @@ class WorkflowStopInterlockTests(unittest.TestCase):
         with self.assertRaisesRegex(ExecutionBlocked, "Owner stop flag"):
             check_mode("live", env)
 
-    def test_fifteen_live_position_slots_require_independent_arming(self):
+    def test_twenty_live_position_slots_require_independent_arming(self):
         env={"OKX_EXECUTION_MODE":"live",
              "OKX_ENABLE_REAL_TRADING":"YES", "OKX_STOP_CONTINUOUS":"NO",
              "OKX_EXECUTION_ARM":MODE_ARM["live"], "OKX_LEVERAGE_MODE":"fixed",
              "OKX_CAPITAL_MODE":"adaptive_guarded",
-             "OKX_PORTFOLIO_ARM":"YES", "OKX_MAX_ACTIVE_POSITIONS":"15",
+             "OKX_PORTFOLIO_ARM":"YES", "OKX_MAX_ACTIVE_POSITIONS":"20",
              "OKX_API_KEY":"TEST", "OKX_SECRET_KEY":"TEST",
              "OKX_PASSPHRASE":"TEST"}
         self.assertIsNone(check_mode("live", env))
-        with self.assertRaisesRegex(ExecutionBlocked, "between 1 and 15"):
-            check_mode("live", {**env, "OKX_MAX_ACTIVE_POSITIONS":"16"})
+        with self.assertRaisesRegex(ExecutionBlocked, "between 1 and 20"):
+            check_mode("live", {**env, "OKX_MAX_ACTIVE_POSITIONS":"21"})
         with self.assertRaisesRegex(ExecutionBlocked, "portfolio arm"):
             check_mode("live", {**env, "OKX_PORTFOLIO_ARM":"NO"})
 
