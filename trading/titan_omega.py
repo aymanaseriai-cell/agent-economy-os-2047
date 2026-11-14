@@ -145,20 +145,18 @@ def evaluate_omega(bars, hourly, four_hourly, book, trades, ticker, funding, int
                        sim["unresolved_fraction"] * stop_bp -
                        round_trip_bp)
         fast = sim["target_time_p75_minutes"]
-        weak = (sim["target_hit_fraction"] < 0.45 or
-                fast is None or expected_bp <= 0)
-        if weak:
-            vtos.append("multiverse_no_positive_net_edge")
+        # Owner-selected policy: null-model target-hit rate, estimated net
+        # expectation and target arrival-time remain evidence, NOT entry vetoes.
+        # Exchange, market-quality and portfolio protection gates still apply.
     else:
         sim = {"target_hit_fraction": 0.0, "stop_hit_fraction": 0.0,
                "target_time_p75_minutes": None, "paths": 0,
                "assumption": "no trade hypothesis"}
         edge_bp = stop_bp = expected_bp = 0.0
         fast = None
-        weak = True
-    systems.append(_record(SYSTEMS[0], "REJECT" if weak and valid else "DIAGNOSTIC",
-                           {**sim, "net_expectation_bp_null_model": round(expected_bp, 2)},
-                           weak and valid))
+    systems.append(_record(SYSTEMS[0], "DIAGNOSTIC",
+                           {**sim, "net_expectation_bp_null_model": round(expected_bp, 2),
+                            "null_model_entry_veto": False}, False))
     buy = sum(_finite(t.get("sz")) for t in trades if t.get("side") == "buy")
     sell = sum(_finite(t.get("sz")) for t in trades if t.get("side") == "sell")
     flow = (buy - sell) / max(buy + sell, 1e-9)
@@ -226,12 +224,12 @@ def evaluate_omega(bars, hourly, four_hourly, book, trades, ticker, funding, int
                            {"sha256_public_evidence": digest,
                             "persistent_private_trade_ledger": False,
                             "order_submitted": False}))
-    # Higher score = better stress-aware net edge per estimated time-to-target.
-    # Score is an ordinal, uncalibrated heuristic; never treat as a probability.
-    rank = ((max(0.0, expected_bp) *
-             sim["target_hit_fraction"] /
-             max(15.0, float(fast or 10_000)))
-            if valid and not vtos else 0.0)
+    # Diagnostic estimates no longer veto or rank live candidates.
+    # Rank by target payoff relative to initial-stop distance, net of
+    # assumed execution cost; still an uncalibrated heuristic, NOT an edge claim.
+    # Independent exchange, volatility, funding and portfolio vetoes remain.
+    rank = ((edge_bp - round_trip_bp) / max(stop_bp, 1e-9)
+            if valid and not vtos and edge_bp > round_trip_bp else 0.0)
     return {"omega_system_count": len(SYSTEMS), "omega_systems": systems,
             "omega_veto_reasons": vtos,
             "omega_rank_score": round(rank, 8),

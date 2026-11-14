@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch
 from trading.titan_omega import evaluate_omega, qubo_pick, SYSTEMS
 
 
@@ -47,6 +48,32 @@ class OmegaResearchTests(unittest.TestCase):
     def test_causal_claim_not_invented(self):
         x=self.run_omega(case())
         self.assertFalse(x["omega_systems"][5]["evidence"]["causal_inference_performed"])
+
+    def test_owner_removed_three_null_model_gates_but_keeps_evidence(self):
+        # No simulated targets, no arrival time, and deeply negative
+        # expected net return must remain diagnostic, not a bootstrap veto.
+        simulated = {"target_hit_fraction": 0.0,
+                     "stop_hit_fraction": 1.0,
+                     "unresolved_fraction": 0.0,
+                     "target_time_p75_minutes": None,
+                     "paths": 384}
+        with patch("trading.titan_omega._bootstrap", return_value=simulated):
+            x = self.run_omega(case())
+        evidence = x["omega_systems"][0]["evidence"]
+        self.assertLess(evidence["net_expectation_bp_null_model"], 0)
+        self.assertEqual(evidence["target_hit_fraction"], 0.0)
+        self.assertIsNone(evidence["target_time_p75_minutes"])
+        self.assertFalse(x["omega_systems"][0]["veto"])
+        self.assertNotIn("multiverse_no_positive_net_edge", x["omega_veto_reasons"])
+        self.assertGreater(x["omega_rank_score"], 0)
+
+    def test_other_risk_vetoes_survive_owner_policy_change(self):
+        # An unaffordable entry cost remains a hard veto and cannot be ranked.
+        self.ticker["spread_bp"] = 100.0
+        x = self.run_omega(case())
+        self.assertIn("digital_twin_expected_cost_excessive",
+                      x["omega_veto_reasons"])
+        self.assertEqual(x["omega_rank_score"], 0.0)
 
     def test_adversarial_veto(self):
         self.trades=[{"side":"sell","sz":"100"}]
