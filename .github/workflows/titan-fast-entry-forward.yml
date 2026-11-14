@@ -1,0 +1,39 @@
+name: TITAN Fast Entry Forward Evidence (PUBLIC NO ORDERS)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 7 * * *'
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: titan-fast-entry-forward-public
+  cancel-in-progress: false
+jobs:
+  forward-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_REPO: ${{ github.repository }}
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test pre-committed fast strategy decisions and no-order guarantee
+        run: python -m unittest discover -s tests -p 'test_titan_fast_entry_forward.py' -v
+      - name: Download prospectively archived PUBLIC decision evidence
+        run: python -m trading.shadow_archive_pull --outdir reports/shadow_archive --limit 180
+      - name: Quantify future completed candles after original research publication
+        run: python -m trading.titan_fast_entry_forward --archive-dir reports/shadow_archive --out reports/titan_fast_entry_forward.json
+      - name: Archive cost-stressed prospective outcome report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-fast-entry-forward-no-orders
+          path: reports/titan_fast_entry_forward.json
+          if-no-files-found: ignore
+          retention-days: 30

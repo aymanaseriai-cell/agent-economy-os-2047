@@ -43,7 +43,8 @@ def sha(obj):
 def policy_fingerprint():
     """Fingerprint ONLY decision code, not arbitrary README or deployment commits."""
     root=Path(__file__).resolve().parent
-    files=[root/"six_agent_council.py",root/"quant2037.py"]
+    files=[root/"six_agent_council.py",root/"quant2037.py",
+           root/"titan_fast_entry_router.py"]
     if not all(p.is_file() for p in files):
         return "unavailable_local_fixture"
     h=hashlib.sha256()
@@ -95,6 +96,35 @@ def freeze(report):
         }
         if not math.isfinite(row["source_price"]) or row["source_price"]<=0:
             raise ValueError("Invalid source price")
+        # Optional v1 research-only strategy output. Older snapshots remain valid.
+        # Snapshot the actual public-time decision BEFORE future bars are known.
+        fast=item.get("fast_entry_research")
+        if fast is not None:
+            if (not isinstance(fast,dict) or
+                fast.get("model")!="fast-entry-research-v1" or
+                fast.get("permission")!="RESEARCH_ONLY_NO_ORDERS" or
+                fast.get("live_execution_allowed") is not False or
+                type(fast.get("order_count")) is not int or fast["order_count"]!=0 or
+                fast.get("direction") not in ("LONG","SHORT","WAIT")):
+                raise ValueError("Invalid fast research envelope")
+            side=fast["direction"]
+            if side in ("LONG","SHORT"):
+                stop,target=fast.get("stop"),fast.get("target")
+                if (any(isinstance(v,bool) or not isinstance(v,(int,float)) or
+                        not math.isfinite(v) or v<=0 for v in (stop,target)) or
+                    (not stop<row["source_price"]<target if side=="LONG"
+                     else not target<row["source_price"]<stop)):
+                    raise ValueError("Invalid fast research protection")
+                if fast.get("strategy") not in (
+                    "20_bar_breakout","ema20_pullback","10_bar_liquidity_sweep"):
+                    raise ValueError("Unrecognized prospective strategy")
+            row["fast_entry_research"]={
+                "direction":side,
+                "strategy":fast.get("strategy") if side!="WAIT" else None,
+                "stop":fast.get("stop") if side!="WAIT" else None,
+                "target":fast.get("target") if side!="WAIT" else None,
+                "research_only_no_orders":True
+            }
         rows.append(row)
     errors=list(report.get("errors",[]))
     result={
