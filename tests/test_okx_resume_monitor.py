@@ -136,12 +136,12 @@ class PortfolioCapacityMonitorTests(unittest.TestCase):
             self.assertEqual(inspect_account_state(FakeOKX(),max_positions=10),
                              'POSITION_OPEN_PROTECTED')
 
-    def test_monitor_blocks_more_than_fifteen(self):
+    def test_monitor_blocks_more_than_twenty(self):
         with self.assertRaisesRegex(ExecutionBlocked,'Invalid portfolio capacity'):
-            inspect_account_state(FakeOKX(),max_positions=16)
+            inspect_account_state(FakeOKX(),max_positions=21)
 
 class ExplicitOpenPositionSlotTests(unittest.TestCase):
-    def test_one_held_slot_still_allows_second_through_fifteenth(self):
+    def test_one_held_slot_still_allows_second_through_twentieth(self):
         from unittest.mock import patch
         from decimal import Decimal
         state={'symbols':frozenset({'BTC-USDT-SWAP'}),
@@ -149,18 +149,18 @@ class ExplicitOpenPositionSlotTests(unittest.TestCase):
                'planned':Decimal('10'),'notional':Decimal('1000')}
         with patch('trading.okx_portfolio_guard.snapshot',return_value=state),\
              patch('builtins.print') as printer:
-            status=inspect_account_state(FakeOKX(),max_positions=15)
+            status=inspect_account_state(FakeOKX(),max_positions=20)
         self.assertEqual(status,'PORTFOLIO_ELIGIBLE')
-        self.assertTrue(any('open=1 limit=15 remaining=14' in c.args[0]
+        self.assertTrue(any('open=1 limit=20 remaining=19' in c.args[0]
                             for c in printer.call_args_list))
 
-    def test_fifteenth_slot_is_hard_capacity_gate(self):
+    def test_twentieth_slot_is_hard_capacity_gate(self):
         from unittest.mock import patch
-        symbols=frozenset(f"ALT{i}-USDT-SWAP" for i in range(15))
+        symbols=frozenset(f"ALT{i}-USDT-SWAP" for i in range(20))
         with patch('trading.okx_portfolio_guard.snapshot',
                    return_value={'symbols':symbols}),\
              patch('builtins.print') as printer:
-            status=inspect_account_state(FakeOKX(),max_positions=15)
+            status=inspect_account_state(FakeOKX(),max_positions=20)
         self.assertEqual(status,'POSITION_OPEN_PROTECTED')
-        self.assertTrue(any('open=15 limit=15 remaining=0' in c.args[0]
+        self.assertTrue(any('open=20 limit=20 remaining=0' in c.args[0]
                             for c in printer.call_args_list))
