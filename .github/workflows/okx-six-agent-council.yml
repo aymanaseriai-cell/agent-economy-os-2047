@@ -1,6 +1,15 @@
 name: OKX 6 agents + QUANT2037 7 systems (NO TRADES)
 on:
   workflow_dispatch:
+    inputs:
+      scan_scope:
+        description: 'Read-only research scope: top 6 or every exchange-eligible instrument'
+        type: choice
+        options:
+          - top6
+          - all_eligible
+        default: top6
+        required: true
   schedule:
     - cron: '11,26,41,56 * * * *'
 permissions:
@@ -18,7 +27,15 @@ jobs:
         with:
           python-version: '3.11'
       - name: Run six specialist agents plus seven independent quant filters
-        run: python3 -m trading.six_agent_council --top 6 --out reports/okx_six_agents.json
+        env:
+          SCAN_SCOPE: ${{ inputs.scan_scope || 'top6' }}
+        run: |
+          set -euo pipefail
+          if [[ "$SCAN_SCOPE" == 'all_eligible' ]]; then
+            python3 -m trading.six_agent_council --top 6 --all-eligible --out reports/okx_six_agents.json
+          else
+            python3 -m trading.six_agent_council --top 6 --out reports/okx_six_agents.json
+          fi
       - name: Precommit every market verdict, including WAIT and vetoes
         run: python3 -m trading.shadow_observatory capture --scan reports/okx_six_agents.json --out reports/quant2037_snapshot.json
       - name: Archive all market decision evidence
