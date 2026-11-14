@@ -1,5 +1,6 @@
 import hashlib
 import hmac
+import os
 import json
 import time
 import unittest
@@ -10,6 +11,7 @@ from tempfile import TemporaryDirectory
 from trading.okx_live_executor import (
     MODE_ARM, OKX, ExecutionBlocked, ReentryCooldownActive, check_mode, read_report, choose_signal,
     floor_step, contract_size, get_prices, client_order_id, daily_order_limit, execute, FULL_MARGIN_ARM, enforce_exit_cooldown, inspect_after_submit,
+    VerifyOnlyOKX, main,
 )
 
 
@@ -41,6 +43,37 @@ class TestLiveSafety(unittest.TestCase):
              'OKX_API_KEY':'TEST','OKX_SECRET_KEY':'TEST','OKX_PASSPHRASE':'TEST'}
         check_mode('live',env)
         check_mode('dry_run',{})
+
+    def test_verify_only_works_while_live_is_stopped_and_cannot_write(self):
+        env={'OKX_EXECUTION_MODE':'live',
+             'OKX_ENABLE_REAL_TRADING':'NO',
+             'OKX_STOP_CONTINUOUS':'YES',
+             'OKX_API_KEY':'test-key',
+             'OKX_SECRET_KEY':'test-secret',
+             'OKX_PASSPHRASE':'test-phrase'}
+        calls=[]
+        def transport(req):
+            calls.append((req['method'],req['url']))
+            if req['url'].split('?')[0].endswith('/account/config'):
+                return {'code':'0','data':[{'posMode':'net_mode'}]}
+            if req['url'].split('?')[0].endswith('/account/positions-history'):
+                return {'code':'0','data':[]}
+            raise AssertionError('Unexpected endpoint')
+        client=VerifyOnlyOKX(env,transport=transport)
+        with self.assertRaisesRegex(ExecutionBlocked,'Read-only'):
+            client.request('POST','/api/v5/trade/order',body={'sz':'1'})
+        with self.assertRaisesRegex(ExecutionBlocked,'Read-only'):
+            client.request('GET','/api/v5/account/balance')
+        with patch.dict(os.environ,env,clear=True):
+            with patch('sys.argv',['okx-executor','--verify-only']):
+                with patch('trading.okx_live_executor.VerifyOnlyOKX',return_value=client):
+                    self.assertEqual(main(),0)
+        self.assertEqual(len(calls),3)
+        self.assertTrue(all(method=='GET' for method,_ in calls))
+        self.assertTrue(all('/account/config' in url or '/account/positions-history' in url
+                            for _,url in calls))
+        with self.assertRaisesRegex(ExecutionBlocked,'Live disabled'):
+            check_mode('live',{**env,'OKX_EXECUTION_ARM':MODE_ARM['live']})
 
     def test_hmac_matches_official_string(self):
         c=OKX({'OKX_SECRET_KEY':'abc','OKX_API_KEY':'x','OKX_PASSPHRASE':'p'})
