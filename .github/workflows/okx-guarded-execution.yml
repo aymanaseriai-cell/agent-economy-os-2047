@@ -131,6 +131,7 @@ jobs:
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
           OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
+          OKX_PUBLIC_RECOVERY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
