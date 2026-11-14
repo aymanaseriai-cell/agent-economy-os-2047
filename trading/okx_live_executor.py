@@ -127,7 +127,7 @@ def check_mode(mode, env):
     slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
     from trading.okx_portfolio_guard import MAX_POSITIONS
     if not slots_raw.isdecimal() or not 1 <= int(slots_raw) <= MAX_POSITIONS:
-        raise ExecutionBlocked('Maximum open positions must be between 1 and 10')
+        raise ExecutionBlocked(f'Maximum open positions must be between 1 and {MAX_POSITIONS}')
     if int(slots_raw) > 1:
         if (capital_mode != ADAPTIVE_GUARDED_MODE
                 or env.get('OKX_PORTFOLIO_ARM') != 'YES'):
