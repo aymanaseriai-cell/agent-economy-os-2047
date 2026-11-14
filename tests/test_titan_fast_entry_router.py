@@ -26,8 +26,8 @@ def fixture(side="LONG"):
     h4=make_bars(20,FOUR_HOURS,step=sign*.009)
     last=m[-1]
     last["quote_vol"]=30000.0
-    last["close"]=(max(b["high"] for b in m[-21:-1])+.2 if sign>0 else
-                   min(b["low"] for b in m[-21:-1])-.2)
+    last["close"]=(max(b["high"] for b in m[-21:-1])+1.3 if sign>0 else
+                   min(b["low"] for b in m[-21:-1])-1.3)
     last["open"]=last["close"]-.03*sign
     last["high"]=max(last["open"],last["close"])+.05
     last["low"]=min(last["open"],last["close"])-.07
