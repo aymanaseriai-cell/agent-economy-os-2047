@@ -1,0 +1,116 @@
+name: TITAN Phoenix supervisor (guarded clean-chain recovery)
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,17,27,37,47,57 * * * *'
+permissions:
+  contents: read
+  actions: write
+concurrency:
+  group: titan-phoenix-recovery-watchdog
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test Phoenix guard (public, NO trades)
+        run: python -m unittest discover -s tests -p test_titan_phoenix_watchdog.py -v
+      - name: Read GitHub run and owner stop state (NO OKX secrets)
+        env:
+          PHOENIX_CONFIG: ${{ vars.OKX_PHOENIX_RESUME_ARM || 'NO' }}
+          STOP_CONFIG: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
+          LIVE_CONFIG: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          MODE_CONFIG: ${{ vars.OKX_EXECUTION_MODE || 'dry_run' }}
+        run: |
+          set -euo pipefail
+          mkdir -p reports
+          # GET-only: never ask for private OKX credentials or balances.
+          gh api "repos/$GH_REPO/actions/workflows/okx-guarded-execution.yml" > "$RUNNER_TEMP/titan_workflow.json"
+          gh api "repos/$GH_REPO/actions/workflows/okx-guarded-execution.yml/runs?per_page=10" > "$RUNNER_TEMP/titan_runs.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          latest=json.loads((root/"titan_runs.json").read_text())["workflow_runs"]
+          # Jobs are read in the next step only if a valid prior run exists.
+          payload={"flags":{"OKX_PHOENIX_RESUME_ARM":os.environ["PHOENIX_CONFIG"],
+                            "OKX_STOP_CONTINUOUS":os.environ["STOP_CONFIG"],
+                            "OKX_ENABLE_REAL_TRADING":os.environ["LIVE_CONFIG"],
+                            "OKX_EXECUTION_MODE":os.environ["MODE_CONFIG"]},
+                   "workflow_state":json.loads((root/"titan_workflow.json").read_text()).get("state"),
+                   "runs":latest,"last_run_jobs":[]}
+          (root/"titan_evidence.json").write_text(json.dumps(payload))
+          PY
+      - name: Fetch prior successful-run job metadata only
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import json,os,subprocess
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          file=root/"titan_evidence.json"
+          payload=json.loads(file.read_text())
+          if (payload["flags"].get("OKX_PHOENIX_RESUME_ARM")=="YES"
+              and payload["flags"].get("OKX_STOP_CONTINUOUS")=="NO"
+              and payload["flags"].get("OKX_ENABLE_REAL_TRADING")=="YES"
+              and payload.get("runs")):
+              most_recent=max(payload["runs"],key=lambda r:r.get("created_at",""))
+              if (most_recent.get("status")=="completed" and most_recent.get("conclusion")=="success"):
+                  result=subprocess.run(["gh","api",f"repos/{os.environ['GH_REPO']}/actions/runs/{most_recent['id']}/jobs?per_page=5"],
+                       capture_output=True,text=True,timeout=25,check=True)
+                  payload["last_run_jobs"]=json.loads(result.stdout).get("jobs",[])
+          file.write_text(json.dumps(payload))
+          PY
+      - name: Deterministic safety verdict
+        run: |
+          set -euo pipefail
+          python -m trading.titan_phoenix_watchdog --input "$RUNNER_TEMP/titan_evidence.json" --out reports/titan_phoenix_status.json
+          cat reports/titan_phoenix_status.json >> "$GITHUB_STEP_SUMMARY"
+      - name: Resume only previously verified clean LIVE session
+        env:
+          STOP_CONFIG: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
+          LIVE_CONFIG: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
+          PHOENIX_CONFIG: ${{ vars.OKX_PHOENIX_RESUME_ARM || 'NO' }}
+        run: |
+          set -euo pipefail
+          verdict="$(python -c 'import json;print(json.load(open("reports/titan_phoenix_status.json"))["action"])')"
+          if [[ "$verdict" != "RESUME_CLEAN_SESSION" ]]; then
+            echo "Phoenix deliberately did not dispatch any live session."
+            exit 0
+          fi
+          if [[ "$STOP_CONFIG" != "NO" || "$LIVE_CONFIG" != "YES" || "$PHOENIX_CONFIG" != "YES" ]]; then
+            echo "::error::Owner stop/interlock changed; do not dispatch"
+            exit 1
+          fi
+          # Check owner variables and workflow state AGAIN directly before POST.
+          [[ "$(gh api "repos/$GH_REPO/actions/variables/OKX_STOP_CONTINUOUS" --jq .value)" == "NO" ]]
+          [[ "$(gh api "repos/$GH_REPO/actions/variables/OKX_ENABLE_REAL_TRADING" --jq .value)" == "YES" ]]
+          [[ "$(gh api "repos/$GH_REPO/actions/variables/OKX_PHOENIX_RESUME_ARM" --jq .value)" == "YES" ]]
+          [[ "$(gh api "repos/$GH_REPO/actions/workflows/okx-guarded-execution.yml" --jq .state)" == "active" ]]
+          # This is a fresh, explicitly authorized workflow dispatch, not
+          # a retry of an order and NEVER a bypass of trade/risk checks.
+          gh api --method POST "repos/$GH_REPO/actions/workflows/okx-guarded-execution.yml/dispatches" \
+            -f ref=main \
+            -f 'inputs[purpose]=run' \
+            -f 'inputs[confirm_live]=true' \
+            -f 'inputs[continuous]=true' \
+            -f 'inputs[confirm_continuous_live]=true' \
+            -f 'inputs[resume_after_exit]=true' \
+            -f 'inputs[confirm_repeat_entries]=true'
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-phoenix-watchdog-public-status
+          path: reports/titan_phoenix_status.json
+          if-no-files-found: ignore
+          retention-days: 7
