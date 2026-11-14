@@ -193,6 +193,24 @@ class OKX:
         return payload['data']
 
 
+class VerifyOnlyOKX(OKX):
+    """Allowlisted GET-only transport for credential checks while trading is OFF.
+
+    This --verify-only path never places orders, changes leverage, or requires
+    the LIVE order stop switches to be lifted.
+    """
+    VERIFY_ENDPOINTS = frozenset((
+        '/api/v5/account/config',
+        '/api/v5/account/positions-history',
+    ))
+
+    def request(self, method, path, *, params=None, body=None, auth=True):
+        if (method != 'GET' or path not in self.VERIFY_ENDPOINTS
+                or body is not None or auth is not True):
+            raise ExecutionBlocked('Read-only OKX verification forbids this request')
+        return super().request(method, path, params=params, body=None, auth=True)
+
+
 def read_report(path, now_ms=None):
     report = json.loads(Path(path).read_text(encoding='utf-8'))
     now_ms = int(time.time() * 1000) if now_ms is None else now_ms
@@ -834,12 +852,9 @@ def main():
         if args.verify_only:
             if not all(env.get(k) for k in ('OKX_API_KEY','OKX_SECRET_KEY','OKX_PASSPHRASE')):
                 raise ExecutionBlocked('Cannot verify: encrypted OKX API secrets are missing')
-            # Validate exact live/full-margin arming without posting any orders.
-            # A missing or mismatched repository secret fails the dry validation
-            # before anyone attempts an unattended LIVE workflow.
-            if args.mode in ('live','demo'):
-                check_mode(args.mode,env)
-            client=OKX(env)
+            # Read-only account connectivity is NOT permission to execute orders.
+            # Verification works with LIVE stopped; only non-verify paths require check_mode.
+            client=VerifyOnlyOKX(env)
             config=client.request('GET','/api/v5/account/config')
             if len(config)!=1:
                 raise ExecutionBlocked('Unexpected account configuration response')
