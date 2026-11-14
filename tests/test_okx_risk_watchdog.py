@@ -69,6 +69,12 @@ class ReadOnlyWatchdogTests(unittest.TestCase):
     def test_missing_tp_sl_is_never_healthy(self):
         self.assertEqual(assess(FakeClient(positions=[position()])), (STATUS_UNKNOWN, 3))
 
+    def test_missing_position_amount_is_unverifiable(self):
+        p = position()
+        p.pop("pos")
+        self.assertEqual(assess(FakeClient(positions=[p], algos=[protective()])),
+                         (STATUS_UNKNOWN, 3))
+
     def test_missing_actual_leverage_is_unverifiable(self):
         p = position()
         p.pop("lever")

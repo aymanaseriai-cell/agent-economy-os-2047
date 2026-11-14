@@ -20,6 +20,14 @@ class Fake:
             return [{"totalEq":"1000","details":[{"ccy":"USDT","availEq":"800"}]}]
         raise AssertionError(path)
 class MultiPositionGuardTests(unittest.TestCase):
+    def test_missing_position_amount_is_unknown_not_flat(self):
+        with self.assertRaisesRegex(UnsafePortfolio, "Unverifiable position row"):
+            snapshot(Fake(positions=[{"instId": "BTC-USDT-SWAP"}]))
+
+    def test_missing_actual_leverage_is_not_replaced_with_default(self):
+        with self.assertRaisesRegex(UnsafePortfolio, "leverage missing"):
+            snapshot(Fake([pos()], [algo()]), require_position_leverage=True)
+
     def test_empty_account(self):
         s=snapshot(Fake())
         self.assertEqual(s["symbols"],frozenset())
