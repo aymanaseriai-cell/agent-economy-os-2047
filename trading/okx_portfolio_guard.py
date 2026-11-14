@@ -8,9 +8,20 @@ from decimal import Decimal, InvalidOperation
 class UnsafePortfolio(RuntimeError):
     pass
 
+class RiskLimitExceeded(UnsafePortfolio):
+    """Existing exposure exceeds the hard policy; expose category, never balance."""
+    def __init__(self, dimension):
+        if dimension not in ("STOP_RISK", "ISOLATED_MARGIN"):
+            raise ValueError("Unrecognized risk limit")
+        self.dimension = dimension
+        super().__init__("Existing aggregate risk above permitted limits")
+
 MAX_POSITIONS = 10
 RISK_CAP = Decimal("0.05")
 MARGIN_CAP = Decimal("0.50")
+# Reserve 20% of each existing hard cap when admitting NEW positions.
+# This does not relax the hard limits for positions already open.
+NEW_ENTRY_CAP_FRACTION = Decimal("0.80")
 LEVERAGE = Decimal("20")
 
 def num(value, field):
@@ -82,24 +93,28 @@ def snapshot(client, *, require_position_leverage=False):
     free=num(usd.get("availEq") or usd.get("availBal"),"free collateral")
     if total<=0 or free<=0:
         raise UnsafePortfolio("No available equity")
-    if planned>total*RISK_CAP or margin_used>total*MARGIN_CAP:
-        raise UnsafePortfolio("Existing aggregate risk above permitted limits")
+    if planned>total*RISK_CAP:
+        raise RiskLimitExceeded("STOP_RISK")
+    if margin_used>total*MARGIN_CAP:
+        raise RiskLimitExceeded("ISOLATED_MARGIN")
     return {"symbols":frozenset(symbols),"total":total,"free":min(free,total),
             "planned":planned,"notional":used,"margin_used":margin_used}
 
 def sizing_equity(snap, *, leverage=LEVERAGE):
     """Max equity input for the existing 2%-stop, 20%-margin adaptive sizer."""
     from trading.okx_live_executor import ADAPTIVE_EQUITY_RISK_FRACTION, ADAPTIVE_MARGIN_CAP_FRACTION
-    risk_left=snap["total"]*RISK_CAP-snap["planned"]
-    margin_left=snap["total"]*MARGIN_CAP-snap.get("margin_used",snap["notional"]/LEVERAGE)
+    risk_left=snap["total"]*RISK_CAP*NEW_ENTRY_CAP_FRACTION-snap["planned"]
+    margin_left=(snap["total"]*MARGIN_CAP*NEW_ENTRY_CAP_FRACTION
+                 -snap.get("margin_used",snap["notional"]/LEVERAGE))
     if risk_left<=0 or margin_left<=0:
         return Decimal("0")
     return min(snap["free"],risk_left/ADAPTIVE_EQUITY_RISK_FRACTION,
                margin_left/ADAPTIVE_MARGIN_CAP_FRACTION)
 
 def check_new(snap, notional, stop_fraction, *, leverage=LEVERAGE):
-    if snap["planned"]+notional*stop_fraction>snap["total"]*RISK_CAP:
+    if snap["planned"]+notional*stop_fraction>snap["total"]*RISK_CAP*NEW_ENTRY_CAP_FRACTION:
         raise UnsafePortfolio("Aggregate stop risk would exceed limit")
     effective_margin = snap.get("margin_used",snap["notional"]/LEVERAGE)
-    if effective_margin + notional / num(leverage,"new leverage") > snap["total"]*MARGIN_CAP:
+    if (effective_margin + notional / num(leverage,"new leverage")
+            > snap["total"]*MARGIN_CAP*NEW_ENTRY_CAP_FRACTION):
         raise UnsafePortfolio("Aggregate margin would exceed limit")

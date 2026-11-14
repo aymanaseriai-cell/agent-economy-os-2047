@@ -1,6 +1,6 @@
 import unittest
 from decimal import Decimal
-from trading.okx_portfolio_guard import snapshot, sizing_equity, check_new, UnsafePortfolio
+from trading.okx_portfolio_guard import snapshot, sizing_equity, check_new, UnsafePortfolio, RiskLimitExceeded, NEW_ENTRY_CAP_FRACTION
 
 def pos(s="BTC-USDT-SWAP",qty="1"):
     return {"instId":s,"pos":qty,"mgnMode":"isolated","markPx":"100","notionalUsd":"2000"}
@@ -73,6 +73,32 @@ class MultiPositionGuardTests(unittest.TestCase):
     def test_no_pending_orders(self):
         with self.assertRaisesRegex(UnsafePortfolio,"Outstanding"):
             snapshot(Fake(pending=[{"ordId":"123"}]))
+    def test_over_limit_identifies_stop_risk_without_disclosing_balances(self):
+        p=pos(); p["notionalUsd"]="2000"
+        with self.assertRaises(RiskLimitExceeded) as ctx:
+            snapshot(Fake([p],[algo(sl="97")]))
+        self.assertEqual(ctx.exception.dimension, "STOP_RISK")
+        self.assertEqual(str(ctx.exception), "Existing aggregate risk above permitted limits")
+
+    def test_over_limit_identifies_isolated_margin(self):
+        p=pos(); p["notionalUsd"]="12000"; p["lever"]="20"
+        with self.assertRaises(RiskLimitExceeded) as ctx:
+            snapshot(Fake([p],[algo(sl="99.9")]))
+        self.assertEqual(ctx.exception.dimension, "ISOLATED_MARGIN")
+
+    def test_new_entries_leave_twenty_percent_risk_and_margin_headroom(self):
+        self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("0.80"))
+        s=snapshot(Fake([pos()],[algo()]))
+        # 20 existing + 21 proposed stop risk: below 5% hard cap,
+        # but above the 4% new-entry ceiling.
+        with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
+            check_new(s,Decimal("2100"),Decimal("0.01"))
+        # Existing 100 plus new 305 margin: below the 50% hard
+        # cap, but above the 40% new-entry ceiling.
+        with self.assertRaisesRegex(UnsafePortfolio,"margin"):
+            check_new(s,Decimal("6100"),Decimal("0.001"))
+        self.assertEqual(sizing_equity(s),Decimal("800"))
+
     def test_limits_enforced(self):
         s=snapshot(Fake([pos()],[algo()]))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):

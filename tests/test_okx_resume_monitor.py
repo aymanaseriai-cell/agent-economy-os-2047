@@ -101,6 +101,15 @@ class PortfolioCapacityMonitorTests(unittest.TestCase):
             self.assertEqual(inspect_account_state(FakeOKX(),max_positions=2),
                              'PORTFOLIO_ELIGIBLE')
 
+    def test_risk_limit_failure_is_specific_and_fail_closed(self):
+        from unittest.mock import patch
+        from trading.okx_portfolio_guard import RiskLimitExceeded
+        with patch('trading.okx_portfolio_guard.snapshot',
+                   side_effect=RiskLimitExceeded("STOP_RISK")):
+            with self.assertRaisesRegex(ExecutionBlocked,
+                    "RISK_LIMIT_EXCEEDED \\(STOP_RISK\\)"):
+                inspect_account_state(FakeOKX(), max_positions=10)
+
     def test_two_positions_wait_for_exit(self):
         from unittest.mock import patch
         with patch('trading.okx_portfolio_guard.snapshot',
