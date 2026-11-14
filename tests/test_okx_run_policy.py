@@ -22,6 +22,16 @@ class WorkflowStopInterlockTests(unittest.TestCase):
             preflight("run", {"OKX_ENABLE_REAL_TRADING": "YES", "OKX_STOP_CONTINUOUS": "YES",
                               "OKX_EXECUTION_MODE": "live"})
 
+    def test_both_owner_stop_flags_reported_in_one_failure(self):
+        with self.assertRaises(ValueError) as ctx:
+            preflight("run", {
+                "OKX_EXECUTION_MODE": "live",
+                "OKX_ENABLE_REAL_TRADING": "NO",
+                "OKX_STOP_CONTINUOUS": "YES",
+            })
+        self.assertIn("OKX_ENABLE_REAL_TRADING=NO", str(ctx.exception))
+        self.assertIn("OKX_STOP_CONTINUOUS=YES", str(ctx.exception))
+
     def test_live_requires_two_independent_flags(self):
         ok={"OKX_ENABLE_REAL_TRADING":"YES", "OKX_STOP_CONTINUOUS":"NO",
             "OKX_EXECUTION_MODE":"live"}
