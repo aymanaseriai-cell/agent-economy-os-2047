@@ -107,9 +107,9 @@ class MultiPositionGuardTests(unittest.TestCase):
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("1.00"))
         s=snapshot(Fake([pos()],[algo()]))
         # Stop risk: 20 existing + 480 proposed equals 500 (50% of equity).
-        check_new(s,Decimal("48000"),Decimal("0.01"),leverage=Decimal("100"))
+        check_new(s,Decimal("24000"),Decimal("0.02"),leverage=Decimal("100"))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("48001"),Decimal("0.01"),leverage=Decimal("100"))
+            check_new(s,Decimal("24001"),Decimal("0.02"),leverage=Decimal("100"))
         # Isolated margin: 100 existing + 400 proposed equals 500.
         check_new(s,Decimal("8000"),Decimal("0.001"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
