@@ -86,6 +86,12 @@ class MultiPositionGuardTests(unittest.TestCase):
             snapshot(Fake([p],[algo(sl="99.9")]))
         self.assertEqual(ctx.exception.dimension, "ISOLATED_MARGIN")
 
+    def test_both_risk_limits_report_both(self):
+        p=pos(); p["notionalUsd"]="12000"; p["lever"]="20"
+        with self.assertRaises(RiskLimitExceeded) as ctx:
+            snapshot(Fake([p],[algo(sl="97")]))
+        self.assertEqual(ctx.exception.dimension, "BOTH")
+
     def test_new_entries_leave_twenty_percent_risk_and_margin_headroom(self):
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("0.80"))
         s=snapshot(Fake([pos()],[algo()]))

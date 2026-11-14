@@ -56,6 +56,16 @@ class ReadOnlyWatchdogTests(unittest.TestCase):
         self.assertEqual(assess(FakeClient(positions=[position(notional="2000")],
                                            algos=[protective(stop="96")])), (STATUS_RISK, 2))
 
+    def test_over_budget_reports_only_coarse_reason_without_private_values(self):
+        f=io.StringIO()
+        with redirect_stdout(f):
+            status,code=assess(FakeClient(positions=[position(notional="2000")],
+                                          algos=[protective(stop="96")]))
+        self.assertEqual((status,code),(STATUS_RISK,2))
+        self.assertIn("OKX RISK LIMIT CATEGORY: STOP_RISK",f.getvalue())
+        self.assertNotIn("2000",f.getvalue())
+        self.assertNotIn("BTC-USDT",f.getvalue())
+
     def test_missing_tp_sl_is_never_healthy(self):
         self.assertEqual(assess(FakeClient(positions=[position()])), (STATUS_UNKNOWN, 3))
 

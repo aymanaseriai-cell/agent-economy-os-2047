@@ -11,7 +11,7 @@ import os
 import sys
 
 from trading.okx_live_executor import OKX, ExecutionBlocked
-from trading.okx_portfolio_guard import UnsafePortfolio, snapshot
+from trading.okx_portfolio_guard import RiskLimitExceeded, UnsafePortfolio, snapshot
 
 READ_ENDPOINTS = frozenset({
     "/api/v5/account/config",
@@ -42,6 +42,10 @@ def assess(client):
         # Requiring actual leverage prevents a silent 20x fallback on a
         # 10x-100x account. All risk-limit and TP/SL checks remain intact.
         state = snapshot(client, require_position_leverage=True)
+    except RiskLimitExceeded as exc:
+        # Publish only the breach type; never disclose balance, size or symbol.
+        print("OKX RISK LIMIT CATEGORY: " + exc.dimension, flush=True)
+        return STATUS_RISK, 2
     except UnsafePortfolio as exc:
         if str(exc) == "Existing aggregate risk above permitted limits":
             return STATUS_RISK, 2

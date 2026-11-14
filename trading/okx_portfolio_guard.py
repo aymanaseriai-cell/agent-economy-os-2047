@@ -11,7 +11,7 @@ class UnsafePortfolio(RuntimeError):
 class RiskLimitExceeded(UnsafePortfolio):
     """Existing exposure exceeds the hard policy; expose category, never balance."""
     def __init__(self, dimension):
-        if dimension not in ("STOP_RISK", "ISOLATED_MARGIN"):
+        if dimension not in ("STOP_RISK", "ISOLATED_MARGIN", "BOTH"):
             raise ValueError("Unrecognized risk limit")
         self.dimension = dimension
         super().__init__("Existing aggregate risk above permitted limits")
@@ -93,10 +93,12 @@ def snapshot(client, *, require_position_leverage=False):
     free=num(usd.get("availEq") or usd.get("availBal"),"free collateral")
     if total<=0 or free<=0:
         raise UnsafePortfolio("No available equity")
-    if planned>total*RISK_CAP:
-        raise RiskLimitExceeded("STOP_RISK")
-    if margin_used>total*MARGIN_CAP:
-        raise RiskLimitExceeded("ISOLATED_MARGIN")
+    stop_breach = planned > total*RISK_CAP
+    margin_breach = margin_used > total*MARGIN_CAP
+    if stop_breach or margin_breach:
+        category = ("BOTH" if stop_breach and margin_breach else
+                    "STOP_RISK" if stop_breach else "ISOLATED_MARGIN")
+        raise RiskLimitExceeded(category)
     return {"symbols":frozenset(symbols),"total":total,"free":min(free,total),
             "planned":planned,"notional":used,"margin_used":margin_used}
 
