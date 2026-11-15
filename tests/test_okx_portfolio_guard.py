@@ -88,7 +88,7 @@ class MultiPositionGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(UnsafePortfolio,"Outstanding"):
             snapshot(Fake(pending=[{"ordId":"123"}]))
     def test_over_limit_identifies_stop_risk_without_disclosing_balances(self):
-        p=pos(); p["notionalUsd"]="32000"; p["lever"]="100"
+        p=pos(); p["notionalUsd"]="34000"; p["lever"]="100"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "STOP_RISK")
@@ -101,30 +101,30 @@ class MultiPositionGuardTests(unittest.TestCase):
         self.assertEqual(ctx.exception.dimension, "ISOLATED_MARGIN")
 
     def test_both_risk_limits_report_both(self):
-        p=pos(); p["notionalUsd"]="32000"; p["lever"]="20"
+        p=pos(); p["notionalUsd"]="34000"; p["lever"]="20"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "BOTH")
 
-    def test_new_entries_use_exactly_ninety_one_percent_aggregate_budget(self):
+    def test_new_entries_use_exactly_ninety_nine_percent_aggregate_budget(self):
         from trading.okx_portfolio_guard import RISK_CAP, MARGIN_CAP
-        self.assertEqual(RISK_CAP, Decimal("0.91"))
-        self.assertEqual(MARGIN_CAP, Decimal("0.91"))
+        self.assertEqual(RISK_CAP, Decimal("0.99"))
+        self.assertEqual(MARGIN_CAP, Decimal("0.99"))
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("1.00"))
         s=snapshot(Fake([pos()],[algo()]))
-        # Stop risk: 20 existing + 890 proposed equals 910 (91% of equity).
-        check_new(s,Decimal("44500"),Decimal("0.02"),leverage=Decimal("100"))
+        # Stop risk: 20 existing + 970 proposed equals 990 (99% of equity).
+        check_new(s,Decimal("48500"),Decimal("0.02"),leverage=Decimal("100"))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("44501"),Decimal("0.02"),leverage=Decimal("100"))
-        # Isolated margin: 100 existing + 810 proposed equals 910.
-        check_new(s,Decimal("16200"),Decimal("0.001"))
+            check_new(s,Decimal("48501"),Decimal("0.02"),leverage=Decimal("100"))
+        # Isolated margin: 100 existing + 890 proposed equals 990.
+        check_new(s,Decimal("17800"),Decimal("0.001"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("16201"),Decimal("0.001"))
+            check_new(s,Decimal("17801"),Decimal("0.001"))
         self.assertEqual(sizing_equity(s),Decimal("800"))
 
     def test_limits_enforced(self):
         s=snapshot(Fake([pos()],[algo()]))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("45000"),Decimal("0.02"))
+            check_new(s,Decimal("50000"),Decimal("0.02"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("18000"),Decimal("0.001"))
+            check_new(s,Decimal("19000"),Decimal("0.001"))
