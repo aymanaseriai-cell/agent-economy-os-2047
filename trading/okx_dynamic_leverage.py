@@ -1,11 +1,11 @@
-"""Exchange-aware 10x-100x leverage selector; no network access or order placement.
+"""Exchange-aware high-intensity 20x-100x leverage selector; no network access or order placement.
 
 A heuristic stress gate, NOT a predictive model or a liquidation guarantee.
 The account's leverage tier must be independently verified before using this.
 """
 from decimal import Decimal, InvalidOperation
 
-MIN_LEVERAGE = 10
+MIN_LEVERAGE = 20
 MAX_LEVERAGE = 100
 
 def _decimal(value):
@@ -18,9 +18,10 @@ def _decimal(value):
     return result
 
 def select_leverage(stop_fraction, round_trip_cost_fraction, market_max, account_max):
-    """Return an integer leverage in [10,100], or None when no candidate survives.
+    """Return an integer leverage in [20,100], or None when no candidate survives.
 
     Requires a current market instrument maximum AND account-specific tier cap.
+    For a stronger but bounded preference, skip rather than fall below 20x.
     0.5% adverse shock budget / double-stop stress are heuristics, not hard losses.
     """
     stop, cost = _decimal(stop_fraction), _decimal(round_trip_cost_fraction)
