@@ -34,6 +34,15 @@ MAX_CONSECUTIVE_TRANSIENT_SCANS = 3
 # Phoenix handles only verified PUBLIC no-order failures in a bounded loop.
 MAX_PUBLIC_RECOVERY_BURSTS = 2
 PUBLIC_RECOVERY_BASE_BACKOFF_SECONDS = 30
+# OKX may briefly return positions and attached algo orders from different
+# exchange snapshots around a fill/exit. Poll only GET-based account state;
+# never submit an order while any protection evidence is missing.
+PROTECTION_RECHECK_INTERVAL_SECONDS = 5
+MAX_TRANSIENT_PROTECTION_RECHECKS = 3
+PROTECTION_MONITOR_ERROR = (
+    "OKX MONITOR BLOCKED: Portfolio monitor: "
+    "One confirmed TP/SL pair required per position"
+)
 
 def has_verified_transient_public_scan(result):
     return (result.returncode == PUBLIC_TRANSIENT_SCAN_EXIT
@@ -90,6 +99,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
     scans=0
     transient_scans=0
     phoenix_bursts=0
+    protection_rechecks=0
     while True:
         if max_cycles and scans>=max_cycles:
             print("TITAN 5-second worker reached cycle limit",flush=True)
@@ -103,9 +113,35 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             # trigger orders while a protected position or exit cooldown exists.
             mon=run([sys.executable,"-m","trading.okx_resume_monitor"],timeout=45)
             if mon.returncode!=0:
+                # Only a precisely identified read-only TP/SL snapshot mismatch
+                # may be re-queried, never skipped. Each recheck obtains fresh
+                # live exchange state; no scan, executor or order is attempted.
+                transient = (
+                    mon.returncode == 2
+                    and isinstance(mon.stderr, str)
+                    and mon.stderr.strip() == PROTECTION_MONITOR_ERROR
+                    and not mon.stdout.strip()
+                )
+                if transient and protection_rechecks < MAX_TRANSIENT_PROTECTION_RECHECKS:
+                    if (max_runtime_seconds and
+                            clock()+PROTECTION_RECHECK_INTERVAL_SECONDS+15
+                            > start+max_runtime_seconds):
+                        print("TITAN protection verification unresolved at bounded "
+                              "deadline; fail closed with no new order",
+                              file=sys.stderr,flush=True)
+                        return 2
+                    protection_rechecks += 1
+                    print("TITAN TP/SL snapshot mismatch: no new orders; "
+                          f"read-only verification retry {protection_rechecks}/"
+                          f"{MAX_TRANSIENT_PROTECTION_RECHECKS} after "
+                          f"{PROTECTION_RECHECK_INTERVAL_SECONDS}s",
+                          flush=True)
+                    sleep(PROTECTION_RECHECK_INTERVAL_SECONDS)
+                    continue
                 print("TITAN account monitor blocked; stop without another order",
                       file=sys.stderr,flush=True)
                 return mon.returncode
+            protection_rechecks=0
             states=[line.partition("OKX MONITOR RESULT: ")[2].strip()
                     for line in mon.stdout.splitlines()
                     if line.startswith("OKX MONITOR RESULT: ")]
