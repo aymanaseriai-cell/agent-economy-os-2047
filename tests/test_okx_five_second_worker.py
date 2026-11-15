@@ -304,6 +304,87 @@ class AutoResumeWorkerTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,"explicit"):
                 loop(resume_after_protected_fill=True)
 
+class TransientProtectionVerificationTests(unittest.TestCase):
+    """No order or public scan is allowed until protection is re-verified."""
+
+    def test_single_inconsistent_tp_sl_snapshot_retries_only_get_monitor(self):
+        calls=[]; delays=[]; now=[0.0]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2] == "trading.okx_resume_monitor":
+                if calls.count("trading.okx_resume_monitor") == 1:
+                    return subprocess.CompletedProcess(
+                        cmd,2,"",
+                        "OKX MONITOR BLOCKED: Portfolio monitor: "
+                        "One confirmed TP/SL pair required per position\n")
+                return subprocess.CompletedProcess(
+                    cmd,0,"OKX MONITOR RESULT: PORTFOLIO_ELIGIBLE\n","")
+            if cmd[2] == "trading.okx_live_executor":
+                return done(cmd,"NO_CONSENSUS")
+            return done(cmd)
+        def sleep(seconds):
+            delays.append(seconds); now[0]+=seconds
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            code=loop(max_cycles=1,resume_after_protected_fill=True,
+                      run=run,clock=lambda:now[0],sleep=sleep)
+        self.assertEqual(code,0)
+        self.assertEqual(delays,[5])
+        self.assertEqual(calls,[
+            "trading.okx_resume_monitor",
+            "trading.okx_resume_monitor",
+            "trading.six_agent_council",
+            "trading.okx_live_executor"])
+
+    def test_permanently_unverified_tp_sl_fails_closed_after_three_rechecks(self):
+        calls=[];delays=[];now=[0.0]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            return subprocess.CompletedProcess(
+                cmd,2,"",
+                "OKX MONITOR BLOCKED: Portfolio monitor: "
+                "One confirmed TP/SL pair required per position\n")
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            code=loop(resume_after_protected_fill=True,run=run,
+                      clock=lambda:now[0],
+                      sleep=lambda sec:(delays.append(sec),now.__setitem__(0,now[0]+sec)))
+        self.assertEqual(code,2)
+        self.assertEqual(delays,[5,5,5])
+        self.assertEqual(calls,["trading.okx_resume_monitor"]*4)
+
+    def test_other_risk_errors_never_retry_or_submit_orders(self):
+        for reason in (
+            "OKX MONITOR BLOCKED: Portfolio monitor: RISK_LIMIT_EXCEEDED (STOP_RISK)",
+            "OKX MONITOR BLOCKED: Portfolio monitor: Unprotected position",
+            "OKX MONITOR ERROR: account state unknown; manual review required"
+        ):
+            with self.subTest(reason=reason):
+                calls=[];delays=[]
+                def run(cmd,timeout):
+                    calls.append(cmd[2])
+                    return subprocess.CompletedProcess(cmd,2,"",reason+"\n")
+                with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+                    code=loop(resume_after_protected_fill=True,run=run,
+                              clock=lambda:0.,sleep=delays.append)
+                self.assertEqual(code,2)
+                self.assertEqual(delays,[])
+                self.assertEqual(calls,["trading.okx_resume_monitor"])
+
+    def test_bounded_deadline_with_unverified_protection_is_failure_not_success(self):
+        calls=[];delays=[];now=[0.0]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            return subprocess.CompletedProcess(cmd,2,"",
+                "OKX MONITOR BLOCKED: Portfolio monitor: "
+                "One confirmed TP/SL pair required per position\n")
+        with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
+            code=loop(max_runtime_seconds=24,resume_after_protected_fill=True,
+                      run=run,clock=lambda:now[0],
+                      sleep=lambda sec:(delays.append(sec),now.__setitem__(0,now[0]+sec)))
+        self.assertEqual(code,2)
+        self.assertEqual(delays,[5])
+        self.assertEqual(calls,["trading.okx_resume_monitor"]*2)
+
+
 class CooldownRacingMonitorTests(unittest.TestCase):
     def test_cooldown_after_flat_monitor_continues_and_rechecks(self):
         # Monitor sees FLAT before the closure reaches OKX history; executor
