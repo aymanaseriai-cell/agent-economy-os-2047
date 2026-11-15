@@ -9,11 +9,13 @@ class DynamicLeverageTests(unittest.TestCase):
         self.assertEqual(select_leverage(".001", ".001", 125, 100), 100)
     def test_exchange_account_caps_override_strategy(self):
         self.assertEqual(select_leverage(".001", ".001", 100, 25), 25)
-        self.assertIsNone(select_leverage(".001", ".001", 100, 9))
+        self.assertIsNone(select_leverage(".001", ".001", 100, 19))
+        self.assertEqual(select_leverage(".001", ".001", 100, 20), 20)
     def test_wider_stops_lower_leverage(self):
         tight = select_leverage(".001", ".001", 100, 100)
-        wide = select_leverage(".015", ".001", 100, 100)
-        self.assertTrue(10 <= wide < tight)
+        wide = select_leverage(".010", ".001", 100, 100)
+        self.assertTrue(20 <= wide < tight)
+        self.assertIsNone(select_leverage(".015", ".001", 100, 100))
     def test_abstain_on_bad_stress_or_bad_input(self):
         self.assertIsNone(select_leverage(".10", ".01", 100, 100))
         for v in ("NaN", "-1", "Infinity"):
@@ -42,7 +44,7 @@ class DynamicLeverageTests(unittest.TestCase):
               "free":Decimal("500")}
         check_new(snap,Decimal("1000"),Decimal(".001"),leverage=100)
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(snap,Decimal("45001"),Decimal(".0001"),leverage=100)
+            check_new(snap,Decimal("69001"),Decimal(".0001"),leverage=100)
 
 if __name__ == "__main__":
     unittest.main()

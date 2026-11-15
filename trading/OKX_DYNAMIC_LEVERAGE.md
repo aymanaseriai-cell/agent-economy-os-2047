@@ -1,19 +1,14 @@
-# TITAN Ω — variable leverage (10x–100x)
+# TITAN Ω — stronger variable leverage (20x–100x)
 
-This feature is proposed on a **review branch**. It must not change running production settings until merged and explicitly configured.
+## Configuration
+- `OKX_LEVERAGE_MODE=fixed` remains the 20x fallback; `dynamic` uses **20x–100x** or rejects a candidate.
+- Dynamic mode requires current OKX instrument and account-specific leverage tier ceilings. If either is below 20x, or the required stress checks fail even at 20x, **no order** is allowed.
+- Keep the already configured repository secret `OKX_DYNAMIC_LEVERAGE_ARM=I_ACCEPT_VARIABLE_10_TO_100X_LIQUIDATION_RISK`. Its historical name remains unchanged for compatibility; the selector itself uses **20x–100x**.
+- Separate live `OKX_EXECUTION_ARM` secret, owner stop switches, explicit workflow confirmations, and exchange order protection remain necessary.
 
-## Modes
-- `OKX_LEVERAGE_MODE=fixed` (default) retains 20x.
-- `OKX_LEVERAGE_MODE=dynamic` selects an integer from 10x to 100x, or skips entry.
-- For demo/live, also set repository secret `OKX_DYNAMIC_LEVERAGE_ARM=I_ACCEPT_VARIABLE_10_TO_100X_LIQUIDATION_RISK`. Existing execution arm, live enable and owner stop remain independent.
-- `OKX_MAX_ACTIVE_POSITIONS=1..10` already supports multiple concurrent positions with `OKX_CAPITAL_MODE=adaptive_guarded` and separate `OKX_PORTFOLIO_ARM=YES`.
+## Risk and protection
+The algorithm chooses the largest allowed leverage between 20x and 100x that survives a double-stop/fee stress screen and 0.5% adverse-price shock heuristic. These screens are not a liquidation guarantee. Fixed entry criteria remain symmetrical for LONG and SHORT (at least a two-point lead with at least two voting agents), plus seven quant and Omega checks.
 
-## How leverage is chosen
-The executor obtains a current public instrument maximum and a fresh account-specific OKX `adjust-leverage-info` maximum. It extracts the Omega estimated round-trip cost and uses the actual proposed stop distance. A deterministic stress heuristic selects the largest candidate inside both caps and a 50% double-stop / 75% half-percent shock *margin* stress screen. If any required evidence is missing, stale, non-finite, or below 10x, entry is rejected. No expected-profit guarantee or liquidation price prediction is implied.
+For portfolio exposure, at most **25 separately TP/SL-protected isolated USDT swap positions** are allowed, with **99% of equity** as the aggregate planned-stop and isolated-margin ceilings. Both are ceilings, **not targets, realized-loss limits, or a guarantee of available buying power**. In default `adaptive_guarded` mode, each candidate is still sized against **2% of free equity at its initial stop** and **20% of free equity in isolated margin**. Liquidation, gaps, slippage, and fees can cause losses beyond modeled stop-risk.
 
-Existing positions are valued using their actual reported leverage to check portfolio margin; absent leverage metadata blocks dynamic multi-position entries. Aggregate initial-stop and margin caps and the separate 96%/full-margin single-position options remain in force.
-
-## Important boundary
-**Multi-position mode does not use the full account balance.** It uses `adaptive_guarded` and the existing 5% aggregate planned-stop risk / 50% portfolio initial-margin caps. The 100%-allocation multi-position scenario is available only in `trading/titan_portfolio_2037.py` research (zero live orders). A promise to keep 100% of equity in the market would require forced entries and could wipe out the entire balance rapidly at 100x. No order is submitted by this document or tests.
-
-No credentials may be committed to GitHub source. Before any real-money use: pass tests, inspect OKX account mode/leverage tiers/portfolio protections, and activate separately.
+The live bot does not restart by merely merging code. The owner must explicitly enable and launch the GitHub Actions LIVE workflow after tests and a read-only OKX check. Repository source files never store API keys.
