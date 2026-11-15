@@ -49,9 +49,9 @@ class OmegaResearchTests(unittest.TestCase):
         x=self.run_omega(case())
         self.assertFalse(x["omega_systems"][5]["evidence"]["causal_inference_performed"])
 
-    def test_non_positive_null_model_net_expectation_blocks_entry(self):
-        # Poor simulated returns are now ONE hard gate, while independent
-        # exchange/portfolio controls and other model diagnostics remain.
+    def test_non_positive_null_model_return_is_diagnostic_not_entry_veto(self):
+        # Non-positive simulated expected returns must not reject or rank
+        # candidates on their own. Exchange/portfolio vetoes still apply.
         simulated = {"target_hit_fraction": 0.0,
                      "stop_hit_fraction": 1.0,
                      "unresolved_fraction": 0.0,
@@ -61,16 +61,17 @@ class OmegaResearchTests(unittest.TestCase):
             x = self.run_omega(case())
         evidence = x["omega_systems"][0]["evidence"]
         self.assertLess(evidence["net_expectation_bp_null_model"], 0)
-        self.assertTrue(evidence["null_model_entry_veto"])
-        self.assertTrue(x["omega_systems"][0]["veto"])
-        self.assertEqual(x["omega_systems"][0]["status"], "REJECT")
-        self.assertIn("multiverse_no_positive_net_edge", x["omega_veto_reasons"])
-        self.assertEqual(x["omega_rank_score"], 0)
-        self.assertIsNone(qubo_pick([{**x, "symbol": "BTC-USDT-SWAP", "signal": "LONG"}]))
+        self.assertFalse(evidence["null_model_entry_veto"])
+        self.assertFalse(x["omega_systems"][0]["veto"])
+        self.assertEqual(x["omega_systems"][0]["status"], "DIAGNOSTIC")
+        self.assertNotIn("multiverse_no_positive_net_edge", x["omega_veto_reasons"])
+        self.assertGreater(x["omega_rank_score"], 0)
+        self.assertEqual(qubo_pick([{**x, "symbol": "BTC-USDT-SWAP", "signal": "LONG"}]),
+                         "BTC-USDT-SWAP")
 
     def test_below_45_percent_and_missing_target_time_are_not_separate_gates(self):
-        # Construct a positive net-expectation hypothesis with 20% target hits
-        # and no simulated arrival estimate. Only the requested gate may veto.
+        # 20% target hits and no simulated arrival estimate remain diagnostic,
+        # as does expected net return. Independent safety vetoes remain.
         simulated = {"target_hit_fraction": 0.2,
                      "stop_hit_fraction": 0.2,
                      "unresolved_fraction": 0.6,
