@@ -377,7 +377,7 @@ class TransientProtectionVerificationTests(unittest.TestCase):
                 "OKX MONITOR BLOCKED: Portfolio monitor: "
                 "One confirmed TP/SL pair required per position\n")
         with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
-            code=loop(max_runtime_seconds=25,resume_after_protected_fill=True,
+            code=loop(max_runtime_seconds=24,resume_after_protected_fill=True,
                       run=run,clock=lambda:0.,sleep=delays.append)
         self.assertEqual(code,2)
         self.assertEqual(delays,[5])
