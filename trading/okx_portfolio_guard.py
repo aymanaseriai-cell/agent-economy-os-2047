@@ -16,12 +16,12 @@ class RiskLimitExceeded(UnsafePortfolio):
         self.dimension = dimension
         super().__init__("Existing aggregate risk above permitted limits")
 
-MAX_POSITIONS = 25
+MAX_POSITIONS = 3
 RISK_CAP = Decimal("0.99")
-MARGIN_CAP = Decimal("0.99")
-# Very-high-risk ceiling: 99% of equity for PLANNED aggregate stop loss
-# and isolated margin, not guaranteed maximum realized loss.
-# Exceeding either ceiling still blocks trading.
+MARGIN_CAP = Decimal("0.78")
+# STOP_RISK remains an independent required gate; planned stop loss is not a guarantee.
+# Combined isolated margin must remain at or below 78% account equity.
+# Three concurrent positions maximum; above either ceiling, halt new entries.
 NEW_ENTRY_CAP_FRACTION = Decimal("1.00")
 LEVERAGE = Decimal("20")
 
