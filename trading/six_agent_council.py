@@ -20,10 +20,12 @@ from pathlib import Path
 if __package__:
     from .quant2037 import evaluate_advanced
     from .titan_omega import evaluate_omega, qubo_pick
+    from .titan_cosmos import evaluate_cosmos, SYSTEMS as SYSTEMS_COSMOS
     from .titan_fast_entry_router import evaluate_fast_entry
 else:
     from quant2037 import evaluate_advanced
     from titan_omega import evaluate_omega, qubo_pick
+    from titan_cosmos import evaluate_cosmos, SYSTEMS as SYSTEMS_COSMOS
     from titan_fast_entry_router import evaluate_fast_entry
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -466,6 +468,9 @@ def analyze_market(ticker):
         record["advanced_veto_reasons"].append("missing_or_unavailable_derivatives_data")
         record["signal"] = "WAIT"
     record["derivatives_data_warnings"] = derivatives_errors
+    # Research-only COSMOS: 10 physics/quantum-inspired mathematical diagnostics.
+    # Must NEVER promote WAIT to LONG/SHORT or bypass existing live-entry vetoes.
+    record["cosmos_math"] = evaluate_cosmos(bars15, bars1h, bars4h, book_rows[0])
     # Separate, permissionless opportunity discovery: never changes 'signal'.
     # No research-only strategy may bypass the full live executor's vetoes.
     record["fast_entry_research"] = evaluate_fast_entry(
@@ -541,6 +546,7 @@ def main():
                   "mode": "SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY", "genuine_llm_agents": 0,
                   "core_specialist_agents": 6, "advanced_quant_systems": 7,
                   "omega_system_count": 10, "omega_qubo_best_symbol": qubo_pick(results),
+                  "cosmos_system_count": len(SYSTEMS_COSMOS), "cosmos_live_entry_override": False,
                   "orders_placed": 0, "timeframe_main": "15m", "volume_profile_window": "48h_approx",
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
                   "minimum_exchange_advertised_leverage": MIN_ADVERTISED_SWAP_LEVERAGE,
@@ -589,6 +595,9 @@ def main():
               "omega_vetoes=", sum(bool(x.get("omega_veto_reasons")) for x in results),
               "advanced_vetoes=", sum(bool(x.get("advanced_veto_reasons")) for x in results),
               "consensus_entries=", report["actionable_research_labels"])
+        print("TITAN COSMOS RESEARCH: systems=", len(SYSTEMS_COSMOS),
+              "valid_markets=", sum(x.get("cosmos_math", {}).get("cosmos_data_valid", False) for x in results),
+              "live_entry_override=NO", "real_orders=0", flush=True)
         print("TITAN FAST ENTRY RESEARCH: hypothetical_candidates=",
               report["fast_entry_research_candidates"], "live_entry_override=NO",
               "real_orders=0", flush=True)

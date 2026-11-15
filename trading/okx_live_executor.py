@@ -40,7 +40,7 @@ FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MARGIN_96_MODE = 'margin_96'  # Separately armed 96% of available USDT isolated margin at 20x.
 MARGIN_96_FRACTION = Decimal('0.96')  # Keep 4% free before fees/price movement.
-MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.10')  # Refuse full-margin entries if planned stop exceeds 10% equity.
+MAX_FULL_MARGIN_PLANNED_STOP_RISK = Decimal('0.20')  # Planned 20% equity-at-stop veto; not a maximum realized loss.
 # Opt-in adaptive sizing: preserve 20x isolated leverage without deploying full margin.
 # These are PLANNED initial-stop budgets, not caps on realized losses.
 ADAPTIVE_GUARDED_MODE = 'adaptive_guarded'
@@ -503,7 +503,7 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
         intended_stop_loss = contracts * per_contract * stop_fraction
         if intended_stop_loss > equity * MAX_FULL_MARGIN_PLANNED_STOP_RISK:
             raise OpportunityRiskRejected(
-                'Full-margin/96% stop implies over 10% equity planned loss; refuse order')
+                'Full-margin/96% stop implies over 20% equity planned loss; refuse order')
         if contracts * per_contract > max_notional:
             raise ExecutionBlocked('Full-margin/96% leverage and allocation invariant failed')
         if contracts > exchange_limit:

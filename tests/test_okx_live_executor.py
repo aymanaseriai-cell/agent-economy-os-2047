@@ -126,8 +126,18 @@ class TestLiveSafety(unittest.TestCase):
 
     def test_full_margin_veto_if_stop_risk_too_high(self):
         inst={'ctVal':'1','lotSz':'1','minSz':'1'}
-        with self.assertRaisesRegex(ExecutionBlocked, 'over 10% equity'):
+        with self.assertRaisesRegex(ExecutionBlocked, 'over 20% equity'):
             contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.03'),
+                          capital_mode='full_margin',exchange_max='1000')
+
+    def test_full_margin_allows_exact_20pct_planned_stop_but_no_more(self):
+        inst={'ctVal':'1','lotSz':'1','minSz':'1'}
+        # 200 contracts x $100 x 1% stop = $200 on $1,000 equity.
+        allowed=contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.01'),
+                              capital_mode='full_margin',exchange_max='1000')
+        self.assertEqual(allowed, Decimal('200'))
+        with self.assertRaisesRegex(ExecutionBlocked, 'over 20% equity'):
+            contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.01001'),
                           capital_mode='full_margin',exchange_max='1000')
 
     def test_full_margin_requires_fresh_exchange_limit(self):
@@ -584,11 +594,11 @@ class FullMarginRiskVetoRecoveryTests(unittest.TestCase):
         self.assertNotIn(("POST","/api/v5/trade/order"),client.calls)
         self.assertFalse(any("/positions" in path for _,path in client.calls))
 
-    def test_no_relaxation_of_full_margin_10pct_cap(self):
+    def test_full_margin_20pct_stop_cap_is_enforced(self):
         from trading.okx_live_executor import (
             OpportunityRiskRejected, contract_size, MAX_FULL_MARGIN_PLANNED_STOP_RISK
         )
-        self.assertEqual(MAX_FULL_MARGIN_PLANNED_STOP_RISK,Decimal("0.10"))
+        self.assertEqual(MAX_FULL_MARGIN_PLANNED_STOP_RISK,Decimal("0.20"))
         with self.assertRaises(OpportunityRiskRejected):
             contract_size({"ctVal":"1","lotSz":"1","minSz":"1"},
                           Decimal("100"),Decimal("1000"),Decimal("0.02"),
