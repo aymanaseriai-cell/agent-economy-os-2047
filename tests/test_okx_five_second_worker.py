@@ -453,6 +453,44 @@ class CooldownRacingMonitorTests(unittest.TestCase):
         self.assertEqual(loop(max_cycles=3,run=fake_run,
                               clock=lambda:0.0),3)
 
+    def test_protected_portfolio_race_forces_monitor_and_fresh_scan(self):
+        # No re-send of the stale candidate; must redo the private read-only
+        # monitor and public scan before making any future decision.
+        calls=[];now=[0.];pauses=[]
+        outcomes=iter(('PORTFOLIO_CHANGED_NO_ORDER','NO_CONSENSUS'))
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=='trading.okx_resume_monitor':
+                return subprocess.CompletedProcess(
+                    cmd,0,'OKX MONITOR RESULT: PORTFOLIO_ELIGIBLE\n','')
+            if cmd[2]=='trading.okx_live_executor':
+                return done(cmd,next(outcomes))
+            return done(cmd)
+        def sleep(seconds):
+            pauses.append(seconds)
+            now[0]+=seconds
+        with patch.dict(os.environ,{'OKX_AUTOREENTRY_ENABLED':'YES',
+                                    'OKX_MAX_ACTIVE_POSITIONS':'25'}):
+            code=loop(max_cycles=2,resume_after_protected_fill=True,
+                      run=run,clock=lambda:now[0],sleep=sleep)
+        self.assertEqual(code,0)
+        self.assertEqual(calls,[
+            'trading.okx_resume_monitor','trading.six_agent_council',
+            'trading.okx_live_executor','trading.okx_resume_monitor',
+            'trading.six_agent_council','trading.okx_live_executor'])
+        self.assertEqual(pauses,[5])
+
+    def test_one_off_must_not_ignore_portfolio_race(self):
+        calls=[]
+        def run(cmd,timeout):
+            calls.append(cmd[2])
+            if cmd[2]=='trading.okx_live_executor':
+                return done(cmd,'PORTFOLIO_CHANGED_NO_ORDER')
+            return done(cmd)
+        self.assertEqual(loop(max_cycles=3,run=run,clock=lambda:0.),3)
+        self.assertEqual(calls,['trading.six_agent_council',
+                                'trading.okx_live_executor'])
+
     def test_other_executor_errors_still_stop_without_retries(self):
         calls=[]
         def fake_run(cmd,timeout):
