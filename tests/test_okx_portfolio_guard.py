@@ -95,7 +95,7 @@ class MultiPositionGuardTests(unittest.TestCase):
         self.assertEqual(str(ctx.exception), "Existing aggregate risk above permitted limits")
 
     def test_over_limit_identifies_isolated_margin(self):
-        p=pos(); p["notionalUsd"]="20000"; p["lever"]="20"
+        p=pos(); p["notionalUsd"]="22000"; p["lever"]="20"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="99.9")]))
         self.assertEqual(ctx.exception.dimension, "ISOLATED_MARGIN")
@@ -106,20 +106,20 @@ class MultiPositionGuardTests(unittest.TestCase):
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "BOTH")
 
-    def test_new_entries_use_99_percent_stop_and_78_percent_margin_budget(self):
+    def test_new_entries_use_99_percent_stop_and_100_percent_margin_budget(self):
         from trading.okx_portfolio_guard import RISK_CAP, MARGIN_CAP
         self.assertEqual(RISK_CAP, Decimal("0.99"))
-        self.assertEqual(MARGIN_CAP, Decimal("0.78"))
+        self.assertEqual(MARGIN_CAP, Decimal("1.00"))
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("1.00"))
         s=snapshot(Fake([pos()],[algo()]))
         # Stop risk: 20 existing + 970 proposed equals 990 (99% of equity).
         check_new(s,Decimal("48500"),Decimal("0.02"),leverage=Decimal("100"))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
             check_new(s,Decimal("48501"),Decimal("0.02"),leverage=Decimal("100"))
-        # Isolated margin: 100 existing + 680 proposed equals 780 (78%).
-        check_new(s,Decimal("13600"),Decimal("0.001"))
+        # Isolated margin: 100 existing + 900 proposed equals 1000 (100%).
+        check_new(s,Decimal("18000"),Decimal("0.001"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("13601"),Decimal("0.001"))
+            check_new(s,Decimal("18001"),Decimal("0.001"))
         self.assertEqual(sizing_equity(s),Decimal("800"))
 
     def test_limits_enforced(self):

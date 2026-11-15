@@ -18,9 +18,9 @@ class RiskLimitExceeded(UnsafePortfolio):
 
 MAX_POSITIONS = 25
 RISK_CAP = Decimal("0.99")
-MARGIN_CAP = Decimal("0.78")
+MARGIN_CAP = Decimal("1.00")
 # STOP_RISK remains an independent required gate; planned stop loss is not a guarantee.
-# Combined isolated margin must remain at or below 78% account equity.
+# Combined isolated margin must remain at or below 100% equity (hard ceiling, not a deployment target).
 # Portfolio snapshot supports up to 25 LEGACY positions for protection checks.
 # The GitHub workflow separately restricts NEW concurrent positions to three.
 # Exceeding either risk ceiling blocks new entries.
