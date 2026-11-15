@@ -50,12 +50,13 @@ class MultiPositionGuardTests(unittest.TestCase):
         p=pos();p["mgnMode"]="cross"
         with self.assertRaisesRegex(UnsafePortfolio,"Non-isolated"):
             snapshot(Fake([p],[algo()]))
-    def test_twenty_individually_protected_positions_pass_and_twenty_first_fails(self):
+    def test_twenty_five_individually_protected_positions_pass_and_twenty_sixth_fails(self):
         from trading.okx_portfolio_guard import MAX_POSITIONS
-        self.assertEqual(MAX_POSITIONS, 20)
+        self.assertEqual(MAX_POSITIONS, 25)
         names = ("BTC", "ETH", "SOL", "XRP", "DOGE", "ADA",
                  "LINK", "AVAX", "DOT", "LTC", "TRX", "XLM",
-                 "BCH", "ARB", "ATOM", "NEAR", "ETC", "UNI", "LDO", "APT", "SUI")
+                 "BCH", "ARB", "ATOM", "NEAR", "ETC", "UNI", "LDO", "APT", "SUI",
+                 "EOS", "ICP", "HBAR", "VET", "KAVA")
         covered = []
         protective = []
         for name in names:
@@ -63,16 +64,17 @@ class MultiPositionGuardTests(unittest.TestCase):
             p["notionalUsd"]="100"
             covered.append(p)
             protective.append(algo(name+"-USDT-SWAP"))
-        state=snapshot(Fake(covered[:20],protective[:20]))
-        self.assertEqual(len(state["symbols"]),20)
-        self.assertEqual(state["planned"],Decimal("20"))
-        self.assertEqual(state["notional"],Decimal("2000"))
+        state=snapshot(Fake(covered[:25],protective[:25]))
+        self.assertEqual(len(state["symbols"]),25)
+        self.assertEqual(state["planned"],Decimal("25"))
+        self.assertEqual(state["notional"],Decimal("2500"))
         with self.assertRaisesRegex(UnsafePortfolio,"Too many"):
             snapshot(Fake(covered,protective))
 
-    def test_unprotected_twentieth_position_blocks_all_new_entries(self):
+    def test_unprotected_twenty_fifth_position_blocks_all_new_entries(self):
         names=("BTC","ETH","SOL","XRP","DOGE","ADA","LINK","AVAX","DOT",
-               "LTC","TRX","XLM","BCH","ARB","ATOM","NEAR","ETC","UNI","LDO","APT")
+               "LTC","TRX","XLM","BCH","ARB","ATOM","NEAR","ETC","UNI","LDO","APT",
+               "SUI","EOS","ICP","HBAR","VET")
         positions=[]
         algos=[]
         for name in names:
@@ -86,43 +88,43 @@ class MultiPositionGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(UnsafePortfolio,"Outstanding"):
             snapshot(Fake(pending=[{"ordId":"123"}]))
     def test_over_limit_identifies_stop_risk_without_disclosing_balances(self):
-        p=pos(); p["notionalUsd"]="30000"; p["lever"]="100"
+        p=pos(); p["notionalUsd"]="32000"; p["lever"]="100"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "STOP_RISK")
         self.assertEqual(str(ctx.exception), "Existing aggregate risk above permitted limits")
 
     def test_over_limit_identifies_isolated_margin(self):
-        p=pos(); p["notionalUsd"]="18000"; p["lever"]="20"
+        p=pos(); p["notionalUsd"]="20000"; p["lever"]="20"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="99.9")]))
         self.assertEqual(ctx.exception.dimension, "ISOLATED_MARGIN")
 
     def test_both_risk_limits_report_both(self):
-        p=pos(); p["notionalUsd"]="30000"; p["lever"]="20"
+        p=pos(); p["notionalUsd"]="32000"; p["lever"]="20"
         with self.assertRaises(RiskLimitExceeded) as ctx:
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "BOTH")
 
-    def test_new_entries_use_exactly_eighty_percent_aggregate_budget(self):
+    def test_new_entries_use_exactly_ninety_one_percent_aggregate_budget(self):
         from trading.okx_portfolio_guard import RISK_CAP, MARGIN_CAP
-        self.assertEqual(RISK_CAP, Decimal("0.80"))
-        self.assertEqual(MARGIN_CAP, Decimal("0.80"))
+        self.assertEqual(RISK_CAP, Decimal("0.91"))
+        self.assertEqual(MARGIN_CAP, Decimal("0.91"))
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("1.00"))
         s=snapshot(Fake([pos()],[algo()]))
-        # Stop risk: 20 existing + 780 proposed equals 800 (80% of equity).
-        check_new(s,Decimal("39000"),Decimal("0.02"),leverage=Decimal("100"))
+        # Stop risk: 20 existing + 890 proposed equals 910 (91% of equity).
+        check_new(s,Decimal("44500"),Decimal("0.02"),leverage=Decimal("100"))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("39001"),Decimal("0.02"),leverage=Decimal("100"))
-        # Isolated margin: 100 existing + 700 proposed equals 800.
-        check_new(s,Decimal("14000"),Decimal("0.001"))
+            check_new(s,Decimal("44501"),Decimal("0.02"),leverage=Decimal("100"))
+        # Isolated margin: 100 existing + 810 proposed equals 910.
+        check_new(s,Decimal("16200"),Decimal("0.001"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("14001"),Decimal("0.001"))
+            check_new(s,Decimal("16201"),Decimal("0.001"))
         self.assertEqual(sizing_equity(s),Decimal("800"))
 
     def test_limits_enforced(self):
         s=snapshot(Fake([pos()],[algo()]))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("40000"),Decimal("0.02"))
+            check_new(s,Decimal("45000"),Decimal("0.02"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("15000"),Decimal("0.001"))
+            check_new(s,Decimal("18000"),Decimal("0.001"))
