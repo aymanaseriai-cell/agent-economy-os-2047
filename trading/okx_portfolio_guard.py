@@ -17,9 +17,9 @@ class RiskLimitExceeded(UnsafePortfolio):
         super().__init__("Existing aggregate risk above permitted limits")
 
 MAX_POSITIONS = 25
-RISK_CAP = Decimal("0.91")
-MARGIN_CAP = Decimal("0.91")
-# New positions may use up to 91% of total account equity per aggregate ceiling.
+RISK_CAP = Decimal("0.99")
+MARGIN_CAP = Decimal("0.99")
+# New positions may use up to 99% of total account equity per aggregate ceiling.
 # Exceeding either ceiling still blocks trading.
 NEW_ENTRY_CAP_FRACTION = Decimal("1.00")
 LEVERAGE = Decimal("20")
