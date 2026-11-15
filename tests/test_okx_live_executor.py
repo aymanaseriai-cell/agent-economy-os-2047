@@ -203,6 +203,32 @@ class TestLiveSafety(unittest.TestCase):
         sig['advanced_veto_reasons']=['jump']
         self.assertIsNone(choose_signal(report))
 
+    def test_moderate_directional_lead_for_long_short_and_omega(self):
+        # A high Omega score cannot override a weak core signal.
+        for direction in ('LONG', 'SHORT'):
+            for lead in (0, 1, 2, 3):
+                with self.subTest(direction=direction, lead=lead):
+                    sig=make_signal()
+                    sig['signal']=direction
+                    if direction == 'SHORT':
+                        sig['agents'][-1]['evidence']={
+                            'indicative_stop_not_an_order':102,
+                            'indicative_target_not_an_order':96,
+                        }
+                    sig['ordinal_buy_points']=2+lead if direction=='LONG' else 2
+                    sig['ordinal_sell_points']=2+lead if direction=='SHORT' else 2
+                    sig['omega_system_count']=10
+                    sig['omega_rank_score']=Decimal('2')
+                    sig['omega_veto_reasons']=[]
+                    selected=choose_signal({'results':[sig]})
+                    self.assertEqual(selected is not None, lead >= 2)
+        # Reject malformed or missing ordinal evidence fail closed.
+        sig=make_signal()
+        sig.pop('ordinal_buy_points')
+        self.assertIsNone(choose_signal({'results':[sig]}))
+        sig['ordinal_buy_points']='5'
+        self.assertIsNone(choose_signal({'results':[sig]}))
+
     def test_real_uni_nov8_signal_not_rejected_due_to_candle_open_age(self):
         # Actual no-consensus run: 23:45 candle opened, closed 00:00;
         # 00:13:41 UTC was 28m41s after OPEN but only 13m41s after CLOSE.

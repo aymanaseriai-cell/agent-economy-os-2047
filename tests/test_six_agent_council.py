@@ -202,11 +202,13 @@ class TestCouncil(unittest.TestCase):
         four = make_bars(30, 100, 0.8)
         self.assertEqual(structure_navigator(hour, four)["vote"], 1)
 
-    def test_modestly_lower_core_lead_from_two_to_one_point(self):
-        # 3-2 score passes with >=2 independent directional voters.
-        self.assertEqual(core_direction_from_scores(3, 2, 2, 2), 1)
-        self.assertEqual(core_direction_from_scores(2, 3, 2, 2), -1)
-        # A tie is still WAIT; only one voter can NEVER trigger a trade.
+    def test_moderate_two_point_directional_lead_symmetric(self):
+        # A one-point lead is too weak; >=2 points and >=2 voting agents
+        # qualifies either direction, preserving the independent quant gate.
+        self.assertEqual(core_direction_from_scores(3, 2, 2, 2), 0)
+        self.assertEqual(core_direction_from_scores(2, 3, 2, 2), 0)
+        self.assertEqual(core_direction_from_scores(4, 2, 2, 2), 1)
+        self.assertEqual(core_direction_from_scores(2, 4, 2, 2), -1)
         self.assertEqual(core_direction_from_scores(3, 3, 2, 2), 0)
         self.assertEqual(core_direction_from_scores(4, 0, 1, 0), 0)
         self.assertEqual(core_direction_from_scores(2, 0, 2, 0), 0)

@@ -106,25 +106,25 @@ class MultiPositionGuardTests(unittest.TestCase):
             snapshot(Fake([p],[algo(sl="97")]))
         self.assertEqual(ctx.exception.dimension, "BOTH")
 
-    def test_new_entries_use_exactly_ninety_nine_percent_aggregate_budget(self):
+    def test_new_entries_use_exactly_seventy_five_percent_aggregate_budget(self):
         from trading.okx_portfolio_guard import RISK_CAP, MARGIN_CAP
-        self.assertEqual(RISK_CAP, Decimal("0.99"))
-        self.assertEqual(MARGIN_CAP, Decimal("0.99"))
+        self.assertEqual(RISK_CAP, Decimal("0.75"))
+        self.assertEqual(MARGIN_CAP, Decimal("0.75"))
         self.assertEqual(NEW_ENTRY_CAP_FRACTION, Decimal("1.00"))
         s=snapshot(Fake([pos()],[algo()]))
-        # Stop risk: 20 existing + 970 proposed equals 990 (99% of equity).
-        check_new(s,Decimal("48500"),Decimal("0.02"),leverage=Decimal("100"))
+        # Stop risk: 20 existing + 730 proposed equals 750 (75% of equity).
+        check_new(s,Decimal("36500"),Decimal("0.02"),leverage=Decimal("100"))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("48501"),Decimal("0.02"),leverage=Decimal("100"))
-        # Isolated margin: 100 existing + 890 proposed equals 990.
-        check_new(s,Decimal("17800"),Decimal("0.001"))
+            check_new(s,Decimal("36501"),Decimal("0.02"),leverage=Decimal("100"))
+        # Isolated margin: 100 existing + 650 proposed equals 750.
+        check_new(s,Decimal("13000"),Decimal("0.001"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("17801"),Decimal("0.001"))
+            check_new(s,Decimal("13001"),Decimal("0.001"))
         self.assertEqual(sizing_equity(s),Decimal("800"))
 
     def test_limits_enforced(self):
         s=snapshot(Fake([pos()],[algo()]))
         with self.assertRaisesRegex(UnsafePortfolio,"stop risk"):
-            check_new(s,Decimal("50000"),Decimal("0.02"))
+            check_new(s,Decimal("40000"),Decimal("0.02"))
         with self.assertRaisesRegex(UnsafePortfolio,"margin"):
-            check_new(s,Decimal("19000"),Decimal("0.001"))
+            check_new(s,Decimal("15000"),Decimal("0.001"))

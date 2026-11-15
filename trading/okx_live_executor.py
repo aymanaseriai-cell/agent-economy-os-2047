@@ -22,6 +22,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from trading.nvidia_execution_gate import GateRejected, _fresh_report
+from trading.six_agent_council import CORE_MIN_DIRECTIONAL_LEAD
 
 ALLOWED_DOMAINS = {'https://www.okx.com', 'https://eea.okx.com', 'https://us.okx.com'}
 MODE_ARM = {'demo': 'CONFIRM_DEMO_ORDER', 'live': 'I_ACCEPT_REAL_MONEY_LOSS'}
@@ -274,8 +275,19 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
             continue
         if x['signal']=='SHORT' and not (0<dec(target)<price<dec(stop)):
             continue
+        # Medium-strength, direction-symmetric consensus gate: reject an
+        # ordinal lead below two points for BOTH LONG and SHORT. Only accept
+        # complete integer research evidence, never coerce malformed scores.
+        buy_points = x.get('ordinal_buy_points')
+        sell_points = x.get('ordinal_sell_points')
+        if (type(buy_points) is not int or type(sell_points) is not int or
+                min(buy_points, sell_points) < 0):
+            continue
+        margin = (buy_points-sell_points if x['signal']=='LONG'
+                  else sell_points-buy_points)
+        if margin < CORE_MIN_DIRECTIONAL_LEAD:
+            continue
         # Only best consensus; one position at a time.
-        margin = (x.get('ordinal_buy_points',0) - x.get('ordinal_sell_points',0)) if x['signal']=='LONG' else (x.get('ordinal_sell_points',0)-x.get('ordinal_buy_points',0))
         # Omega's one-of-N-or-WAIT QUBO score ranks faster, net-of-model-cost
         # target scenarios only when all 10 diagnostics are present and veto-free.
         # Compatibility: older research-only reports retain ordinal ordering.
