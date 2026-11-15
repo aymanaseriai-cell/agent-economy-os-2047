@@ -370,7 +370,7 @@ class TransientProtectionVerificationTests(unittest.TestCase):
                 self.assertEqual(calls,["trading.okx_resume_monitor"])
 
     def test_bounded_deadline_with_unverified_protection_is_failure_not_success(self):
-        calls=[];delays=[]
+        calls=[];delays=[];now=[0.0]
         def run(cmd,timeout):
             calls.append(cmd[2])
             return subprocess.CompletedProcess(cmd,2,"",
@@ -378,7 +378,8 @@ class TransientProtectionVerificationTests(unittest.TestCase):
                 "One confirmed TP/SL pair required per position\n")
         with patch.dict(os.environ,{"OKX_AUTOREENTRY_ENABLED":"YES"}):
             code=loop(max_runtime_seconds=24,resume_after_protected_fill=True,
-                      run=run,clock=lambda:0.,sleep=delays.append)
+                      run=run,clock=lambda:now[0],
+                      sleep=lambda sec:(delays.append(sec),now.__setitem__(0,now[0]+sec)))
         self.assertEqual(code,2)
         self.assertEqual(delays,[5])
         self.assertEqual(calls,["trading.okx_resume_monitor"]*2)
