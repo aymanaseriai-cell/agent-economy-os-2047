@@ -145,18 +145,22 @@ def evaluate_omega(bars, hourly, four_hourly, book, trades, ticker, funding, int
                        sim["unresolved_fraction"] * stop_bp -
                        round_trip_bp)
         fast = sim["target_time_p75_minutes"]
-        # Owner-selected policy: null-model target-hit rate, estimated net
-        # expectation and target arrival-time remain evidence, NOT entry vetoes.
-        # Exchange, market-quality and portfolio protection gates still apply.
+        # Owner policy: restore ONLY the non-positive net-expectation gate.
+        # Hit fraction (<45%) and target arrival time remain diagnostics.
+        # Bootstrap is an uncalibrated null-model, not proof of future returns.
+        bootstrap_veto = not math.isfinite(expected_bp) or expected_bp <= 0
+        if bootstrap_veto:
+            vtos.append("multiverse_no_positive_net_edge")
     else:
         sim = {"target_hit_fraction": 0.0, "stop_hit_fraction": 0.0,
                "target_time_p75_minutes": None, "paths": 0,
                "assumption": "no trade hypothesis"}
         edge_bp = stop_bp = expected_bp = 0.0
         fast = None
-    systems.append(_record(SYSTEMS[0], "DIAGNOSTIC",
+        bootstrap_veto = False
+    systems.append(_record(SYSTEMS[0], "REJECT" if bootstrap_veto else "DIAGNOSTIC",
                            {**sim, "net_expectation_bp_null_model": round(expected_bp, 2),
-                            "null_model_entry_veto": False}, False))
+                            "null_model_entry_veto": bootstrap_veto}, bootstrap_veto))
     buy = sum(_finite(t.get("sz")) for t in trades if t.get("side") == "buy")
     sell = sum(_finite(t.get("sz")) for t in trades if t.get("side") == "sell")
     flow = (buy - sell) / max(buy + sell, 1e-9)
@@ -224,9 +228,9 @@ def evaluate_omega(bars, hourly, four_hourly, book, trades, ticker, funding, int
                            {"sha256_public_evidence": digest,
                             "persistent_private_trade_ledger": False,
                             "order_submitted": False}))
-    # Diagnostic estimates no longer veto or rank live candidates.
-    # Rank by target payoff relative to initial-stop distance, net of
-    # assumed execution cost; still an uncalibrated heuristic, NOT an edge claim.
+    # Non-positive null-model expectation now vetoes entry but its magnitude
+    # does not rank candidates. Otherwise rank by payoff/stop distance net
+    # of assumed costs; this remains an uncalibrated heuristic, NOT an edge claim.
     # Independent exchange, volatility, funding and portfolio vetoes remain.
     rank = ((edge_bp - round_trip_bp) / max(stop_bp, 1e-9)
             if valid and not vtos and edge_bp > round_trip_bp else 0.0)
