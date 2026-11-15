@@ -799,6 +799,14 @@ def execute(report, client, mode, env, *, allow_post=True):
         except UnsafePortfolio as exc:
             raise ExecutionBlocked('Pre-order portfolio state not verifiable: '+str(exc)) from exc
         if latest['symbols']!=account_before['symbols']:
+            # A filled or closed position can race the initial protected
+            # account snapshot. The *new* snapshot was validated against OKX,
+            # including its TP/SL coverage and aggregate risk. Never use the
+            # pre-race sizing or submit an order against the stale candidate.
+            # Only explicitly armed recurring sessions may discard the
+            # attempt and return to a fresh read-only monitor + market scan.
+            if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
+                return 'PORTFOLIO_CHANGED_NO_ORDER'
             raise ExecutionBlocked('Portfolio changed since first account snapshot')
         try:
             check_new(latest,contracts*dec(inst['ctVal'])*price,stop_fraction,

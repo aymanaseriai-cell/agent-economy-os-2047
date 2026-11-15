@@ -261,13 +261,16 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             return 3
         status=statuses[0]
         if status in ("RISK_REJECTED_NO_ORDER", "CANDIDATE_REJECTED_NO_ORDER",
-                      "STALE_SIGNAL_NO_ORDER", "PORTFOLIO_CAPACITY_NO_ORDER"):
+                      "STALE_SIGNAL_NO_ORDER", "PORTFOLIO_CAPACITY_NO_ORDER",
+                      "PORTFOLIO_CHANGED_NO_ORDER"):
             if not resume_after_protected_fill:
                 print("TITAN unexpected candidate-veto status without recurring authorization; stop",
                       file=sys.stderr,flush=True)
                 return 3
-            # ALL these statuses originate before POST /trade/order. Rescan
-            # fresh market evidence; never reuse a rejected signal/order id.
+            # ALL these statuses originate before POST /trade/order. A late
+            # portfolio composition change requires a NEW read-only account
+            # monitor and NEW market scan, not retrying the original candidate.
+            # Never reuse a rejected signal/order id or skip safety checks.
             if max_cycles and scans>=max_cycles:
                 return 0
             if max_runtime_seconds and clock()+INTERVAL_SECONDS+15>start+max_runtime_seconds:

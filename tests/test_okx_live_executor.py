@@ -1241,6 +1241,26 @@ class LastMomentPortfolioVetoRecoveryTests(unittest.TestCase):
         with self.assertRaisesRegex(ExecutionBlocked,'Pre-order portfolio veto'):
             self._execute(error=UnsafePortfolio('Unexpected unsafe state'))
 
+    def test_verified_portfolio_composition_change_rescans_only_when_armed(self):
+        # Existing and just-opened positions may differ between two GETs.
+        # The validated new snapshot cannot authorize the stale order.
+        for held_symbol in ('ETH-USDT-SWAP', 'BTC-USDT-SWAP'):
+            with self.subTest(held_symbol=held_symbol):
+                latest={'symbols':frozenset((held_symbol,)),
+                        'total':Decimal('1000'),'free':Decimal('800'),
+                        'planned':Decimal('20'),'notional':Decimal('1000'),
+                        'margin_used':Decimal('50')}
+                result,posted,checks=self._execute(
+                    error=None,last_snapshot_error=latest)
+                self.assertEqual(result,'PORTFOLIO_CHANGED_NO_ORDER')
+                self.assertEqual(posted,0)
+                # No final sizing/order attempt with changed portfolio.
+                self.assertEqual(checks,1)
+                with self.assertRaisesRegex(
+                        ExecutionBlocked,'Portfolio changed since first'):
+                    self._execute(error=None,recurring=False,
+                                  last_snapshot_error=latest)
+
     def test_unverified_fresh_portfolio_stops_instead_of_retrying(self):
         from trading.okx_portfolio_guard import UnsafePortfolio
         with self.assertRaisesRegex(ExecutionBlocked,'state not verifiable'):
