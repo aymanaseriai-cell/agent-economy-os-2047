@@ -380,11 +380,11 @@ def risk_marshal(ticker, bars, proposed, profile):
         "warning": "No leverage or exposure applied. Targets are examples and not forecasts."}, veto=veto)
 
 
-# Deliberately modest relaxation: the directional lead was two ordinal
-# points. It now needs one, while two voting agents and >=3 direction
-# points, all independent quant gates, Omega vetoes, and OKX order checks
-# remain mandatory. These scores are NOT probabilities.
-CORE_MIN_DIRECTIONAL_LEAD = 1
+# Moderate symmetric LONG/SHORT confirmation: require at least a two-point
+# directional lead with >=2 independent voting agents and >=3 supporting
+# points. Preserve all Omega, quant, exchange and portfolio hard vetoes.
+# Ordinal strength is NOT a calibrated prediction or win probability.
+CORE_MIN_DIRECTIONAL_LEAD = 2
 
 
 def core_direction_from_scores(bullish, bearish, bullish_agents, bearish_agents):
