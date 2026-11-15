@@ -86,15 +86,20 @@ class OKXCash:
         sign = base64.b64encode(hmac.new(self.secret.encode(), canonical.encode(), hashlib.sha256).digest()).decode()
         headers = {'OK-ACCESS-KEY': self.key, 'OK-ACCESS-SIGN': sign,
                    'OK-ACCESS-TIMESTAMP': timestamp, 'OK-ACCESS-PASSPHRASE': self.passphrase,
-                   'Content-Type': 'application/json'}
+                   'Content-Type': 'application/json',
+                   'Accept': 'application/json',
+                   'User-Agent': 'AgentEconomy-OKX-Live-Gated/1.0'}
         req = Request(DOMAIN + path + query, headers=headers,
                       data=(payload.encode() if method == 'POST' else None), method=method)
         # For a POST networking error, execution is UNCERTAIN. Never retry it automatically.
         try:
             with urlopen(req, timeout=15) as resp:
                 result = json.load(resp)
-        except (HTTPError, URLError, TimeoutError, OSError, ValueError) as exc:
-            raise SpotHalt('private API response unavailable; inspect OKX; NO BLIND RETRY') from exc
+        except HTTPError as exc:
+            raise SpotHalt('private API HTTP ' + str(exc.code)
+                           + '; inspect OKX API access; NO BLIND RETRY') from exc
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            raise SpotHalt('private API transport unavailable; inspect OKX; NO BLIND RETRY') from exc
         if (not isinstance(result, dict) or str(result.get('code')) != '0'
                 or not isinstance(result.get('data'), list)):
             raise SpotHalt('OKX rejected/ambiguous response; inspect OKX')
