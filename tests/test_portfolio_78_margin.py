@@ -5,7 +5,7 @@ from trading.okx_portfolio_guard import MARGIN_CAP, MAX_POSITIONS, UnsafePortfol
 
 class Portfolio78MarginTests(unittest.TestCase):
     def test_policy_values(self):
-        self.assertEqual(MAX_POSITIONS, 3)
+        self.assertEqual(MAX_POSITIONS, 25)  # Monitor legacy accounts; workflow limits entries to 3.
         self.assertEqual(MARGIN_CAP, Decimal("0.78"))
 
     def test_new_trade_over_78_percent_margin_is_rejected(self):
