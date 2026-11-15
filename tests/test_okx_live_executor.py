@@ -1138,12 +1138,17 @@ class NinetySixPercentMarginTests(unittest.TestCase):
         self.assertLessEqual(q,Decimal('20.63'))
         self.assertLessEqual(q*Decimal('100')/Decimal('20'),Decimal('960'))
 
-    def test_margin_96_does_not_remove_10_pct_planned_stop_hard_veto(self):
+    def test_margin_96_does_not_remove_20_pct_planned_stop_hard_veto(self):
         from trading.okx_live_executor import OpportunityRiskRejected
         with self.assertRaises(OpportunityRiskRejected):
             contract_size(self.contract(),Decimal('100'),Decimal('1000'),
-                          Decimal('0.01'),capital_mode='margin_96',
+                          Decimal('0.011'),capital_mode='margin_96',
                           exchange_max='1000')
+        # 1% stop at 96%-margin and 20x is a 19.2% planned equity-at-stop risk.
+        self.assertEqual(
+            contract_size(self.contract(),Decimal('100'),Decimal('1000'),
+                          Decimal('0.01'),capital_mode='margin_96',
+                          exchange_max='1000'),Decimal('192'))
         # 0.5% at 96% margin and 20x is 9.6% planned equity risk.
         self.assertEqual(
             contract_size(self.contract(),Decimal('100'),Decimal('1000'),
