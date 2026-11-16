@@ -308,7 +308,19 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
                 eta=Decimal("180")
             if not eta.is_finite() or eta<=0 or eta>Decimal("180"):
                 eta=Decimal("180")
-            speed_weighted=score/(Decimal("1")+eta/Decimal("30"))
+            # Empirical bootstrap "target-hit" is uncalibrated: use it only
+            # as a conservative *relative* speed-rank modifier, never a trade
+            # permission, an estimated success probability, or a safety-veto
+            # bypass. Missing legacy evidence preserves the previous score.
+            hit_raw=x.get("omega_target_hit_fraction_null_model")
+            try:
+                hit=Decimal("0.5") if hit_raw is None else dec(hit_raw)
+            except ExecutionBlocked:
+                continue
+            if not Decimal("0") <= hit <= Decimal("1"):
+                continue
+            speed_weighted=(score*(Decimal("0.5")+hit)
+                            / (Decimal("1")+eta/Decimal("30")))
             selected.append((speed_weighted,margin,x))
             continue
         selected.append((Decimal(margin),margin,x))
