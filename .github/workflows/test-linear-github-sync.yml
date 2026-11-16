@@ -1,0 +1,19 @@
+name: Linear-GitHub sync prototype CI
+on:
+  push:
+    paths: ['integrations/linear-github-sync/**', '.github/workflows/test-linear-github-sync.yml']
+  pull_request:
+    paths: ['integrations/linear-github-sync/**', '.github/workflows/test-linear-github-sync.yml']
+jobs:
+  test-sync:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: integrations/linear-github-sync
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.16'
+      - run: npm test
+      - run: npm run check

@@ -1,0 +1,15 @@
+{
+  "name": "agent-economy-linear-github-sync",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.16"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env --experimental-strip-types src/server.ts",
+    "reconcile": "node --env-file-if-exists=.env --experimental-strip-types src/server.ts reconcile",
+    "test": "node --experimental-strip-types --test test/*.test.ts",
+    "check": "node --experimental-strip-types --check src/server.ts && node --experimental-strip-types --check src/core.ts && node --experimental-strip-types --check src/store.ts"
+  }
+}
