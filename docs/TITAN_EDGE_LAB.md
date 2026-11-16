@@ -4,7 +4,7 @@
 
 Eight original indicators:
 - Kaufman efficiency ratio (20 completed bars), trend signal-to-noise
-- EMA12/EMA26 trend alignment across 15m, 1h, 4h
+- EMA12/EMA26 trend alignment across 15m and 1h, with an EMA5/EMA13 fallback on 4h when only 15–25 completed bars are available
 - Prior-20-candle Donchian confirmed breakout (the current candle is excluded from thresholds)
 - ATR14 relative to ATR50 for a volatility regime proxy
 - DX14 directional movement strength (not smoothed ADX)

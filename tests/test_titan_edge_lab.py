@@ -1,7 +1,7 @@
 import math
 import unittest
 from trading.titan_edge_lab import SYSTEMS, evaluate_edge_lab,signal_at_close
-from trading.titan_walkforward import walk_forward_audit
+from trading.titan_walkforward import walk_forward_audit, _simulate
 
 def candles(n=480, step=0.00035, oscillation=0.001):
     out=[]
@@ -56,12 +56,37 @@ class EdgeLabTests(unittest.TestCase):
         b=candles(500)
         zero=walk_forward_audit(b,fee_bp_per_side=0,slippage_bp_per_side=0)
         fees=walk_forward_audit(b,fee_bp_per_side=10,slippage_bp_per_side=10)
-        self.assertEqual(zero["selected"],fees["selected"] if zero["selected"]==fees["selected"] else zero["selected"])
+        self.assertIsNotNone(zero["selected"])
         self.assertIn(zero["status"],("SHADOW_TESTED_NOT_VALIDATED","INSUFFICIENT_TEST_TRADES"))
         self.assertFalse(zero["can_trade_live"])
         self.assertFalse(fees["can_trade_live"])
-        self.assertLessEqual(fees["test"]["total_return_pct"],zero["test"]["total_return_pct"]+0.0001)
+        # Compare EXACTLY the same holdout signals so strategy re-selection
+        # cannot hide the effect of higher round-trip costs.
+        split=zero["train_bars"]
+        unchanged=_simulate(b,zero["selected"],split-1,len(b)-1,0.0)
+        costly=_simulate(b,zero["selected"],split-1,len(b)-1,0.004)
+        self.assertLessEqual(costly["total_return_pct"],unchanged["total_return_pct"]+0.0001)
         self.assertEqual(fees["train_bars"]+fees["test_bars"],len(b))
+
+    def test_selection_cannot_see_test_period(self):
+        b=candles(500)
+        original=walk_forward_audit(b)
+        split=original["train_bars"]
+        changed=[dict(x) for x in b]
+        # Change ONLY chronological holdout rows, never training rows.
+        for i in range(split,len(changed)):
+            p=changed[i]["close"]*(0.95 if i%2 else 1.05)
+            changed[i]["open"]=p
+            changed[i]["close"]=p*1.01
+            changed[i]["high"]=p*1.02
+            changed[i]["low"]=p*0.99
+        alternate=walk_forward_audit(changed)
+        self.assertEqual(original["selected"],alternate["selected"])
+        self.assertEqual(original["train"],alternate["train"])
+
+    def test_short_four_hour_frame_does_not_invalidate_all_metrics(self):
+        r=evaluate_edge_lab(candles(200),candles(80),candles(15),{})
+        self.assertTrue(r["data_valid"])
 
     def test_walkforward_too_few_candles_or_invalid_costs(self):
         self.assertEqual(walk_forward_audit(candles(200))["status"],"INVALID_OR_INSUFFICIENT_INPUT")

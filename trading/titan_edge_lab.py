@@ -121,7 +121,13 @@ def evaluate_edge_lab(bars15, bars1h, bars4h, book):
         prior20 = rows[-21:-1]
         breakout = (1 if closes[-1] > max(b[1] for b in prior20)
                     else -1 if closes[-1] < min(b[2] for b in prior20) else 0)
-        direction = lambda p: 1 if ema([r[3] for r in p],12)>ema([r[3] for r in p],26) else -1
+        def direction(p):
+            prices = [r[3] for r in p]
+            # Scanner permits >=15 completed 4h bars: 5/13 is a documented
+            # fallback; otherwise use the standard 12/26 pair.
+            fast, slow = (12, 26) if len(prices) >= 26 else (5, 13)
+            a, b = ema(prices, fast), ema(prices, slow)
+            return 1 if a > b else -1 if a < b else 0
         aligned = (direction(rows)+direction(hour)+direction(four))/3
         change = abs(closes[-1]-closes[-21])
         path = sum(abs(closes[j]-closes[j-1]) for j in range(len(closes)-20,len(closes)))
