@@ -120,3 +120,47 @@ class TITANSpeedMatrix(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExtremeMargin9999Tests(unittest.TestCase):
+    """Model-only tests: no exchange orders, no guaranteed equity-loss limit."""
+
+    def setUp(self):
+        self.inst = {"ctVal": "1", "lotSz": "1", "minSz": "1"}
+
+    def test_exact_9999_percent_when_contract_precision_allows(self):
+        from trading.okx_live_executor import MARGIN_9999_MODE
+        q = contract_size(self.inst, 1, 1000, ".001",
+                          capital_mode=MARGIN_9999_MODE, exchange_max=50000, leverage=20)
+        self.assertEqual(q, Decimal("19998"))
+        self.assertEqual(q/Decimal("20")/Decimal("1000"), Decimal("0.9999"))
+
+    def test_exchange_capacity_can_reduce_allocation(self):
+        from trading.okx_live_executor import MARGIN_9999_MODE
+        q = contract_size(self.inst, 1, 1000, ".001",
+                          capital_mode=MARGIN_9999_MODE, exchange_max=103, leverage=100)
+        self.assertEqual(q, Decimal("103"))
+
+    def test_stop_risk_veto_survives(self):
+        from trading.okx_live_executor import MARGIN_9999_MODE
+        with self.assertRaises(OpportunityRiskRejected):
+            contract_size(self.inst, 1, 1000, ".1",
+                          capital_mode=MARGIN_9999_MODE, exchange_max=100000, leverage=20)
+
+    def test_separately_armed_single_position(self):
+        from trading.okx_live_executor import MARGIN_9999_MODE
+        env={"OKX_EXECUTION_ARM":MODE_ARM["demo"],
+             "OKX_CAPITAL_MODE":MARGIN_9999_MODE, "OKX_MAX_ACTIVE_POSITIONS":"1",
+             "OKX_API_KEY":"test","OKX_SECRET_KEY":"test","OKX_PASSPHRASE":"test"}
+        with self.assertRaisesRegex(Exception,"separately armed"):
+            check_mode("demo",env)
+        env["OKX_FULL_MARGIN_ARM"]=FULL_MARGIN_ARM
+        check_mode("demo",env)
+        env["OKX_MAX_ACTIVE_POSITIONS"]="2"
+        with self.assertRaisesRegex(Exception,"Multi-position"):
+            check_mode("demo",env)
+
+    def test_missing_exchange_max_size_refuses(self):
+        from trading.okx_live_executor import MARGIN_9999_MODE
+        with self.assertRaisesRegex(Exception,"fresh OKX max-size"):
+            contract_size(self.inst,1,1000,".001",capital_mode=MARGIN_9999_MODE)

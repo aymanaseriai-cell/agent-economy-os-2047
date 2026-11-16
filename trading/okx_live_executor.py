@@ -38,6 +38,8 @@ MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
 REENTRY_COOLDOWN_MS = 30 * 1000  # minimum 30 seconds after exchange-confirmed full SWAP close
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
+MARGIN_9999_MODE = 'margin_9999'  # Explicitly armed 99.99% of available USDT margin.
+MARGIN_9999_FRACTION = Decimal('0.9999')  # Only 0.01% nominal buffer; fees can exhaust it.
 MARGIN_99_MODE = 'margin_99'  # Explicit 99% of free USDT margin; not a realized loss cap.
 MARGIN_99_FRACTION = Decimal('0.99')
 MAX_MARGIN_99_PLANNED_STOP_RISK = Decimal('0.99')  # Planned stop estimate; liquidation may occur first.
@@ -117,7 +119,7 @@ def check_mode(mode, env):
     if mode not in ('dry_run', 'demo', 'live'):
         raise ExecutionBlocked('Unsupported execution mode')
     capital_mode = env.get('OKX_CAPITAL_MODE', 'guarded').lower()
-    if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE):
+    if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE):
         raise ExecutionBlocked('Unsupported capital allocation mode')
     leverage_mode = env.get('OKX_LEVERAGE_MODE', 'fixed').lower()
     if leverage_mode not in ('fixed', 'dynamic'):
@@ -126,7 +128,7 @@ def check_mode(mode, env):
         return
     if leverage_mode == 'dynamic' and env.get('OKX_DYNAMIC_LEVERAGE_ARM') != DYNAMIC_LEVERAGE_ARM:
         raise ExecutionBlocked('Missing separate dynamic leverage arm')
-    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE) and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
+    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE) and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
         raise ExecutionBlocked('Full-margin or 96% allocation not separately armed')
     slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
     from trading.okx_portfolio_guard import MAX_POSITIONS
@@ -572,9 +574,10 @@ def get_prices(signal,ticker,inst):
 def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded', exchange_max=None, leverage=LEVERAGE):
     """Determine contract quantity, retaining independent high-margin arming.
 
-    The full-margin mode targets 100%; margin_96 targets 96%; margin_99 targets
-    99% of *available* USDT isolated margin, at exchange-verified leverage.
-    The special 99% mode permits planned stop loss as high as 99% of equity;
+    The full-margin mode targets 100%; margin_96 targets 96%; margin_99
+    targets 99%; margin_9999 targets 99.99% of *available* USDT isolated
+    margin, at exchange-verified leverage. The 99%+ modes permit planned
+    stop loss as high as 99% of equity;
     this is NOT a realized-loss cap, and liquidation can precede the stop.
     Other modes retain their previous 20% planned-stop veto. All modes obey
     exchange limits, contract increments and anti-replay protection.
@@ -588,24 +591,25 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
     if multiplier<=0 or min(lot,minimum)<=0 or min(price,equity,stop_fraction)<=0:
         raise ExecutionBlocked('Invalid contract specifications or capital inputs')
     per_contract=multiplier*price
-    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE):
+    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE):
         if exchange_max is None:
             raise ExecutionBlocked('Full-margin/96% mode requires fresh OKX max-size quote')
         exchange_limit=dec(exchange_max)
         if exchange_limit <= 0:
             raise ExecutionBlocked('Exchange reports no available full-margin/96% order capacity')
-        margin_fraction = (MARGIN_99_FRACTION if capital_mode == MARGIN_99_MODE else
+        margin_fraction = (MARGIN_9999_FRACTION if capital_mode == MARGIN_9999_MODE else
+                           MARGIN_99_FRACTION if capital_mode == MARGIN_99_MODE else
                            MARGIN_96_FRACTION if capital_mode == MARGIN_96_MODE else Decimal('1'))
         max_notional = equity * leverage * margin_fraction
         contracts = floor_step(min(max_notional / per_contract, exchange_limit), lot)
         if contracts < minimum or contracts <= 0:
             raise CandidateRejected('Full-margin/96% quantity is below exchange minimum')
         intended_stop_loss = contracts * per_contract * stop_fraction
-        planned_limit = (MAX_MARGIN_99_PLANNED_STOP_RISK if capital_mode == MARGIN_99_MODE
+        planned_limit = (MAX_MARGIN_99_PLANNED_STOP_RISK if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE)
                          else MAX_FULL_MARGIN_PLANNED_STOP_RISK)
         if intended_stop_loss > equity * planned_limit:
             raise OpportunityRiskRejected(
-                'Margin_99 planned stop exceeds 99% equity budget; risk of liquidation' if capital_mode == MARGIN_99_MODE
+                'Margin_99/9999 planned stop exceeds 99% equity budget; risk of liquidation' if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE)
                 else 'Full-margin/96% stop implies over 20% equity planned loss; refuse order')
         if contracts * per_contract > max_notional:
             raise ExecutionBlocked('Full-margin/96% leverage and allocation invariant failed')
