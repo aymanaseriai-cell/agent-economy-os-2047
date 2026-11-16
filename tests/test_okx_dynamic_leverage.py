@@ -48,3 +48,45 @@ class DynamicLeverageTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ExchangeMaximumLeverageTests(unittest.TestCase):
+    """No live orders: explicitly confirmed, account-and-instrument ceilings."""
+
+    def test_selects_highest_verified_for_each_instrument(self):
+        from trading.okx_dynamic_leverage import select_exchange_max_leverage
+        self.assertEqual(select_exchange_max_leverage("125", "200"), Decimal("125"))
+        self.assertEqual(select_exchange_max_leverage("150", "75"), Decimal("75"))
+        self.assertEqual(select_exchange_max_leverage("50", "50"), Decimal("50"))
+        self.assertEqual(select_exchange_max_leverage("5.5", "8"), Decimal("5.5"))
+
+    def test_missing_or_anomalous_caps_refuse(self):
+        from trading.okx_dynamic_leverage import select_exchange_max_leverage
+        for raw in ("", "NaN", "Infinity", "0", "-2", "1001", None):
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                select_exchange_max_leverage(raw, "125")
+            with self.subTest(raw=raw), self.assertRaises(ValueError):
+                select_exchange_max_leverage("125", raw)
+
+    def test_separate_max_leverage_authorization_is_mandatory(self):
+        from trading.okx_live_executor import EXCHANGE_MAX_LEVERAGE_ARM
+        env = dict(OKX_ENABLE_REAL_TRADING="YES",
+                   OKX_EXECUTION_ARM="I_ACCEPT_REAL_MONEY_LOSS",
+                   OKX_STOP_CONTINUOUS="NO",
+                   OKX_API_KEY="test", OKX_SECRET_KEY="test", OKX_PASSPHRASE="test",
+                   OKX_LEVERAGE_MODE="exchange_max",
+                   OKX_DYNAMIC_LEVERAGE_ARM="I_ACCEPT_VARIABLE_10_TO_100X_LIQUIDATION_RISK")
+        with self.assertRaisesRegex(ExecutionBlocked, "maximum leverage confirmation"):
+            check_mode("live", env)
+        env["OKX_EXCHANGE_MAX_LEVERAGE_ARM"] = EXCHANGE_MAX_LEVERAGE_ARM
+        check_mode("live", env)
+
+    def test_above_100x_sizing_obeys_lot_and_existing_stop_veto(self):
+        from trading.okx_live_executor import OpportunityRiskRejected
+        inst = {"ctVal":"1", "lotSz":"1", "minSz":"1"}
+        quantity = contract_size(inst, "1", "1000", ".001",
+                                 capital_mode="margin_9999", exchange_max="500000", leverage="125")
+        self.assertEqual(quantity, Decimal("124987"))
+        with self.assertRaises(OpportunityRiskRejected):
+            contract_size(inst, "1", "1000", ".01", capital_mode="margin_9999",
+                          exchange_max="500000", leverage="125")

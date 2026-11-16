@@ -16,6 +16,11 @@ on:
         type: boolean
         default: false
         required: true
+      confirm_max_leverage:
+        description: 'I authorize highest OKX-verified leverage per symbol/account; liquidation can occur immediately'
+        type: boolean
+        default: false
+        required: true
       continuous:
         description: 'Chain the next session 20 seconds after a clean bounded session'
         type: boolean
@@ -109,6 +114,11 @@ jobs:
           fi
           # Explicit full-margin arming remains mandatory within check_mode
           # before any private execution path can submit an OKX order.
+      - name: Refuse maximum exchange leverage without distinct consent
+        if: inputs.purpose == 'run' && vars.OKX_LEVERAGE_MODE == 'exchange_max' && inputs.confirm_max_leverage != true
+        run: |
+          echo '::error::Maximum OKX leverage requires confirm_max_leverage=true. NO ORDERS.'
+          exit 1
       - name: Check existing OKX risk before LIVE worker (read-only, NO ORDERS)
         if: inputs.purpose == 'run' && inputs.confirm_live == true
         run: |
@@ -136,6 +146,7 @@ jobs:
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM_V2 }}
           OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
+          OKX_EXCHANGE_MAX_LEVERAGE_ARM: ${{ inputs.confirm_max_leverage && 'I_AUTHORIZE_MAXIMUM_EXCHANGE_LEVERAGE_PER_SWAP' || '' }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
           OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}

@@ -28,7 +28,8 @@ ALLOWED_DOMAINS = {'https://www.okx.com', 'https://eea.okx.com', 'https://us.okx
 MODE_ARM = {'demo': 'CONFIRM_DEMO_ORDER', 'live': 'I_ACCEPT_REAL_MONEY_LOSS'}
 CLIENT_PREFIX = 'Q37'
 LEVERAGE = 20  # fixed fallback; dynamic mode is separately armed
-MAX_LEVERAGE = 100
+MAX_LEVERAGE = 1000  # Sanity ceiling; both OKX caps independently govern orders.
+EXCHANGE_MAX_LEVERAGE_ARM = 'I_AUTHORIZE_MAXIMUM_EXCHANGE_LEVERAGE_PER_SWAP'
 DYNAMIC_LEVERAGE_ARM = 'I_ACCEPT_VARIABLE_10_TO_100X_LIQUIDATION_RISK'
 MIN_24H_TURNOVER_USDT = 15_000_000
 MAX_SPREAD_BP = Decimal('15')
@@ -122,12 +123,14 @@ def check_mode(mode, env):
     if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE):
         raise ExecutionBlocked('Unsupported capital allocation mode')
     leverage_mode = env.get('OKX_LEVERAGE_MODE', 'fixed').lower()
-    if leverage_mode not in ('fixed', 'dynamic'):
+    if leverage_mode not in ('fixed', 'dynamic', 'exchange_max'):
         raise ExecutionBlocked('Unsupported leverage mode')
     if mode == 'dry_run':
         return
-    if leverage_mode == 'dynamic' and env.get('OKX_DYNAMIC_LEVERAGE_ARM') != DYNAMIC_LEVERAGE_ARM:
+    if leverage_mode in ('dynamic', 'exchange_max') and env.get('OKX_DYNAMIC_LEVERAGE_ARM') != DYNAMIC_LEVERAGE_ARM:
         raise ExecutionBlocked('Missing separate dynamic leverage arm')
+    if leverage_mode == 'exchange_max' and env.get('OKX_EXCHANGE_MAX_LEVERAGE_ARM') != EXCHANGE_MAX_LEVERAGE_ARM:
+        raise ExecutionBlocked('Missing explicit exchange maximum leverage confirmation')
     if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE) and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
         raise ExecutionBlocked('Full-margin or 96% allocation not separately armed')
     slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
@@ -586,8 +589,8 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
     lot=dec(inst['lotSz']); minimum=dec(inst['minSz'])
     price=dec(price); equity=dec(equity); stop_fraction=dec(stop_fraction)
     leverage=dec(leverage)
-    if not Decimal('10') <= leverage <= Decimal('100'):
-        raise ExecutionBlocked('Leverage outside 10x..100x')
+    if not Decimal('1') <= leverage <= Decimal(MAX_LEVERAGE):
+        raise ExecutionBlocked('Leverage outside supported verified 1x..1000x range')
     if multiplier<=0 or min(lot,minimum)<=0 or min(price,equity,stop_fraction)<=0:
         raise ExecutionBlocked('Invalid contract specifications or capital inputs')
     per_contract=multiplier*price
@@ -788,7 +791,9 @@ def execute(report, client, mode, env, *, allow_post=True):
             if signal is None:
                 return 'NO_CONSENSUS'
     multi = max_positions > 1
-    dynamic = env.get('OKX_LEVERAGE_MODE', 'fixed').lower() == 'dynamic'
+    leverage_mode = env.get('OKX_LEVERAGE_MODE', 'fixed').lower()
+    dynamic = leverage_mode in ('dynamic', 'exchange_max')
+    exchange_max_mode = leverage_mode == 'exchange_max'
     account_before = None
     if multi:
         from trading.okx_portfolio_guard import snapshot, UnsafePortfolio
@@ -805,7 +810,7 @@ def execute(report, client, mode, env, *, allow_post=True):
     # queried, or evaluated in the execution/order path. Quantitative signals
     # and mandatory exchange-side risk controls remain the only entry gates.
     try:
-        ticker,inst=market_preflight(client,signal,min_leverage=10) if dynamic else market_preflight(client,signal)
+        ticker,inst=market_preflight(client,signal,min_leverage=(1 if exchange_max_mode else 10)) if dynamic else market_preflight(client,signal)
     except CandidateRejected:
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
             return 'CANDIDATE_REJECTED_NO_ORDER'
@@ -844,7 +849,7 @@ def execute(report, client, mode, env, *, allow_post=True):
     capital_mode=env.get('OKX_CAPITAL_MODE','guarded').lower()
     selected_leverage = LEVERAGE
     if dynamic:
-        from trading.okx_dynamic_leverage import select_leverage
+        from trading.okx_dynamic_leverage import select_leverage, select_exchange_max_leverage
         try:
             omega = next(item for item in signal.get('omega_systems', [])
                          if item.get('name') == '04_exchange_digital_twin')
@@ -853,14 +858,18 @@ def execute(report, client, mode, env, *, allow_post=True):
                 raise CandidateRejected('Invalid round-trip cost estimate')
             account_tier = client.request('GET','/api/v5/account/adjust-leverage-info',params={
                 'instType':'SWAP','mgnMode':'isolated',
-                'instId':signal['symbol'],'lever':'10','posSide':'net'})
+                'instId':signal['symbol'],'lever':'1','posSide':'net'})
             if len(account_tier) != 1:
                 raise ExecutionBlocked('Account leverage tier unavailable')
-            selected_leverage = select_leverage(
-                stop_fraction, fee_bp / Decimal('10000'),
-                inst['lever'], account_tier[0]['maxLever'])
-            if selected_leverage is None:
-                raise CandidateRejected('No 10x..100x leverage survives stop and shock constraints')
+            if exchange_max_mode:
+                selected_leverage = select_exchange_max_leverage(
+                    inst['lever'], account_tier[0]['maxLever'])
+            else:
+                selected_leverage = select_leverage(
+                    stop_fraction, fee_bp / Decimal('10000'),
+                    inst['lever'], account_tier[0]['maxLever'])
+                if selected_leverage is None:
+                    raise CandidateRejected('No 20x..100x leverage survives stop and shock constraints')
         except (StopIteration, KeyError, TypeError, ValueError, CandidateRejected) as exc:
             if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
                 return 'CANDIDATE_REJECTED_NO_ORDER'

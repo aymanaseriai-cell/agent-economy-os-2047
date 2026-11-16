@@ -86,7 +86,7 @@ def snapshot(client, *, require_position_leverage=False):
             raise UnsafePortfolio("Existing position leverage missing")
         position_leverage = num(leverage_raw if leverage_raw not in (None,"") else LEVERAGE,
                                 "position leverage")
-        if not Decimal("1") <= position_leverage <= Decimal("100"):
+        if not Decimal("1") <= position_leverage <= Decimal("1000"):
             raise UnsafePortfolio("Invalid existing position leverage")
         margin_used += value / position_leverage
         used+=value

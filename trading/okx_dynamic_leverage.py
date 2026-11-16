@@ -40,3 +40,17 @@ def select_leverage(stop_fraction, round_trip_cost_fraction, market_max, account
                 and x * (Decimal("0.005") + cost) <= Decimal("0.75")):
             return leverage
     return None
+
+
+def select_exchange_max_leverage(market_max, account_max):
+    """Highest verified isolated SWAP leverage for the instrument AND account.
+
+    Both OKX public instrument lever and authenticated account maxLever are
+    required. No heuristic shock-based reduction in this explicitly armed mode.
+    The stop and margin vetoes still apply. Reject anomalous data, not clamp.
+    """
+    market, account = _decimal(market_max), _decimal(account_max)
+    if not (Decimal("1") <= market <= Decimal("1000")
+            and Decimal("1") <= account <= Decimal("1000")):
+        raise ValueError("Missing, anomalous or unsupported exchange leverage cap")
+    return min(market, account)
