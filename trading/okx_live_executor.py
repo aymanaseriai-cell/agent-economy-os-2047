@@ -33,12 +33,22 @@ EXCHANGE_MAX_LEVERAGE_ARM = 'I_AUTHORIZE_MAXIMUM_EXCHANGE_LEVERAGE_PER_SWAP'
 DYNAMIC_LEVERAGE_ARM = 'I_ACCEPT_VARIABLE_10_TO_100X_LIQUIDATION_RISK'
 MIN_24H_TURNOVER_USDT = 15_000_000
 MAX_SPREAD_BP = Decimal('15')
+STRICT_ENTRY_PROFILE = 'strict_extreme'
+STRICT_MIN_TURNOVER = Decimal('30000000')
+STRICT_MAX_SPREAD_BP = Decimal('8')
+STRICT_MAX_MARKET_AGE_MS = 10000
+STRICT_MAX_QUOTE_MOVE = Decimal('0.002')
+STRICT_MAX_STOP_DISTANCE = Decimal('0.015')
+STRICT_MIN_REWARD_RISK = Decimal('2.5')
+STRICT_MAX_BOOK_AGE_SECONDS = Decimal('30')
 EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial stop, *not* guaranteed realised loss
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
 REENTRY_COOLDOWN_MS = 30 * 1000  # minimum 30 seconds after exchange-confirmed full SWAP close
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
+MARGIN_99999_MODE = 'margin_99999'  # Allocate up to 99.999% of available USDT margin.
+MARGIN_99999_FRACTION = Decimal('0.99999')
 MARGIN_9999_MODE = 'margin_9999'  # Explicitly armed 99.99% of available USDT margin.
 MARGIN_9999_FRACTION = Decimal('0.9999')  # Only 0.01% nominal buffer; fees can exhaust it.
 MARGIN_99_MODE = 'margin_99'  # Explicit 99% of free USDT margin; not a realized loss cap.
@@ -120,18 +130,20 @@ def check_mode(mode, env):
     if mode not in ('dry_run', 'demo', 'live'):
         raise ExecutionBlocked('Unsupported execution mode')
     capital_mode = env.get('OKX_CAPITAL_MODE', 'guarded').lower()
-    if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE):
+    if capital_mode not in ('guarded', ADAPTIVE_GUARDED_MODE, FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE, MARGIN_99999_MODE):
         raise ExecutionBlocked('Unsupported capital allocation mode')
     leverage_mode = env.get('OKX_LEVERAGE_MODE', 'fixed').lower()
     if leverage_mode not in ('fixed', 'dynamic', 'exchange_max'):
         raise ExecutionBlocked('Unsupported leverage mode')
+    if env.get('OKX_ENTRY_PROFILE', 'standard') not in ('standard', STRICT_ENTRY_PROFILE):
+        raise ExecutionBlocked('Unsupported strict entry profile')
     if mode == 'dry_run':
         return
     if leverage_mode in ('dynamic', 'exchange_max') and env.get('OKX_DYNAMIC_LEVERAGE_ARM') != DYNAMIC_LEVERAGE_ARM:
         raise ExecutionBlocked('Missing separate dynamic leverage arm')
     if leverage_mode == 'exchange_max' and env.get('OKX_EXCHANGE_MAX_LEVERAGE_ARM') != EXCHANGE_MAX_LEVERAGE_ARM:
         raise ExecutionBlocked('Missing explicit exchange maximum leverage confirmation')
-    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE) and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
+    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE, MARGIN_99999_MODE) and env.get('OKX_FULL_MARGIN_ARM') != FULL_MARGIN_ARM:
         raise ExecutionBlocked('Full-margin or 96% allocation not separately armed')
     slots_raw = env.get('OKX_MAX_ACTIVE_POSITIONS','1')
     from trading.okx_portfolio_guard import MAX_POSITIONS
@@ -246,7 +258,7 @@ def read_report(path, now_ms=None):
     return report
 
 
-def choose_signal(report, now_ms=None, *, exclude_symbols=()):
+def choose_signal(report, now_ms=None, *, exclude_symbols=(), strict=False):
     now_ms = int(time.time() * 1000) if now_ms is None else now_ms
     selected=[]
     for x in report.get('results', []):
@@ -294,6 +306,8 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
         margin = (buy_points-sell_points if x['signal']=='LONG'
                   else sell_points-buy_points)
         if margin < CORE_MIN_DIRECTIONAL_LEAD:
+            continue
+        if strict and not strict_signal_quality(x, price, stop, target, now_ms):
             continue
         # Only best consensus; one position at a time.
         # Omega's one-of-N-or-WAIT QUBO score ranks faster, net-of-model-cost
@@ -344,13 +358,60 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
     return max(selected,key=lambda k:(k[0],k[1]))[2] if selected else None
 
 
+def strict_signal_quality(candidate, price, stop, target, now_ms):
+    """Opt-in strict live-entry vetoes. No individual signal can override these.
+
+    Avoid implying independent AI or quantum predictions: checks use observable
+    data and ordinal evidence, not calibrated win probabilities.
+    """
+    try:
+        side = candidate["signal"]
+        if candidate.get("omega_system_count") != 10 or candidate.get("omega_veto_reasons"):
+            return False
+        if (type(candidate.get("advanced_confirmations")) is not int
+                or candidate["advanced_confirmations"] < 2
+                or candidate.get("advanced_contradictions") != 0):
+            return False
+        supporting = candidate.get("ordinal_buy_points" if side == "LONG" else "ordinal_sell_points")
+        opposite = candidate.get("ordinal_sell_points" if side == "LONG" else "ordinal_buy_points")
+        agents = candidate.get("num_bullish_agents" if side == "LONG" else "num_bearish_agents")
+        if any(type(value) is not int for value in (supporting, opposite, agents)):
+            return False
+        if supporting < 4 or agents < 3 or supporting - opposite < 4:
+            return False
+        if len(candidate.get("agents", [])) != 6:
+            return False
+        sentinel = next((a for a in candidate["agents"]
+                         if a.get("agent") == "01_liquidity_sentinel"), None)
+        if not isinstance(sentinel, dict) or not isinstance(sentinel.get("evidence"), dict):
+            return False
+        data = sentinel["evidence"]
+        if (dec(data.get("turnover_usdt_est")) < STRICT_MIN_TURNOVER
+                or dec(data.get("spread_bp")) > STRICT_MAX_SPREAD_BP
+                or not Decimal("0") <= dec(data.get("orderbook_age_sec")) <= STRICT_MAX_BOOK_AGE_SECONDS
+                or dec(data.get("bid_depth_contracts_20_levels")) <= 0
+                or dec(data.get("ask_depth_contracts_20_levels")) <= 0):
+            return False
+        rr = ((dec(target)-price)/(price-dec(stop)) if side == "LONG"
+              else (price-dec(target))/(dec(stop)-price))
+        if rr < STRICT_MIN_REWARD_RISK:
+            return False
+        candle_close_ms = int(candidate.get("last_complete_15m_candle_ms") or 0) + CANDLE_INTERVAL_MS
+        if not (0 <= now_ms - candle_close_ms <= 10*60_000):
+            return False
+        return True
+    except (KeyError, TypeError, ValueError, InvalidOperation, ExecutionBlocked,
+            ZeroDivisionError, StopIteration):
+        return False
+
+
 def estimate_turnover(ticker):
     price=dec(ticker.get('last'))
     base_vol=dec(ticker.get('volCcy24h'))
     return base_vol*price
 
 
-def market_preflight(client, signal, *, min_leverage=LEVERAGE):
+def market_preflight(client, signal, *, min_leverage=LEVERAGE, strict=False):
     symbol=signal['symbol']
     ticker=client.request('GET','/api/v5/market/ticker', params={'instId':symbol},auth=False)
     instruments=client.request('GET','/api/v5/public/instruments',params={'instType':'SWAP','instId':symbol},auth=False)
@@ -378,17 +439,18 @@ def market_preflight(client, signal, *, min_leverage=LEVERAGE):
     last,bid,ask=dec(t['last']),dec(t['bidPx']),dec(t['askPx'])
     if min(last,bid,ask)<=0 or bid>ask:
         raise CandidateRejected('Invalid or crossed market')
-    if estimate_turnover(t) < MIN_24H_TURNOVER_USDT:
-        raise CandidateRejected('Market turnover under 15,000,000 USD estimated')
+    min_turnover = STRICT_MIN_TURNOVER if strict else MIN_24H_TURNOVER_USDT
+    if estimate_turnover(t) < min_turnover:
+        raise CandidateRejected('Market turnover below required threshold')
     spread_bp=Decimal(10000)*(ask-bid)/((ask+bid)/2)
-    if spread_bp > MAX_SPREAD_BP:
+    if spread_bp > (STRICT_MAX_SPREAD_BP if strict else MAX_SPREAD_BP):
         raise CandidateRejected('Spread too wide')
     stamp=int(t.get('ts') or 0)
-    if not stamp or not 0 <= int(time.time()*1000)-stamp <= 30_000:
+    if not stamp or not 0 <= int(time.time()*1000)-stamp <= (STRICT_MAX_MARKET_AGE_MS if strict else 30_000):
         raise CandidateRejected('Ticker stale')
     scan_price=dec(signal['quote_price'])
-    if abs(last/scan_price - 1)>Decimal('0.005'):
-        raise CandidateRejected('Price moved >0.5% since analysis')
+    if abs(last/scan_price - 1)>(STRICT_MAX_QUOTE_MOVE if strict else Decimal('0.005')):
+        raise CandidateRejected('Price moved too far since analysis')
     return t,inst
 
 
@@ -549,7 +611,7 @@ def last_fully_closed_swap_symbol(client, *, now_ms=None):
         cursor = page_last_time
     raise ExecutionBlocked('Position history exceeds bounded paginated lookback; no entry')
 
-def get_prices(signal,ticker,inst):
+def get_prices(signal,ticker,inst, *, strict=False):
     last=dec(ticker['last'])
     tick=dec(inst['tickSz'])
     risk=signal['agents'][-1]['evidence']
@@ -569,8 +631,12 @@ def get_prices(signal,ticker,inst):
         if not (target < last < stop and target<price<stop):
             raise CandidateRejected('Invalid SHORT stop/target after price refresh')
         delta=(stop-price)/price
-    if not Decimal('0.001') <= delta <= Decimal('0.035'):
-        raise CandidateRejected('Stop outside approved 0.1% to 3.5% distance')
+    if not Decimal('0.001') <= delta <= (STRICT_MAX_STOP_DISTANCE if strict else Decimal('0.035')):
+        raise CandidateRejected('Stop outside approved strict/standard distance')
+    if strict:
+        reward = (target-price if signal['signal']=='LONG' else price-target)
+        if reward / (price*delta) < STRICT_MIN_REWARD_RISK:
+            raise CandidateRejected('Strict reward/risk below 2.5R after price refresh')
     return price,stop,target,delta
 
 
@@ -578,7 +644,7 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
     """Determine contract quantity, retaining independent high-margin arming.
 
     The full-margin mode targets 100%; margin_96 targets 96%; margin_99
-    targets 99%; margin_9999 targets 99.99% of *available* USDT isolated
+    targets 99%; margin_9999 targets 99.99% and margin_99999 targets 99.999% of *available* USDT isolated
     margin, at exchange-verified leverage. The 99%+ modes permit planned
     stop loss as high as 99% of equity;
     this is NOT a realized-loss cap, and liquidation can precede the stop.
@@ -594,13 +660,14 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
     if multiplier<=0 or min(lot,minimum)<=0 or min(price,equity,stop_fraction)<=0:
         raise ExecutionBlocked('Invalid contract specifications or capital inputs')
     per_contract=multiplier*price
-    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE):
+    if capital_mode in (FULL_MARGIN_MODE, MARGIN_96_MODE, MARGIN_99_MODE, MARGIN_9999_MODE, MARGIN_99999_MODE):
         if exchange_max is None:
             raise ExecutionBlocked('Full-margin/96% mode requires fresh OKX max-size quote')
         exchange_limit=dec(exchange_max)
         if exchange_limit <= 0:
             raise ExecutionBlocked('Exchange reports no available full-margin/96% order capacity')
-        margin_fraction = (MARGIN_9999_FRACTION if capital_mode == MARGIN_9999_MODE else
+        margin_fraction = (MARGIN_99999_FRACTION if capital_mode == MARGIN_99999_MODE else
+                           MARGIN_9999_FRACTION if capital_mode == MARGIN_9999_MODE else
                            MARGIN_99_FRACTION if capital_mode == MARGIN_99_MODE else
                            MARGIN_96_FRACTION if capital_mode == MARGIN_96_MODE else Decimal('1'))
         max_notional = equity * leverage * margin_fraction
@@ -608,11 +675,11 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
         if contracts < minimum or contracts <= 0:
             raise CandidateRejected('Full-margin/96% quantity is below exchange minimum')
         intended_stop_loss = contracts * per_contract * stop_fraction
-        planned_limit = (MAX_MARGIN_99_PLANNED_STOP_RISK if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE)
+        planned_limit = (MAX_MARGIN_99_PLANNED_STOP_RISK if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE, MARGIN_99999_MODE)
                          else MAX_FULL_MARGIN_PLANNED_STOP_RISK)
         if intended_stop_loss > equity * planned_limit:
             raise OpportunityRiskRejected(
-                'Margin_99/9999 planned stop exceeds 99% equity budget; risk of liquidation' if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE)
+                'Margin_99/9999 planned stop exceeds 99% equity budget; risk of liquidation' if capital_mode in (MARGIN_99_MODE, MARGIN_9999_MODE, MARGIN_99999_MODE)
                 else 'Full-margin/96% stop implies over 20% equity planned loss; refuse order')
         if contracts * per_contract > max_notional:
             raise ExecutionBlocked('Full-margin/96% leverage and allocation invariant failed')
@@ -773,7 +840,8 @@ def execute(report, client, mode, env, *, allow_post=True):
         from trading.okx_target9_guard import check_target, ARM
         if check_target(client,close_armed=env.get("OKX_TARGET9_CLOSE_ARM")==ARM)=="TARGET9_FLAT":
             return "TARGET9_REACHED_NO_ORDER"
-    signal=choose_signal(report)
+    strict = env.get('OKX_ENTRY_PROFILE', 'standard') == STRICT_ENTRY_PROFILE
+    signal=choose_signal(report,strict=strict)
     if signal is None:
         return 'NO_CONSENSUS'
     # Dry-run stays public-only, even with portfolio settings.
@@ -787,7 +855,7 @@ def execute(report, client, mode, env, *, allow_post=True):
         # a different symbol does NOT bypass cooldown or any live entry veto.
         previous=last_fully_closed_swap_symbol(client)
         if previous:
-            signal=choose_signal(report,exclude_symbols=(previous,))
+            signal=choose_signal(report,exclude_symbols=(previous,),strict=strict)
             if signal is None:
                 return 'NO_CONSENSUS'
     multi = max_positions > 1
@@ -803,14 +871,14 @@ def execute(report, client, mode, env, *, allow_post=True):
             raise ExecutionBlocked('Portfolio validation failed: '+str(exc)) from exc
         if len(account_before['symbols']) >= max_positions:
             return 'PORTFOLIO_CAPACITY_NO_ORDER'
-        signal=choose_signal(report,exclude_symbols=account_before['symbols'])
+        signal=choose_signal(report,exclude_symbols=account_before['symbols'],strict=strict)
         if signal is None:
             return 'NO_CONSENSUS'
     # NVIDIA research is isolated in okx-nvidia-advisory.yml: never imported,
     # queried, or evaluated in the execution/order path. Quantitative signals
     # and mandatory exchange-side risk controls remain the only entry gates.
     try:
-        ticker,inst=market_preflight(client,signal,min_leverage=(1 if exchange_max_mode else 10)) if dynamic else market_preflight(client,signal)
+        ticker,inst=market_preflight(client,signal,min_leverage=(1 if exchange_max_mode else 10),strict=strict) if dynamic else market_preflight(client,signal,strict=strict)
     except CandidateRejected:
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
             return 'CANDIDATE_REJECTED_NO_ORDER'
@@ -841,7 +909,7 @@ def execute(report, client, mode, env, *, allow_post=True):
             return 'CANDIDATE_REJECTED_NO_ORDER'
         raise
     try:
-        price,stop,target,stop_fraction=get_prices(signal,ticker,inst)
+        price,stop,target,stop_fraction=get_prices(signal,ticker,inst,strict=strict)
     except CandidateRejected:
         if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES':
             return 'CANDIDATE_REJECTED_NO_ORDER'
