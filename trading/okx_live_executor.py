@@ -483,45 +483,66 @@ def enforce_exit_cooldown(client, *, now_ms=None):
 
 
 def last_fully_closed_swap_symbol(client, *, now_ms=None):
-    """Find the last confirmed completely exited USDT swap, to rotate coins.
+    """Find the newest exchange-confirmed fully exited USDT swap.
 
-    Read-only exchange history; if recent exit identity is ambiguous, do not
-    guess a replacement coin. The 30-second cooldown remains a separate veto.
+    OKX positions-history is ordered by descending uTime and paginates via
+    the "after" parameter set to uTime (milliseconds), not an order/position ID.
+    A full 100-record page is NOT automatically ambiguous: once the newest
+    full close is present, earlier pages cannot change its identity.
+    Unresolvable equal timestamps, unstable ordering, or exhausted pagination
+    still fail closed, and the 30-second cooldown remains a separate guard.
     """
-    now_ms=int(time.time()*1000) if now_ms is None else int(now_ms)
-    rows=client.request('GET','/api/v5/account/positions-history',
-                        params={'instType':'SWAP','limit':'100'})
-    if not isinstance(rows,list):
-        raise ExecutionBlocked('Position history unavailable for coin rotation')
-    recent=[]
-    cutoff=now_ms-2*60*60*1000
-    for row in rows:
-        if not isinstance(row,dict):
-            raise ExecutionBlocked('Malformed position history for coin rotation')
-        if str(row.get('type')) not in ('2','3','6'):
-            continue
-        try:
-            when=int(row.get('uTime') or 0)
-        except (ValueError,TypeError) as exc:
-            raise ExecutionBlocked('Invalid closed-position timestamp') from exc
-        if when<=0 or when>now_ms+60_000:
-            raise ExecutionBlocked('Invalid closed-position timestamp')
-        if when<cutoff:
-            continue
-        symbol=row.get('instId')
-        if not isinstance(symbol,str) or not symbol.endswith('-USDT-SWAP'):
-            raise ExecutionBlocked('Unverifiable last closed USDT swap identity')
-        recent.append((when,symbol))
-    if len(rows)>=100:
-        # Complete recent history is not known if the first page is saturated.
-        raise ExecutionBlocked('Cannot verify latest exited coin in paginated history')
-    if not recent:
-        return None
-    recent.sort(reverse=True)
-    if len(recent)>1 and recent[0][0]==recent[1][0] and recent[0][1]!=recent[1][1]:
-        raise ExecutionBlocked('Ambiguous most recent exited coin')
-    return recent[0][1]
-
+    now_ms = int(time.time() * 1000) if now_ms is None else int(now_ms)
+    cutoff = now_ms - 2 * 60 * 60 * 1000
+    cursor = None
+    max_pages = 5
+    for _ in range(max_pages):
+        params = {'instType': 'SWAP', 'limit': '100'}
+        if cursor is not None:
+            params['after'] = str(cursor)
+        rows = client.request('GET', '/api/v5/account/positions-history', params=params)
+        if not isinstance(rows, list) or len(rows) > 100:
+            raise ExecutionBlocked('Invalid paginated position history')
+        if not rows:
+            return None
+        page_last_time = None
+        completed = []
+        for row in rows:
+            if not isinstance(row, dict):
+                raise ExecutionBlocked('Malformed position history for coin rotation')
+            try:
+                when = int(row.get('uTime') or 0)
+            except (ValueError, TypeError) as exc:
+                raise ExecutionBlocked('Invalid closed-position timestamp') from exc
+            if when <= 0 or when > now_ms + 60_000:
+                raise ExecutionBlocked('Invalid closed-position timestamp')
+            if cursor is not None and when >= cursor:
+                raise ExecutionBlocked('Position-history cursor did not advance')
+            if page_last_time is not None and when > page_last_time:
+                raise ExecutionBlocked('Position history is not newest-first')
+            page_last_time = when
+            if str(row.get('type')) not in ('2', '3', '6') or when < cutoff:
+                continue
+            symbol = row.get('instId')
+            if not isinstance(symbol, str) or not symbol.endswith('-USDT-SWAP'):
+                raise ExecutionBlocked('Unverifiable last closed USDT swap identity')
+            completed.append((when, symbol))
+        if completed:
+            top_time = completed[0][0]
+            top_symbols = {symbol for when, symbol in completed if when == top_time}
+            if len(top_symbols) != 1:
+                raise ExecutionBlocked('Ambiguous most recent exited coin')
+            # If the page boundary equals the chosen exit time, an unseen
+            # same-millisecond exit on the next page may invalidate the choice.
+            if len(rows) == 100 and page_last_time == top_time:
+                raise ExecutionBlocked('Ambiguous paginated close timestamp')
+            return completed[0][1]
+        if len(rows) < 100 or page_last_time < cutoff:
+            return None
+        # "after" for this endpoint is the LAST uTime, not posId / ordId.
+        # The next request must strictly advance to older timestamps.
+        cursor = page_last_time
+    raise ExecutionBlocked('Position history exceeds bounded paginated lookback; no entry')
 
 def get_prices(signal,ticker,inst):
     last=dec(ticker['last'])
