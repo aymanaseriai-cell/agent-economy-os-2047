@@ -65,6 +65,16 @@ def check_target(client, *, close_armed=False):
             raise ExecutionBlocked("Target9: unconfirmed close outcome")
     if active_swaps(client):
         raise ExecutionBlocked("Target9: residual open SWAP; no blind retry")
+    if client.request("GET","/api/v5/trade/orders-pending",params={"instType":"SWAP"}):
+        raise ExecutionBlocked("Target9: residual normal SWAP orders; manual review")
+    # An orphan TP/SL could become dangerous after closing the position.
+    for typ in ("conditional","oco","trigger","move_order_stop"):
+        algos=client.request("GET","/api/v5/trade/orders-algo-pending",
+                             params={"ordType":typ})
+        if not isinstance(algos,list) or any(
+                str(row.get("instId","")).endswith("-SWAP")
+                for row in algos if isinstance(row,dict)):
+            raise ExecutionBlocked("Target9: pending SWAP algo after close; manual review")
     return "TARGET9_FLAT"
 
 def main():

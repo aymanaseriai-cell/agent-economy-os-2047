@@ -12,6 +12,7 @@ class Fake:
         if path=="/api/v5/account/config":return [{"posMode":"net_mode"}]
         if path=="/api/v5/account/positions":return self.positions
         if path=="/api/v5/trade/orders-pending":return self.pending
+        if path=="/api/v5/trade/orders-algo-pending":return []
         if path=="/api/v5/trade/close-position":
             self.posts.append(body)
             if self.uncertain:raise ExecutionBlocked("unknown exchange outcome")
