@@ -164,3 +164,74 @@ class ExtremeMargin9999Tests(unittest.TestCase):
         from trading.okx_live_executor import MARGIN_9999_MODE
         with self.assertRaisesRegex(Exception,"fresh OKX max-size"):
             contract_size(self.inst,1,1000,".001",capital_mode=MARGIN_9999_MODE)
+
+
+class TITANStrictExtremeTests(unittest.TestCase):
+    """New opt-in live gates only veto, never promote weak signals."""
+
+    def setUp(self):
+        import time
+        self.now=int(time.time()*1000)
+        self.candidate={
+            "symbol":"UNI-USDT-SWAP", "signal":"LONG", "quote_price":"100",
+            "last_complete_15m_candle_ms":self.now-16*60_000,
+            "advanced_system_count":7,"advanced_confirmations":2,
+            "advanced_contradictions":0,"advanced_veto_reasons":[],
+            "derivatives_data_warnings":[],
+            "ordinal_buy_points":5,"ordinal_sell_points":0,
+            "num_bullish_agents":3,"num_bearish_agents":0,
+            "agents":[{"agent":"01_liquidity_sentinel","evidence":{
+                "turnover_usdt_est":35000000,"spread_bp":5,
+                "orderbook_age_sec":2,
+                "bid_depth_contracts_20_levels":100,
+                "ask_depth_contracts_20_levels":100}}]+[{"agent":"other","evidence":{}}]*4+
+                [{"agent":"06_risk_marshal","evidence":{
+                    "indicative_stop_not_an_order":"98",
+                    "indicative_target_not_an_order":"106"}}],
+            "execution":"DISABLED","order_count":0,
+            "omega_system_count":10,"omega_veto_reasons":[],"omega_rank_score":"2",
+            "omega_estimated_time_to_target_minutes":30,
+            "omega_target_hit_fraction_null_model":"0.5"
+        }
+
+    def test_strong_candidate_passes_strict(self):
+        from trading.okx_live_executor import choose_signal
+        self.assertIs(choose_signal({"results":[self.candidate]},now_ms=self.now,strict=True),self.candidate)
+
+    def test_each_weakness_fails_strict(self):
+        from trading.okx_live_executor import choose_signal
+        from copy import deepcopy
+        for field,value in [("advanced_confirmations",1),("advanced_contradictions",1),
+                            ("num_bullish_agents",2),("ordinal_buy_points",3),
+                            ("omega_system_count",9),("omega_veto_reasons",["veto"])]:
+            c=deepcopy(self.candidate);c[field]=value
+            with self.subTest(field=field):
+                self.assertIsNone(choose_signal({"results":[c]},now_ms=self.now,strict=True))
+        for field,value in [("turnover_usdt_est",29000000),("spread_bp",9),
+                            ("orderbook_age_sec",31),("ask_depth_contracts_20_levels",0)]:
+            c=deepcopy(self.candidate);c["agents"][0]["evidence"][field]=value
+            with self.subTest(field=field):
+                self.assertIsNone(choose_signal({"results":[c]},now_ms=self.now,strict=True))
+        c=deepcopy(self.candidate);c["agents"][-1]["evidence"]["indicative_target_not_an_order"]="103"
+        self.assertIsNone(choose_signal({"results":[c]},now_ms=self.now,strict=True))
+
+    def test_standard_mode_still_accepts_less_strict_candidate(self):
+        from trading.okx_live_executor import choose_signal
+        from copy import deepcopy
+        c=deepcopy(self.candidate);c["advanced_confirmations"]=1
+        self.assertIs(choose_signal({"results":[c]},now_ms=self.now,strict=False),c)
+
+    def test_exact_99999pct_margin_fraction_and_arm(self):
+        from trading.okx_live_executor import contract_size, MARGIN_99999_MODE
+        inst={"ctVal":"1","lotSz":"1","minSz":"1"}
+        q=contract_size(inst,1,100000,".001",
+                        capital_mode=MARGIN_99999_MODE,exchange_max=3000000,leverage=20)
+        self.assertEqual(q,Decimal("1999980"))
+        self.assertEqual(q/Decimal(20)/Decimal(100000),Decimal("0.99999"))
+        env={"OKX_EXECUTION_ARM":MODE_ARM["demo"],
+             "OKX_CAPITAL_MODE":MARGIN_99999_MODE,"OKX_ENTRY_PROFILE":"strict_extreme",
+             "OKX_API_KEY":"test","OKX_SECRET_KEY":"test","OKX_PASSPHRASE":"test"}
+        with self.assertRaisesRegex(Exception,"separately armed"):
+            check_mode("demo",env)
+        env["OKX_FULL_MARGIN_ARM"]=FULL_MARGIN_ARM
+        check_mode("demo",env)

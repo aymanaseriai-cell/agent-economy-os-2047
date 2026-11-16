@@ -70,6 +70,7 @@ jobs:
           OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          OKX_ENTRY_PROFILE: ${{ vars.OKX_ENTRY_PROFILE || 'standard' }}
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
           OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
@@ -148,6 +149,7 @@ jobs:
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
           OKX_EXCHANGE_MAX_LEVERAGE_ARM: ${{ inputs.confirm_max_leverage && 'I_AUTHORIZE_MAXIMUM_EXCHANGE_LEVERAGE_PER_SWAP' || '' }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
+          OKX_ENTRY_PROFILE: ${{ vars.OKX_ENTRY_PROFILE || 'standard' }}
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
           OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
