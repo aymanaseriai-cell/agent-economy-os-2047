@@ -298,7 +298,16 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
             score=dec(x.get('omega_rank_score', 0))
             if score<=0:
                 continue
-            selected.append((score,margin,x))
+            # Bootstrap ETA is uncalibrated, but breaks ties between
+            # already eligible candidates without bypassing any veto.
+            try:
+                eta=dec(x.get("omega_estimated_time_to_target_minutes"))
+            except (TypeError,ValueError,InvalidOperation):
+                eta=Decimal("180")
+            if not eta.is_finite() or eta<=0 or eta>Decimal("180"):
+                eta=Decimal("180")
+            speed_weighted=score/(Decimal("1")+eta/Decimal("30"))
+            selected.append((speed_weighted,margin,x))
             continue
         selected.append((Decimal(margin),margin,x))
     return max(selected,key=lambda k:(k[0],k[1]))[2] if selected else None
@@ -659,6 +668,10 @@ def execute(report, client, mode, env, *, allow_post=True):
         for item in report.get('results', []):
             if item.get('signal') in ('LONG','SHORT') and item.get('omega_system_count') != 10:
                 raise ExecutionBlocked('Candidate lacks verified TITAN Omega evidence')
+    if env.get("OKX_TARGET9_ENABLED")=="YES" and mode=="live":
+        from trading.okx_target9_guard import check_target, ARM
+        if check_target(client,close_armed=env.get("OKX_TARGET9_CLOSE_ARM")==ARM)=="TARGET9_FLAT":
+            return "TARGET9_REACHED_NO_ORDER"
     signal=choose_signal(report)
     if signal is None:
         return 'NO_CONSENSUS'
@@ -843,6 +856,10 @@ def execute(report, client, mode, env, *, allow_post=True):
                 and str(exc) == 'Market report expired during NVIDIA review'):
             return 'STALE_SIGNAL_NO_ORDER'
         raise ExecutionBlocked('Freshness veto: ' + str(exc)) from exc
+    if env.get("OKX_TARGET9_ENABLED")=="YES" and mode=="live":
+        from trading.okx_target9_guard import check_target, ARM
+        if check_target(client,close_armed=env.get("OKX_TARGET9_CLOSE_ARM")==ARM)=="TARGET9_FLAT":
+            return "TARGET9_REACHED_NO_ORDER"
     if not allow_post:
         return 'PREPARED_BUT_NOT_SENT'
     payload={

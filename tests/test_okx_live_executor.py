@@ -213,6 +213,18 @@ class TestLiveSafety(unittest.TestCase):
         sig['advanced_veto_reasons']=['jump']
         self.assertIsNone(choose_signal(report))
 
+    def test_speed_rank_only_within_existing_omega_gates(self):
+        from copy import deepcopy
+        slow=make_signal()
+        slow.update(omega_system_count=10,omega_rank_score=2,
+                    omega_veto_reasons=[],omega_estimated_time_to_target_minutes=180)
+        fast=deepcopy(slow)
+        fast.update(symbol="ADA-USDT-SWAP",omega_rank_score=1.5,
+                    omega_estimated_time_to_target_minutes=15)
+        self.assertEqual(choose_signal({"results":[slow,fast]})["symbol"],"ADA-USDT-SWAP")
+        fast["omega_veto_reasons"]=["unsafe"]
+        self.assertEqual(choose_signal({"results":[slow,fast]})["symbol"],"BTC-USDT-SWAP")
+
     def test_moderate_directional_lead_for_long_short_and_omega(self):
         # A high Omega score cannot override a weak core signal.
         for direction in ('LONG', 'SHORT'):

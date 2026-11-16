@@ -10,6 +10,24 @@ def done(cmd, status=None, code=0):
     return subprocess.CompletedProcess(cmd,code,output,"")
 
 class FiveSecondWorkerTests(unittest.TestCase):
+    def test_goal9_lock_never_scans_or_orders(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args[2])
+            return subprocess.CompletedProcess(args,78,"OKX TARGET9 RESULT: TARGET9_FLAT\n","")
+        with patch.dict(os.environ,{"OKX_TARGET9_ENABLED":"YES","OKX_EXECUTION_MODE":"live"}):
+            self.assertEqual(loop(max_cycles=1,run=run,clock=lambda:0,sleep=lambda _:None),78)
+        self.assertEqual(calls,["trading.okx_target9_guard"])
+
+    def test_goal9_unknown_state_fails_closed(self):
+        calls=[]
+        def run(args,timeout):
+            calls.append(args[2])
+            return subprocess.CompletedProcess(args,2,"","")
+        with patch.dict(os.environ,{"OKX_TARGET9_ENABLED":"YES","OKX_EXECUTION_MODE":"live"}):
+            self.assertEqual(loop(max_cycles=1,run=run,clock=lambda:0,sleep=lambda _:None),2)
+        self.assertEqual(calls,["trading.okx_target9_guard"])
+
     def test_five_second_pause_after_every_completed_no_consensus(self):
         calls=[];pauses=[]; now=[0.]
         def run(args,timeout):

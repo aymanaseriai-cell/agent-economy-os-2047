@@ -101,6 +101,15 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
     phoenix_bursts=0
     protection_rechecks=0
     while True:
+        if (os.getenv("OKX_TARGET9_ENABLED")=="YES"
+                and os.getenv("OKX_EXECUTION_MODE")=="live"):
+            goal=run([sys.executable,"-m","trading.okx_target9_guard"],timeout=45)
+            if goal.returncode==78 and goal.stdout.strip()=="OKX TARGET9 RESULT: TARGET9_FLAT":
+                print("TITAN TARGET9 LATCH: SUCCESS",flush=True)
+                return 78
+            if goal.returncode!=0 or goal.stdout.strip()!="OKX TARGET9 RESULT: BELOW_TARGET":
+                print("TITAN Target9 failed or uncertain; no entry",file=sys.stderr,flush=True)
+                return 2
         if max_cycles and scans>=max_cycles:
             print("TITAN 5-second worker reached cycle limit",flush=True)
             return 0
@@ -296,6 +305,9 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                   "returning to read-only monitoring after 5s",flush=True)
             sleep(pause)
             continue
+        if status=="TARGET9_REACHED_NO_ORDER":
+            print("TITAN TARGET9 LATCH: SUCCESS",flush=True)
+            return 78
         if status=="FILLED_PROTECTED" and resume_after_protected_fill:
             print("TITAN protected entry verified; switching to exchange-state monitoring",
                   flush=True)
