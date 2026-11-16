@@ -1,99 +1,190 @@
-"""Explicitly armed OKX USDT equity target and isolated net SWAP exit.
+"""One-way, explicitly armed 9 USDT equity exit for OKX USDT-SWAP.
 
-At >=9 USDT details[].eq: stop new entries, close all supported isolated
-USDT-SWAP net positions via official market close-position, verify flat.
-Fail closed on unsupported positions, pending orders or uncertain fills.
-No promise of >=9 realized after fees and slippage.
+This module cannot promise 9 USDT after realized fills, fees, slippage or funding.
+No entries are made here. Every uncertain exchange state blocks the trade worker.
 """
 import os
 import sys
+import time
 from decimal import Decimal, InvalidOperation
 from trading.okx_live_executor import OKX, ExecutionBlocked, check_mode
 
 TARGET = Decimal("9")
 ARM = "I_AUTHORIZE_CLOSE_USDT_SWAPS_AT_9_USDT"
+ALGO_TYPES = ("conditional", "oco", "trigger", "move_order_stop")
 
-def _num(x):
-    try: v=Decimal(str(x))
-    except (InvalidOperation, ValueError, TypeError) as exc:
-        raise ExecutionBlocked("Target9: malformed equity/position") from exc
-    if not v.is_finite(): raise ExecutionBlocked("Target9: nonfinite numeric data")
-    return v
 
-def usdt_equity(client):
-    rows=client.request("GET","/api/v5/account/balance",params={"ccy":"USDT"})
-    if len(rows)!=1 or not isinstance(rows[0],dict):
-        raise ExecutionBlocked("Target9: balance unavailable")
-    entries=[x for x in rows[0].get("details",[])
-             if isinstance(x,dict) and x.get("ccy")=="USDT"]
-    if len(entries)!=1:
-        raise ExecutionBlocked("Target9: unambiguous USDT currency equity missing")
-    value=_num(entries[0].get("eq"))
-    if value<0: raise ExecutionBlocked("Target9: negative USDT equity")
+def _num(value):
+    try:
+        value = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError) as exc:
+        raise ExecutionBlocked("Target9: invalid equity/position") from exc
+    if not value.is_finite():
+        raise ExecutionBlocked("Target9: non-finite equity/position")
     return value
 
-def active_swaps(client):
-    rows=client.request("GET","/api/v5/account/positions",params={"instType":"SWAP"})
-    if not isinstance(rows,list): raise ExecutionBlocked("Target9: missing SWAP positions")
-    result=[]
-    for x in rows:
-        if not isinstance(x,dict): raise ExecutionBlocked("Target9: bad SWAP record")
-        if _num(x.get("pos","0"))==0: continue
-        if (not str(x.get("instId","")).endswith("-USDT-SWAP")
-                or x.get("mgnMode")!="isolated"
-                or x.get("posSide","net")!="net"):
-            raise ExecutionBlocked("Target9: unsupported open exposure; manual review")
-        result.append(x["instId"])
-    if len(result)!=len(set(result)):
-        raise ExecutionBlocked("Target9: duplicate SWAP exposure")
-    return result
 
-def check_target(client, *, close_armed=False):
-    if usdt_equity(client)<TARGET: return "BELOW_TARGET"
+def usdt_equity(client):
+    rows = client.request("GET", "/api/v5/account/balance", params={"ccy": "USDT"})
+    if len(rows) != 1 or not isinstance(rows[0], dict):
+        raise ExecutionBlocked("Target9: balance unknown")
+    entries = rows[0].get("details")
+    if not isinstance(entries, list):
+        raise ExecutionBlocked("Target9: missing currency details")
+    matches = [x for x in entries if isinstance(x, dict) and x.get("ccy") == "USDT"]
+    if len(matches) != 1:
+        raise ExecutionBlocked("Target9: ambiguous USDT equity")
+    value = _num(matches[0].get("eq"))
+    if value < 0:
+        raise ExecutionBlocked("Target9: negative USDT equity")
+    return value
+
+
+def _is_usdt_swap(symbol):
+    return isinstance(symbol, str) and symbol.endswith("-USDT-SWAP") and len(symbol) > 10
+
+
+def _listing(client, endpoint, params):
+    rows = client.request("GET", endpoint, params=params)
+    # At the maximum page size further items may be hidden: fail closed.
+    if not isinstance(rows, list) or len(rows) >= 100 or not all(isinstance(x, dict) for x in rows):
+        raise ExecutionBlocked("Target9: invalid or truncated listing")
+    return rows
+
+
+def active_swaps(client, mode="net_mode"):
+    rows = _listing(client, "/api/v5/account/positions", {"instType": "SWAP"})
+    out, seen = [], set()
+    sides = ("net",) if mode == "net_mode" else ("long", "short")
+    for row in rows:
+        if _num(row.get("pos", "0")) == 0:
+            continue
+        symbol, margin, side = row.get("instId"), row.get("mgnMode"), row.get("posSide")
+        if not _is_usdt_swap(symbol) or margin not in ("cross", "isolated") or side not in sides:
+            raise ExecutionBlocked("Target9: unsupported exposure; manual closure required")
+        key = (symbol, margin, side)
+        if key in seen:
+            raise ExecutionBlocked("Target9: duplicate active exposure")
+        seen.add(key)
+        out.append({"instId": symbol, "mgnMode": margin, "posSide": side})
+    return out
+
+
+def pending_orders(client):
+    rows = _listing(client, "/api/v5/trade/orders-pending", {"instType": "SWAP"})
+    if any(not _is_usdt_swap(row.get("instId")) or not row.get("ordId") for row in rows):
+        raise ExecutionBlocked("Target9: unidentified or unsupported pending SWAP order")
+    return rows
+
+
+def pending_algos(client):
+    result = {}
+    for kind in ALGO_TYPES:
+        rows = _listing(client, "/api/v5/trade/orders-algo-pending", {"ordType": kind})
+        for row in rows:
+            symbol = row.get("instId")
+            if not isinstance(symbol, str) or not symbol:
+                raise ExecutionBlocked("Target9: unidentifiable algo exposure")
+            if not symbol.endswith("-SWAP"):
+                continue
+            if not _is_usdt_swap(symbol) or not row.get("algoId"):
+                raise ExecutionBlocked("Target9: unsupported or unidentified SWAP algo")
+            ident = str(row["algoId"])
+            result[(symbol, ident)] = {"instId": symbol, "algoId": ident}
+    return list(result.values())
+
+
+def _single_ack(rows, name, expected=None, field=None):
+    if len(rows) != 1 or not isinstance(rows[0], dict):
+        raise ExecutionBlocked("Target9: ambiguous " + name + " acknowledgement")
+    ack = rows[0]
+    if ack.get("sCode", "0") != "0":
+        raise ExecutionBlocked("Target9: rejected " + name)
+    if expected is not None and str(ack.get(field, "")) != str(expected):
+        raise ExecutionBlocked("Target9: mismatched " + name + " acknowledgement")
+    return ack
+
+
+def _verify_empty(get_remaining, pause):
+    for attempt in range(5):
+        if not get_remaining():
+            pause(0.2)
+            if not get_remaining():
+                return
+        if attempt < 4:
+            pause(0.5)
+    raise ExecutionBlocked("Target9: residual or uncertain exchange exposure; stop")
+
+
+def check_target(client, *, close_armed=False, pause=time.sleep):
+    if usdt_equity(client) < TARGET:
+        return "BELOW_TARGET"
     if not close_armed:
-        raise ExecutionBlocked("Target9: exchange close is not explicitly armed")
-    cfg=client.request("GET","/api/v5/account/config")
-    if len(cfg)!=1 or cfg[0].get("posMode")!="net_mode":
-        raise ExecutionBlocked("Target9: expected net_mode")
-    positions=active_swaps(client)
-    if client.request("GET","/api/v5/trade/orders-pending",params={"instType":"SWAP"}):
-        raise ExecutionBlocked("Target9: pending SWAP orders require manual cancellation")
-    for symbol in positions:
-        reply=client.request("POST","/api/v5/trade/close-position",
-             body={"instId":symbol,"mgnMode":"isolated","posSide":"net","autoCxl":True})
-        if len(reply)!=1 or reply[0].get("sCode") not in (None,"0"):
-            raise ExecutionBlocked("Target9: unconfirmed close outcome")
-    if active_swaps(client):
-        raise ExecutionBlocked("Target9: residual open SWAP; no blind retry")
-    if client.request("GET","/api/v5/trade/orders-pending",params={"instType":"SWAP"}):
-        raise ExecutionBlocked("Target9: residual normal SWAP orders; manual review")
-    # An orphan TP/SL could become dangerous after closing the position.
-    for typ in ("conditional","oco","trigger","move_order_stop"):
-        algos=client.request("GET","/api/v5/trade/orders-algo-pending",
-                             params={"ordType":typ})
-        if not isinstance(algos,list) or any(
-                str(row.get("instId","")).endswith("-SWAP")
-                for row in algos if isinstance(row,dict)):
-            raise ExecutionBlocked("Target9: pending SWAP algo after close; manual review")
+        raise ExecutionBlocked("Target9: no explicit close authorization")
+    cfg = client.request("GET", "/api/v5/account/config")
+    if len(cfg) != 1 or not isinstance(cfg[0], dict):
+        raise ExecutionBlocked("Target9: missing position mode")
+    mode = cfg[0].get("posMode")
+    if mode not in ("net_mode", "long_short_mode"):
+        raise ExecutionBlocked("Target9: unsupported position mode")
+
+    positions = active_swaps(client, mode)
+    orders = pending_orders(client)
+    # Cancel normal pending orders first, so one cannot open exposure during exit.
+    for row in orders:
+        ident = str(row["ordId"])
+        ack = client.request("POST", "/api/v5/trade/cancel-order",
+                             body={"instId": row["instId"], "ordId": ident})
+        _single_ack(ack, "order cancel", ident, "ordId")
+    if orders:
+        _verify_empty(lambda: pending_orders(client), pause)
+
+    # Close each supported position. Do not retry an ambiguous POST.
+    for p in positions:
+        ack = client.request("POST", "/api/v5/trade/close-position",
+                             body={**p, "autoCxl": True})
+        item = _single_ack(ack, "position close", p["instId"], "instId")
+        if item.get("posSide") not in (None, p["posSide"]):
+            raise ExecutionBlocked("Target9: close side mismatch")
+    _verify_empty(lambda: active_swaps(client, mode), pause)
+
+    # Orphan triggers can remain even if no position is open.
+    algos = pending_algos(client)
+    for start in range(0, len(algos), 10):
+        batch = algos[start:start + 10]
+        ack = client.request("POST", "/api/v5/trade/cancel-algos", body=batch)
+        if not isinstance(ack, list) or len(ack) != len(batch):
+            raise ExecutionBlocked("Target9: ambiguous algo cancellation")
+        expected = {x["algoId"] for x in batch}
+        received = {str(x.get("algoId")) for x in ack if isinstance(x, dict) and x.get("sCode") == "0"}
+        if expected != received or len(received) != len(batch):
+            raise ExecutionBlocked("Target9: algo cancellation not confirmed")
+    if algos:
+        _verify_empty(lambda: pending_algos(client), pause)
+    _verify_empty(lambda: active_swaps(client, mode) or pending_orders(client) or pending_algos(client),
+                  pause)
     return "TARGET9_FLAT"
+
 
 def main():
     try:
-        env=dict(os.environ)
-        if env.get("OKX_EXECUTION_MODE")!="live":
-            raise ExecutionBlocked("Target9: no private actions outside LIVE")
-        check_mode("live",env)
-        if env.get("OKX_TARGET9_ENABLED")!="YES":
-            raise ExecutionBlocked("Target9: feature not enabled")
-        state=check_target(OKX(env),close_armed=env.get("OKX_TARGET9_CLOSE_ARM")==ARM)
-        print("OKX TARGET9 RESULT: "+state,flush=True)
-        return 78 if state=="TARGET9_FLAT" else 0
+        env = dict(os.environ)
+        if env.get("OKX_EXECUTION_MODE") != "live":
+            raise ExecutionBlocked("Target9: no live access outside explicitly selected LIVE")
+        check_mode("live", env)
+        if env.get("OKX_TARGET9_ENABLED") != "YES":
+            raise ExecutionBlocked("Target9: not enabled")
+        state = check_target(OKX(env), close_armed=env.get("OKX_TARGET9_CLOSE_ARM") == ARM)
+        print("OKX TARGET9 RESULT: " + state, flush=True)
+        return 78 if state == "TARGET9_FLAT" else 0
     except ExecutionBlocked as exc:
-        print("OKX TARGET9 BLOCKED: "+str(exc),file=sys.stderr,flush=True)
+        print("OKX TARGET9 BLOCKED: " + str(exc), file=sys.stderr, flush=True)
         return 2
     except Exception:
-        print("OKX TARGET9 ERROR: unknown state; manual review",file=sys.stderr,flush=True)
+        print("OKX TARGET9 ERROR: uncertain exchange state; manual review",
+              file=sys.stderr, flush=True)
         return 3
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     raise SystemExit(main())
