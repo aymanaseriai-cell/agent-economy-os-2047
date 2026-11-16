@@ -22,12 +22,14 @@ if __package__:
     from .titan_omega import evaluate_omega, qubo_pick
     from .titan_cosmos import evaluate_cosmos, SYSTEMS as SYSTEMS_COSMOS
     from .titan_edge_lab import evaluate_edge_lab, SYSTEMS as SYSTEMS_EDGE
+    from .titan_falsification import falsify_edge
     from .titan_fast_entry_router import evaluate_fast_entry
 else:
     from quant2037 import evaluate_advanced
     from titan_omega import evaluate_omega, qubo_pick
     from titan_cosmos import evaluate_cosmos, SYSTEMS as SYSTEMS_COSMOS
     from titan_edge_lab import evaluate_edge_lab, SYSTEMS as SYSTEMS_EDGE
+    from titan_falsification import falsify_edge
     from titan_fast_entry_router import evaluate_fast_entry
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -475,6 +477,8 @@ def analyze_market(ticker):
     record["cosmos_math"] = evaluate_cosmos(bars15, bars1h, bars4h, book_rows[0])
     # EDGE LAB is shadow-only: additional mathematical evidence, no live veto or override.
     record["edge_lab"] = evaluate_edge_lab(bars15, bars1h, bars4h, book_rows[0])
+    # Advanced anti-overfitting research remains shadow-only, no live promotion.
+    record["falsification_lab"] = falsify_edge(bars15)
     # Separate, permissionless opportunity discovery: never changes 'signal'.
     # No research-only strategy may bypass the full live executor's vetoes.
     record["fast_entry_research"] = evaluate_fast_entry(
@@ -552,6 +556,7 @@ def main():
                   "omega_system_count": 10, "omega_qubo_best_symbol": qubo_pick(results),
                   "cosmos_system_count": len(SYSTEMS_COSMOS), "cosmos_live_entry_override": False,
                   "edge_lab_system_count": len(SYSTEMS_EDGE), "edge_lab_live_entry_override": False,
+                  "falsification_live_entry_override": False,
                   "orders_placed": 0, "timeframe_main": "15m", "volume_profile_window": "48h_approx",
                   "minimum_estimated_turnover_usdt": MIN_TURNOVER_USDT_EST,
                   "minimum_exchange_advertised_leverage": MIN_ADVERTISED_SWAP_LEVERAGE,
@@ -605,6 +610,9 @@ def main():
               "live_entry_override=NO", "real_orders=0", flush=True)
         print("TITAN EDGE LAB RESEARCH: systems=", len(SYSTEMS_EDGE),
               "valid_markets=", sum(x.get("edge_lab", {}).get("data_valid", False) for x in results),
+              "live_entry_override=NO", "real_orders=0", flush=True)
+        print("TITAN FALSIFICATION RESEARCH: evaluated_markets=",
+              sum(x.get("falsification_lab", {}).get("data_valid", False) for x in results),
               "live_entry_override=NO", "real_orders=0", flush=True)
         print("TITAN FAST ENTRY RESEARCH: hypothetical_candidates=",
               report["fast_entry_research_candidates"], "live_entry_override=NO",
