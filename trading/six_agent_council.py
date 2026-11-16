@@ -24,6 +24,7 @@ if __package__:
     from .titan_edge_lab import evaluate_edge_lab, SYSTEMS as SYSTEMS_EDGE
     from .titan_falsification import falsify_edge
     from .titan_fast_entry_router import evaluate_fast_entry
+    from .titan_speed_matrix import evaluate_speed_matrix
 else:
     from quant2037 import evaluate_advanced
     from titan_omega import evaluate_omega, qubo_pick
@@ -31,6 +32,7 @@ else:
     from titan_edge_lab import evaluate_edge_lab, SYSTEMS as SYSTEMS_EDGE
     from titan_falsification import falsify_edge
     from titan_fast_entry_router import evaluate_fast_entry
+    from titan_speed_matrix import evaluate_speed_matrix
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
@@ -466,6 +468,7 @@ def analyze_market(ticker):
                            ticker, funding_rows[0] if funding_rows else {},
                            oi_rows[0] if oi_rows else {}, mark_rows[0] if mark_rows else {}, record)
     record.update(omega)
+    record.update(evaluate_speed_matrix(bars15,bars1h,bars4h,book_rows[0],trade_rows,record))
     if record["signal"] in ("LONG", "SHORT") and omega["omega_veto_reasons"]:
         record["signal"] = "WAIT"
     if derivatives_errors or not funding_rows or not oi_rows or not mark_rows:
