@@ -482,6 +482,47 @@ def enforce_exit_cooldown(client, *, now_ms=None):
     return True
 
 
+def last_fully_closed_swap_symbol(client, *, now_ms=None):
+    """Find the last confirmed completely exited USDT swap, to rotate coins.
+
+    Read-only exchange history; if recent exit identity is ambiguous, do not
+    guess a replacement coin. The 30-second cooldown remains a separate veto.
+    """
+    now_ms=int(time.time()*1000) if now_ms is None else int(now_ms)
+    rows=client.request('GET','/api/v5/account/positions-history',
+                        params={'instType':'SWAP','limit':'100'})
+    if not isinstance(rows,list):
+        raise ExecutionBlocked('Position history unavailable for coin rotation')
+    recent=[]
+    cutoff=now_ms-2*60*60*1000
+    for row in rows:
+        if not isinstance(row,dict):
+            raise ExecutionBlocked('Malformed position history for coin rotation')
+        if str(row.get('type')) not in ('2','3','6'):
+            continue
+        try:
+            when=int(row.get('uTime') or 0)
+        except (ValueError,TypeError) as exc:
+            raise ExecutionBlocked('Invalid closed-position timestamp') from exc
+        if when<=0 or when>now_ms+60_000:
+            raise ExecutionBlocked('Invalid closed-position timestamp')
+        if when<cutoff:
+            continue
+        symbol=row.get('instId')
+        if not isinstance(symbol,str) or not symbol.endswith('-USDT-SWAP'):
+            raise ExecutionBlocked('Unverifiable last closed USDT swap identity')
+        recent.append((when,symbol))
+    if len(rows)>=100:
+        # Complete recent history is not known if the first page is saturated.
+        raise ExecutionBlocked('Cannot verify latest exited coin in paginated history')
+    if not recent:
+        return None
+    recent.sort(reverse=True)
+    if len(recent)>1 and recent[0][0]==recent[1][0] and recent[0][1]!=recent[1][1]:
+        raise ExecutionBlocked('Ambiguous most recent exited coin')
+    return recent[0][1]
+
+
 def get_prices(signal,ticker,inst):
     last=dec(ticker['last'])
     tick=dec(inst['tickSz'])
@@ -711,6 +752,16 @@ def execute(report, client, mode, env, *, allow_post=True):
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
     max_positions = int(env.get('OKX_MAX_ACTIVE_POSITIONS','1'))
+    if (env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
+            and env.get('OKX_ROTATE_AFTER_EXIT_ENABLED') == 'YES'
+            and max_positions == 1):
+        # Rotate to a different coin after the previous full close; selecting
+        # a different symbol does NOT bypass cooldown or any live entry veto.
+        previous=last_fully_closed_swap_symbol(client)
+        if previous:
+            signal=choose_signal(report,exclude_symbols=(previous,))
+            if signal is None:
+                return 'NO_CONSENSUS'
     multi = max_positions > 1
     dynamic = env.get('OKX_LEVERAGE_MODE', 'fixed').lower() == 'dynamic'
     account_before = None
