@@ -752,7 +752,9 @@ def execute(report, client, mode, env, *, allow_post=True):
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
     max_positions = int(env.get('OKX_MAX_ACTIVE_POSITIONS','1'))
-    if env.get('OKX_AUTOREENTRY_ENABLED') == 'YES' and max_positions == 1:
+    if (env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
+            and env.get('OKX_ROTATE_AFTER_EXIT_ENABLED') == 'YES'
+            and max_positions == 1):
         # Rotate to a different coin after the previous full close; selecting
         # a different symbol does NOT bypass cooldown or any live entry veto.
         previous=last_fully_closed_swap_symbol(client)
