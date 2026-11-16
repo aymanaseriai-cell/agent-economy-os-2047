@@ -543,7 +543,8 @@ def contract_size(inst, price, equity, stop_fraction, *, capital_mode='guarded',
                          else MAX_FULL_MARGIN_PLANNED_STOP_RISK)
         if intended_stop_loss > equity * planned_limit:
             raise OpportunityRiskRejected(
-                'High-margin stop exceeds explicitly configured planned equity loss budget')
+                'Margin_99 planned stop exceeds 99% equity budget; risk of liquidation' if capital_mode == MARGIN_99_MODE
+                else 'Full-margin/96% stop implies over 20% equity planned loss; refuse order')
         if contracts * per_contract > max_notional:
             raise ExecutionBlocked('Full-margin/96% leverage and allocation invariant failed')
         if contracts > exchange_limit:
