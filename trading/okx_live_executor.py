@@ -300,8 +300,10 @@ def choose_signal(report, now_ms=None, *, exclude_symbols=()):
                 continue
             # Bootstrap ETA is uncalibrated, but breaks ties between
             # already eligible candidates without bypassing any veto.
+            eta_raw=x.get("omega_estimated_time_to_target_minutes")
             try:
-                eta=dec(x.get("omega_estimated_time_to_target_minutes"))
+                eta=(Decimal(str(eta_raw))
+                     if eta_raw not in (None, "") else Decimal("180"))
             except (TypeError,ValueError,InvalidOperation):
                 eta=Decimal("180")
             if not eta.is_finite() or eta<=0 or eta>Decimal("180"):

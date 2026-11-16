@@ -25,7 +25,7 @@ def pos(name="BTC-USDT-SWAP",mode="isolated",side="net"):
 
 class TargetTests(unittest.TestCase):
     def test_misleading_total_usd_does_not_trigger_nine_usdt(self):
-        f=Fake();self.assertEqual(usdt_equity(f),4.53)
+        f=Fake();self.assertEqual(str(usdt_equity(f)),"4.53")
         self.assertEqual(check_target(f,close_armed=True),"BELOW_TARGET")
         self.assertFalse(f.posts)
     def test_at_nine_locks_even_if_flat(self):
