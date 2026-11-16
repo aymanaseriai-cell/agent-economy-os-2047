@@ -10,7 +10,6 @@ from __future__ import annotations
 
 import math
 import random
-import statistics
 
 from trading.titan_edge_lab import signal_at_close, validate_bars
 
@@ -23,13 +22,15 @@ def _trade_series(bars, strategy, start, end):
     for t in range(start, end):
         side = signal_at_close(bars, t, strategy)
         nxt = bars[t + 1]
-        gross = side * (float(nxt["close"]) / float(nxt["open"]) - 1.0)
-        out.append((side, gross))
+        raw_return = float(nxt["close"]) / float(nxt["open"]) - 1.0
+        # Preserve the REALIZED return even for NO-TRADE candles so the
+        # circular-shift null has a complete, unbiased return sequence.
+        out.append((side, raw_return))
     return out
 
 
 def _costed(series, roundtrip_cost):
-    trades = [gross - roundtrip_cost for side, gross in series if side]
+    trades = [side * raw - roundtrip_cost for side, raw in series if side]
     wealth = peak = 1.0
     worst_drawdown = 0.0
     for net in trades:
@@ -68,8 +69,8 @@ def _null_shift_pvalue(fold_vectors, cost, seed=2047, simulations=96):
     Preserve within-fold signal autocorrelation and realized gross return order.
     Not a statistically calibrated independence test under all market regimes.
     """
-    observed = sum(gross - cost for vec in fold_vectors
-                   for side, gross in vec if side)
+    observed = sum(side * raw - cost for vec in fold_vectors
+                   for side, raw in vec if side)
     rng = random.Random(seed)
     exceed = 0
     for _ in range(simulations):
@@ -79,10 +80,10 @@ def _null_shift_pvalue(fold_vectors, cost, seed=2047, simulations=96):
             if n < 3:
                 continue
             shift = rng.randrange(1, n)
-            # gross encodes the side; reconstruct raw open-to-close return.
-            raw = [gross / side if side else 0.0 for side, gross in vec]
-            # To keep the null valid for NO-TRADE signals, use raw returns
-            # from each candle, including candles without entries.
+            # The recorded raw return must include non-entry candles.
+            # Otherwise the null would systematically attenuate the
+            # randomly shifted strategy and overstate apparent significance.
+            raw = [realized for _, realized in vec]
             for i in range(n):
                 moved_side = vec[(i + shift) % n][0]
                 if moved_side:

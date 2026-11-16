@@ -2,7 +2,7 @@ import json
 import math
 import unittest
 
-from trading.titan_falsification import falsify_edge
+from trading.titan_falsification import falsify_edge, _trade_series
 
 
 def rows(n=210, slope=0.0005, wave=0.001):
@@ -68,6 +68,16 @@ class FalsificationTests(unittest.TestCase):
         b[70]["close"] = -1
         self.assertFalse(falsify_edge(b)["data_valid"])
         self.assertFalse(falsify_edge(rows(), slippage_bp_per_side=-1)["data_valid"])
+
+    def test_null_preserves_return_on_no_trade_bars(self):
+        b = rows(slope=0, wave=0)
+        # All closes remain flat, so this Bollinger strategy is neutral.
+        # But the following candle can still have a nonzero open-close move.
+        b[70]["open"] = 99.0
+        b[70]["low"] = 98.0
+        vec = _trade_series(b, "bollinger_reversion", 69, 70)
+        self.assertEqual(vec[0][0], 0)
+        self.assertAlmostEqual(vec[0][1], 100.0 / 99.0 - 1.0)
 
     def test_null_fraction_is_bounded_not_an_authorization(self):
         audit = falsify_edge(rows(n=420, slope=0.001, wave=0.003))
