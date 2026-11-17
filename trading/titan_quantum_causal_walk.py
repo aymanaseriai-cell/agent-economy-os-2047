@@ -34,7 +34,10 @@ from trading.titan_regime_research import validate_frozen
 from trading.titan_quantum_recurrence import capital_feasibility
 
 # NEW 6-market group: did not appear among the first 30 researched symbols.
-SYMBOLS=("PEPE-USDT-SWAP","SHIB-USDT-SWAP","TON-USDT-SWAP",
+# Instrument-only replacement: TON perpetual was delisted on OKX on 2026-06-16.
+# Its public historical fetch failed in run 44020086982 before scoring anything.
+# PENDLE substitution documented before the first completed results report.
+SYMBOLS=("PEPE-USDT-SWAP","SHIB-USDT-SWAP","PENDLE-USDT-SWAP",
          "TIA-USDT-SWAP","SEI-USDT-SWAP","JUP-USDT-SWAP")
 DAYS=75
 TRAIN_SHARE=.60
@@ -280,6 +283,7 @@ def evaluate(bars_by_symbol,specs,*,at_ms=None,hashes=None):
         "novelty":"Original project-specific coined quantum walk with candle phase kicks; not claimed world first",
         "public_history_source":"OKX GET /api/v5/market/history-candles",
         "market_symbols_frozen_before_data_fetch":list(SYMBOLS),
+        "data_availability_replacement_note":"TON-USDT-SWAP delisted June 16 2026; replaced by PENDLE-USDT-SWAP after failed unscored TON history fetch in GitHub Actions run 44020086982; strategy equations and thresholds unchanged.",
         "requested_lookback_days":DAYS,
         "completed_15m_market_bars":sum(len(b) for b in bars_by_symbol.values()),
         "sha256_market_history":hashes or {},
