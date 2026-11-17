@@ -1,0 +1,34 @@
+name: TITAN Quantum Causal Walk - independent 75-day real OKX test
+on:
+  push:
+    paths:
+      - 'trading/titan_quantum_causal_walk.py'
+      - 'tests/test_titan_quantum_causal_walk.py'
+      - '.github/workflows/titan-quantum-causal-walk.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qcw-research-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify quantum walk unitarity and zero look-ahead (NO ORDERS)
+        run: python -m unittest discover -s tests -p 'test_titan_quantum_causal_walk.py' -v
+      - name: Fetch six unseen public OKX 15m swaps and test quantum vs classical (NO ORDERS)
+        run: python -m trading.titan_quantum_causal_walk --out reports/titan_qcw_75day_report.json --raw-dir reports/titan_qcw_75day_public_candles
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qcw-research-only-75day-ohlc-raw-and-report
+          path: |
+            reports/titan_qcw_75day_report.json
+            reports/titan_qcw_75day_public_candles/
+          if-no-files-found: warn
+          retention-days: 60
