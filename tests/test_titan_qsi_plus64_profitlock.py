@@ -34,7 +34,20 @@ class QSI64Test(unittest.TestCase):
             fee=.0005,slip=.0003,mode="after32_reduce3")
         self.assertEqual(p["trades"],0)
         self.assertEqual(p["ending_usdt"],4.15)
-        self.assertFalse(p["reached_and_locked_32_at_close"])
+        self.assertFalse(p["reached_and_locked_64_at_close"])
+
+    def test_failed_lot_attempts_are_not_called_filled_trades(self):
+        market={"TEST-USDT-SWAP":[{"ts":i*900000,"open":1.,
+                "high":2.,"low":.5,"close":1.} for i in range(10)]}
+        def no_fill(bars,signal,spec,*,equity,leverage,fee,slip,end):
+            return None
+        p=model.book_with_gate(market,{"TEST-USDT-SWAP":{}},
+            {"TEST-USDT-SWAP":{"quantum_phase_robust":[(1,1,.3,.4)]}},
+            policy="quantum_phase_robust",leverage=10,start=1,end=10,
+            fee=.0005,slip=.0003,mode="after32_reduce3",executor=no_fill)
+        self.assertEqual(p["trades"],0)
+        self.assertEqual(p["paper_trades_after_32_stage"],0)
+        self.assertEqual(p["max_paper_leverage_used"],0)
 
     def test_64_is_only_confirmed_after_actual_closed_equity(self):
         market={"TEST-USDT-SWAP":[{"ts":i*900000,"open":1.,"high":20.,
@@ -52,7 +65,7 @@ class QSI64Test(unittest.TestCase):
             fee=.0005,slip=.0003,mode="after32_reduce3",executor=fake)
         self.assertEqual(counter,[10,3])
         self.assertEqual(p["trades"],2)
-        self.assertTrue(p["reached_and_locked_32_at_close"])
+        self.assertTrue(p["reached_and_locked_64_at_close"])
         self.assertAlmostEqual(p["ending_usdt"],6.85,places=6)
 
 if __name__=="__main__":

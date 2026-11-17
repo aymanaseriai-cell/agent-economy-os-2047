@@ -60,13 +60,19 @@ def book_with_gate(markets,specs,signals,*,policy,leverage,start,end,
     applied=[]
     def trade(bars,signal,spec,*,equity,leverage,fee,slip,end):
         effective=effective_leverage(equity,leverage,mode)
-        applied.append((float(equity),float(effective)))
-        return execution(bars,signal,spec,equity=equity,leverage=effective,
-                         fee=fee,slip=slip,end=end)
+        executed=execution(bars,signal,spec,equity=equity,leverage=effective,
+                           fee=fee,slip=slip,end=end)
+        if executed is not None:
+            applied.append((float(equity),float(effective)))
+        return executed
     result=target_book(markets,specs,signals,
                        policy=policy,leverage=leverage,start=start,end=end,
                        fee=fee,slip=slip,goal=goal,one_trade=trade)
     result.pop("trade_log")
+    # The inherited target_book key historically says '32' even when its
+    # goal argument is 6.806; make the actual new target unambiguous.
+    result["reached_and_locked_64_at_close"]=result.pop(
+        "reached_and_locked_32_at_close")
     result["risk_mode"]=mode
     result["stage32_activated_on_new_entry"]=any(
         lev<leverage and equity>=TARGET32 for equity,lev in applied)
@@ -124,8 +130,8 @@ def research(archive_dir):
     # reach the target (realized, not high wick) on train normal AND stress,
     # with enough trading days and without simulated ruin first.
     training_eligible=[name for name,p in models.items() if
-        p["train"]["ordinary"]["reached_and_locked_32_at_close"]
-        and p["train"]["stress"]["reached_and_locked_32_at_close"]
+        p["train"]["ordinary"]["reached_and_locked_64_at_close"]
+        and p["train"]["stress"]["reached_and_locked_64_at_close"]
         and not p["train"]["ordinary"]["paper_ruin"]
         and not p["train"]["stress"]["paper_ruin"]
         and p["train"]["ordinary"]["trades"]>=24
@@ -134,7 +140,7 @@ def research(archive_dir):
         key=lambda name:models[name]["train"]["stress"]["return_pct"])
         if training_eligible else None)
     repeat=bool(chosen) and all(
-        models[chosen][period][cost]["reached_and_locked_32_at_close"]
+        models[chosen][period][cost]["reached_and_locked_64_at_close"]
         and not models[chosen][period][cost]["paper_ruin"]
         for period in ("holdout_1","holdout_2") for cost in COSTS)
     return {
