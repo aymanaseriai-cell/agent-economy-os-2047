@@ -39,6 +39,7 @@ def solve_ridge(samples,targets,ridge=25.):
     for i in range(n):
         pivot=max(range(i,n),key=lambda j:abs(a[j][i]))
         a[i],a[pivot]=a[pivot],a[i]
+        b[i],b[pivot]=b[pivot],b[i]  # RHS must be permuted with pivoted matrix rows
         if abs(a[i][i])<1e-12:raise ArithmeticError("Ill-conditioned Koopman matrix")
         scale=a[i][i]
         for k in range(i,n):a[i][k]/=scale
