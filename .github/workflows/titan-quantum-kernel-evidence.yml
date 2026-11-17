@@ -1,0 +1,34 @@
+name: TITAN quantum kernel 60day real market proof challenge (NO ORDERS)
+on:
+  push:
+    paths:
+      - 'trading/titan_quantum_kernel_evidence.py'
+      - 'tests/test_titan_quantum_kernel_evidence.py'
+      - '.github/workflows/titan-quantum-kernel-evidence.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-historical-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 2-qubit state unitarity, information split and no lookahead
+        run: python -m unittest discover -s tests -p 'test_titan_quantum_kernel_evidence.py' -v
+      - name: Download new public OKX completed candles, fit 45%, validate 15%, hold out 20+20% (NO ORDERS)
+        run: python -m trading.titan_quantum_kernel_evidence --out reports/titan_qkel_60d.json --raw-dir reports/titan_qkel_60d_raw
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qkel-frozen-real-60day-research
+          path: |
+            reports/titan_qkel_60d.json
+            reports/titan_qkel_60d_raw/
+          if-no-files-found: warn
+          retention-days: 60
