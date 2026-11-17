@@ -1,0 +1,34 @@
+name: TITAN Open Quantum Adversarial real historical challenge
+on:
+  push:
+    paths:
+      - 'trading/titan_open_quantum_adversarial.py'
+      - 'tests/test_titan_open_quantum_adversarial.py'
+      - '.github/workflows/titan-open-quantum-adversarial.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-historical-research-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate quantum channel positivity, no-lookahead and WAIT veto
+        run: python -m unittest discover -s tests -p 'test_titan_open_quantum_adversarial.py' -v
+      - name: Fetch unseen public OKX candles and evaluate chronological 60/40 holdout (NO ORDERS)
+        run: python -m trading.titan_open_quantum_adversarial --output reports/titan_open_quantum_adversarial.json --data-dir reports/titan_open_quantum_raw
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-open-quantum-adversarial-real-historical
+          path: |
+            reports/titan_open_quantum_adversarial.json
+            reports/titan_open_quantum_raw/
+          if-no-files-found: warn
+          retention-days: 60
