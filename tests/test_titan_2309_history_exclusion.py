@@ -6,6 +6,7 @@ import tempfile
 import time
 import unittest
 from contextlib import redirect_stdout
+from datetime import datetime
 from pathlib import Path
 from unittest.mock import patch
 
@@ -62,7 +63,8 @@ class HistoryExclusionTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "report.json"
             path.write_text(json.dumps(report))
-            checked = read_report(path, now_ms=int(time.time()*1000))
+            checked = read_report(path, now_ms=int(
+                datetime.fromisoformat(report["utc_timestamp"]).timestamp()*1000)+1000)
         self.assertTrue(checked["market_scan_complete"])
 
     def test_unrelated_data_error_remains_fatal(self):
@@ -120,7 +122,8 @@ class HistoryExclusionTests(unittest.TestCase):
                 path.write_text(json.dumps(bad))
                 with self.subTest(bad=bad):
                     with self.assertRaises(ExecutionBlocked):
-                        read_report(path, now_ms=int(time.time()*1000))
+                        read_report(path, now_ms=int(
+                            datetime.fromisoformat(good["utc_timestamp"]).timestamp()*1000)+1000)
 
 
 if __name__ == "__main__":
