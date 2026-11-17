@@ -11,7 +11,8 @@ def replay(read):
     raw=original["source_manifest"]
     if len(raw)!=6:raise ValueError("Incomplete original source manifest")
     bars={};specs={};funding={};hashes={}
-    for sym,meta in sorted(raw.items()):
+    for sym in sorted(raw, key=lambda s:hashlib.sha256((market.STUDY+'|'+s).encode()).hexdigest()):
+        meta=raw[sym]
         candle=gzip.decompress(read("omega_25m_original_okx/"+sym+"-original-15m.json.gz"))
         digest=hashlib.sha256(candle).hexdigest()
         if digest!=meta["original_price_ohlcv_sha256"]:
