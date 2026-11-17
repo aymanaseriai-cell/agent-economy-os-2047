@@ -1,0 +1,39 @@
+name: TITAN QSI 64-percent goal with realized 32-percent risk step — paper ONLY
+on:
+  push:
+    paths:
+      - 'trading/titan_qsi_plus64_profitlock.py'
+      - 'tests/test_titan_qsi_plus64_profitlock.py'
+      - '.github/workflows/titan-qsi-plus64-profitlock.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  research-public-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test 64% target, realized-stage risk policy and no false hits
+        run: python -m unittest discover -s tests -p 'test_titan_qsi_plus64_profitlock.py' -v
+      - name: Fetch six market ORIGINAL archived OKX completed price candles
+        run: |
+          mkdir -p reports/original_qsi
+          gh run download 44030465243 --repo "${{ github.repository }}" --name titan-qsi-4-15-real-public-data-no-orders --dir reports/original_qsi
+      - name: SHA256 verify original prices and paper replay of all 48 outcomes before 64% trial
+        run: python -m trading.titan_qsi_plus64_profitlock --input reports/original_qsi --out reports/titan_qsi_plus64_paper.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qsi-64percent-unmodified-real-okx-ohlc-research
+          path: reports/titan_qsi_plus64_paper.json
+          if-no-files-found: warn
+          retention-days: 60
