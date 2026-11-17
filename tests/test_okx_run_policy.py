@@ -11,6 +11,9 @@ class WorkflowStopInterlockTests(unittest.TestCase):
                                    "OKX_EXECUTION_MODE": "live"}),
             "RESEARCH_ONLY_PUBLIC_NO_ORDERS")
 
+    def test_risk_check_is_read_only_when_owner_stop_active(self):
+        self.assertEqual(preflight("risk_check", {"OKX_ENABLE_REAL_TRADING":"NO", "OKX_STOP_CONTINUOUS":"YES"}), "READ_ONLY_OKX_PORTFOLIO_CHECK_NO_ORDERS")
+
     def test_validate_is_read_only(self):
         self.assertEqual(preflight("validate", {}),
                          "READ_ONLY_OKX_CONNECTION_CHECK_NO_ORDERS")
