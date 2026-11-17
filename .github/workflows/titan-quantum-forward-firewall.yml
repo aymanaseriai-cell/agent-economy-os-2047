@@ -1,0 +1,63 @@
+name: TITAN Quantum Forward Firewall — sealed future evidence, NO ORDERS
+on:
+  push:
+    paths:
+      - 'trading/titan_quantum_forward_firewall.py'
+      - 'tests/test_titan_quantum_forward_firewall.py'
+      - '.github/workflows/titan-quantum-forward-firewall.yml'
+  workflow_dispatch:
+    inputs:
+      phase:
+        description: "CAPTURE now or SCORE completed future candles from a prior run"
+        type: choice
+        options: [capture, score]
+        default: capture
+        required: true
+      seal_run_id:
+        description: "When scoring, provide an actual prior CAPTURE GitHub workflow run ID"
+        required: false
+        type: string
+permissions:
+  contents: read
+  actions: read
+jobs:
+  sealed-paper-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify no-lookahead and tamper-proof forward seal
+        run: python -m unittest discover -s tests -p 'test_titan_quantum_forward_firewall.py' -v
+      - name: Pre-register future quantum & classic SHADOW signal from PUBLIC completed OKX candles
+        if: github.event_name == 'push' || inputs.phase != 'score'
+        run: python -m trading.titan_quantum_forward_firewall capture --out reports/titan_quantum_future_seal.json
+      - uses: actions/upload-artifact@v4
+        if: github.event_name == 'push' || inputs.phase != 'score'
+        with:
+          name: titan-quantum-sealed-future-paper-no-orders
+          path: reports/titan_quantum_future_seal.json
+          retention-days: 90
+      - name: Fetch original immutable GitHub public seal
+        if: inputs.phase == 'score'
+        env:
+          SEAL_RUN_ID: ${{ inputs.seal_run_id }}
+        run: |
+          test "$SEAL_RUN_ID" != "" || { echo "Missing seal_run_id" >&2; exit 1; }
+          mkdir -p reports/previous
+          gh run download "$SEAL_RUN_ID" --repo "${{ github.repository }}" --name titan-quantum-sealed-future-paper-no-orders --dir reports/previous
+      - name: Score ONLY the sealed past signal after the future 4 bars have completed
+        if: inputs.phase == 'score'
+        run: python -m trading.titan_quantum_forward_firewall score --sealed reports/previous/titan_quantum_future_seal.json --out reports/titan_quantum_matured_paper_score.json
+      - uses: actions/upload-artifact@v4
+        if: inputs.phase == 'score'
+        with:
+          name: titan-quantum-matured-future-paper-no-orders
+          path: reports/titan_quantum_matured_paper_score.json
+          retention-days: 90
