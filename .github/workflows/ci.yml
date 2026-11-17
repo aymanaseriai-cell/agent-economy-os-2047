@@ -26,6 +26,15 @@ jobs:
         run: python -m trading.titan_regime_research --offline-dir reports --out reports/titan_regime_research.json
       - name: Adversarial goal-first vs severe-loss-first tribunal (NO ORDERS)
         run: python -m trading.titan_alpha_tribunal --offline-dir reports --out reports/titan_alpha_tribunal.json
+      - name: Classical quantum-inspired Ising self-test (NO ORDERS)
+        run: python -m trading.titan_quantum_ising_lab --offline-dir reports --out reports/titan_quantum_ising_lab.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-classical-ising-quantum-inspired-no-orders
+          path: reports/titan_quantum_ising_lab.json
+          if-no-files-found: error
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
