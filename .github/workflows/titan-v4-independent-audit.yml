@@ -59,3 +59,5 @@ jobs:
             reports/v4_tamper_detected.json
           if-no-files-found: warn
           retention-days: 60
+
+# Rerun independent audit after auditor-only Python syntax correction.
