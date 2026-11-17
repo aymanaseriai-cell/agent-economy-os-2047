@@ -1,0 +1,41 @@
+name: TITAN Omega Infinite12 - independent PAPER research only
+on:
+  push:
+    branches:
+      - research/titan-omega-quantum-infinite-12h
+    paths:
+      - 'trading/titan_omega_infinite12*.py'
+      - 'tests/test_titan_omega_infinite12.py'
+      - 'docs/TITAN_OMEGA_INFINITE12.md'
+      - '.github/workflows/titan-omega-infinite12-paper.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  research-only-no-orders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit tests including future leak and deliberate accounting tampering
+        run: python -m unittest discover -s tests -p 'test_titan_omega_infinite12.py' -v
+      - name: Collect only original OKX PUBLIC completed candles and specs
+        run: python -m trading.titan_omega_infinite12 collect --out research_artifacts/omega12_original_public_prices.json --limit-bars 1000
+      - name: Replay every fixed nonoverlapping 12h development window and all models
+        run: python -m trading.titan_omega_infinite12 replay --input research_artifacts/omega12_original_public_prices.json --out research_artifacts/omega12_all_development_windows.json
+      - name: Independent source, cost, closed equity, liquidation proxy and no-lookahead ledger audit
+        run: python -m trading.titan_omega_infinite12_audit --input research_artifacts/omega12_original_public_prices.json --report research_artifacts/omega12_all_development_windows.json --out research_artifacts/omega12_independent_audit.json
+      - name: Preserve original prices, development windows, paper trades and audit
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-infinite12-research-no-orders-original-data-all-results
+          path: research_artifacts/
+          if-no-files-found: warn
+          retention-days: 90
