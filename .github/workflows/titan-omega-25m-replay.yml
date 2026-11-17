@@ -1,0 +1,40 @@
+name: OMEGA 25M Exact SHA256 Offline Replay of 432 Tests
+on:
+  push:
+    paths:
+      - 'trading/titan_omega_25m_replay.py'
+      - 'tests/test_titan_omega_25m_replay.py'
+      - '.github/workflows/titan-omega-25m-replay.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  frozen-okx-data-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download SHA-frozen original six-market evidence from run 44064526902
+        uses: actions/download-artifact@v4
+        with:
+          name: omega-singularity-25m-original-okx-quant-evidence
+          run-id: 44064526902
+          github-token: ${{ github.token }}
+          path: reports
+      - name: Test fully offline reproduction refuses unsupported or missing data
+        run: python -m unittest discover -s tests -p 'test_titan_omega_25m_replay.py' -v
+      - name: Recalculate and compare exact 432 paper trials and trade/equity history without data refetch
+        run: python -m trading.titan_omega_25m_replay --dir reports --out reports/omega_25m_offline_replay.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omega-25m-independent-offline-replay-verified
+          path: reports/omega_25m_offline_replay.json
+          if-no-files-found: warn
+          retention-days: 60
