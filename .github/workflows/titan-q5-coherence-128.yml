@@ -1,0 +1,37 @@
+name: TITAN Q5 Coherence - 128% Real Historical 5-qubit Paper Challenge
+on:
+  push:
+    paths:
+      - 'trading/titan_q5_coherence_128.py'
+      - 'tests/test_titan_q5_coherence_128.py'
+      - '.github/workflows/titan-q5-coherence-128.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-okx-q5-historical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test five-qubit gate math, SHA-independent chronological selection and no-orders policy
+        run: python -m unittest discover -s tests -p 'test_titan_q5_coherence_128.py' -v
+      - name: Run compulsory 3-qubit common-gate comparison audit
+        run: python -m trading.titan_quantum_gate --ci --out reports/q5_prior_gate.json
+      - name: Fetch six independent true 90-day OKX crypto history series and test 16 Q5 policies at 3x/10x
+        run: python -m trading.titan_q5_coherence_128 --out reports/titan_q5_coherence_128.json --raw-dir reports/titan_q5_frozen_real_history
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q5-true-90d-okx-5qubit-historical-no-orders
+          path: |
+            reports/titan_q5_coherence_128.json
+            reports/titan_q5_frozen_real_history/
+            reports/q5_prior_gate.json
+          if-no-files-found: warn
+          retention-days: 60
