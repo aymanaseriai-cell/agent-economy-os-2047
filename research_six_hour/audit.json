@@ -1,0 +1,12 @@
+{
+  "counts": {
+    "files": 12,
+    "trades": 8285,
+    "windows": 2256
+  },
+  "faults": [],
+  "limitations": "Liquidity L2, historical tiers, actual liquidation path and queue fills cannot be proved by 5m OHLC.",
+  "passed": true,
+  "results": "/mnt/files/titan6h/grid-results.json.gz",
+  "source": "/mnt/files/titan6h/titan6h-okx-5m-20261117.zip"
+}

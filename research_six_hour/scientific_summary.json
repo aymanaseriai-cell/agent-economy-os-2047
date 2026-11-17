@@ -1,0 +1,55 @@
+{
+  "clustered_day_bootstrap_dev_only": {
+    "shock_continuation|base|100x": {
+      "blocks_utc_days": 13,
+      "bootstrap_mean_95pct_interval_pct": [
+        -53.68101,
+        -42.79759
+      ]
+    },
+    "shock_continuation|base|3x": {
+      "blocks_utc_days": 13,
+      "bootstrap_mean_95pct_interval_pct": [
+        -1.95683,
+        -1.09855
+      ]
+    },
+    "shock_continuation|stress|100x": {
+      "blocks_utc_days": 13,
+      "bootstrap_mean_95pct_interval_pct": [
+        -71.30055,
+        -61.43825
+      ]
+    },
+    "shock_continuation|stress|3x": {
+      "blocks_utc_days": 13,
+      "bootstrap_mean_95pct_interval_pct": [
+        -8.08104,
+        -6.71873
+      ]
+    },
+    "trade_mark_reversion|base|3x": {
+      "blocks_utc_days": 13,
+      "bootstrap_mean_95pct_interval_pct": [
+        -0.46033,
+        -0.14652
+      ]
+    }
+  },
+  "grid": {
+    "doubling_windows": 0,
+    "liquidation_events": 390,
+    "liquidation_windows": 203,
+    "negative_return_windows": 1688,
+    "nonoverlap_distinct_utc_windows": 47,
+    "ruin_windows": 62,
+    "simulated_trades": 8285,
+    "simulated_windows": 2256
+  },
+  "independent_new_OOS_windows": 0,
+  "proven_execution_on_historical_L2": false,
+  "publication_status": "DRAFT_NOT_VALIDATED_FORWARD",
+  "real_orders": 0,
+  "sha_results_gzip": "43ac47caef6921a1c3df608ef0994ec4dec41359abb4c07da1e7effd3b517de6",
+  "sha_source_zip": "edd0283aaeeb6f1fb7cb7672f3a4690dc18256c41b033e27ff8d9ef60b73bfb8"
+}
