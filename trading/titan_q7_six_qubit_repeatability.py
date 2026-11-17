@@ -173,7 +173,7 @@ def signals(markets):
     if len(markets)!=MARKETS:raise ValueError("Expected precisely 6 markets")
     panel={symbol:four_hour_bars(b) for symbol,b in markets.items()}
     n=min(map(len,panel.values()))
-    if n<600:raise ValueError("Too few complete four-hour bars")
+    if n<64:raise ValueError("Too few complete four-hour bars")
     axis=[x["ts"] for x in next(iter(panel.values()))[:n]]
     if any([x["ts"] for x in rows[:n]]!=axis for rows in panel.values()):
         raise ValueError("Non-aligned market breadth, refuses future data")
