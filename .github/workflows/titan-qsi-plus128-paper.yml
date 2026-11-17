@@ -1,0 +1,39 @@
+name: TITAN QSI +128-percent 4.15 to 9.462 USDT paper experiment - NO ORDERS
+on:
+  push:
+    paths:
+      - 'trading/titan_qsi_plus128_paper.py'
+      - 'tests/test_titan_qsi_plus128_paper.py'
+      - '.github/workflows/titan-qsi-plus128-paper.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  fixed-source-historical-paper-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 22
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify target and strict realized milestones are correct
+        run: python -m unittest discover -s tests -p 'test_titan_qsi_plus128_paper.py' -v
+      - name: Retrieve unchanged original six-market OKX public OHLC and SHA256 manifest
+        run: |
+          mkdir -p reports/prior
+          gh run download 44030465243 --repo "${{ github.repository }}" --name titan-qsi-4-15-real-public-data-no-orders --dir reports/prior
+      - name: Validate original 48 simulation outputs before new 128 goal no-orders research
+        run: python -m trading.titan_qsi_plus128_paper --original reports/prior --out reports/titan_qsi_128_paper.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qsi-plus128-paper-retrospective-public-data
+          path: reports/titan_qsi_128_paper.json
+          if-no-files-found: warn
+          retention-days: 60
