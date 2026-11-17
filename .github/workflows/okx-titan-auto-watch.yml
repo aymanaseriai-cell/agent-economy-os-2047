@@ -1,0 +1,49 @@
+name: TITAN Omega AutoWatch (scheduled, NO ORDERS)
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: okx-titan-auto-watch-readonly
+  cancel-in-progress: false
+jobs:
+  account_watch:
+    if: ${{ vars.OKX_AUTOWATCH_ENABLED == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Read-only OKX account-risk watchdog (NO ORDERS)
+        run: python -m trading.okx_risk_watchdog
+        env:
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+  public_research:
+    if: ${{ vars.OKX_AUTOWATCH_ENABLED == 'YES' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Public market scan, dry run only
+        run: |
+          python -m trading.okx_run_policy --purpose research
+          python -m trading.okx_five_second_worker --interval-seconds 5 --top 20 --all-eligible --max-runtime-seconds 235 --graceful-public-deadline --report reports/okx_six_agents.json
+        env:
+          OKX_EXECUTION_MODE: dry_run
+          OKX_ENABLE_REAL_TRADING: 'NO'
+          OKX_STOP_CONTINUOUS: 'YES'
+          OKX_AUTOREENTRY_ENABLED: 'NO'
+          OKX_REQUIRE_OMEGA: 'YES'
+      - name: Summarize public signals without sending orders
+        if: ${{ always() && hashFiles('reports/okx_six_agents.json') != '' }}
+        run: python -m trading.okx_signal_audit --report reports/okx_six_agents.json --out reports/okx_signal_audit.json --summary "$GITHUB_STEP_SUMMARY"
