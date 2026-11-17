@@ -56,6 +56,24 @@ class BreakoutResearchTest(unittest.TestCase):
         self.assertFalse(r["reached128_on_closed_paper_trade"])
         self.assertIsNone(r["first_goal_closed_exit_i"])
 
+    def test_quantum_phase_and_identical_input_classical_controls(self):
+        from trading import titan_quantum_gate as qgate
+        f=qgate.completed_causal_features(candles(),300)
+        scores=qgate.quantum_and_control(f)
+        self.assertFalse(scores["quantum_hardware_used"])
+        self.assertAlmostEqual(scores["classical"],
+                               qgate.classical_probability(f))
+        self.assertEqual(set(b.QUANTUM_POLICIES),
+                         {"quantum_phase_robust","quantum_interference",
+                          "quantum_zero_phase","classical_same_features"})
+
+    def test_qsi_quantum_and_classical_use_same_candles(self):
+        data=candles()
+        models=b.qsi.candidate_stream(data)
+        for family in b.QUANTUM_POLICIES:
+            self.assertIn(family,models)
+        self.assertEqual(len(data),480)
+
     def test_not_six_markets_fails_closed(self):
         with self.assertRaises(ValueError):
             b.evaluate({"ADA-USDT-SWAP":candles()},

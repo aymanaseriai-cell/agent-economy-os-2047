@@ -16,13 +16,16 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from trading import titan_quantum_survival_interferometer as qsi
+from trading import titan_quantum_gate as quantum_gate
 from trading.edge_lab import (
     BAR_MS, TAKER_FEE, BASE_SLIPPAGE, STRESS_FEE, STRESS_SLIPPAGE,
     ema_series, atr_simple, fetch_history,
 )
 from trading.titan_regime_research import validate_frozen
 
-STUDY = "TITAN128-CAUSAL-BREAKOUT-FROZEN-20261117-V1"
+STUDY = "TITAN128-QUANTUM-BREAKOUT-COMPARISON-20261117-V2"
+QUANTUM_POLICIES = ("quantum_phase_robust", "quantum_interference",
+                    "quantum_zero_phase", "classical_same_features")
 UNIVERSE = set(("AAVE ADA ALGO APT ARB ATOM AVAX BCH COMP CRV DOT ETC FIL "
                 "ICP INJ JUP LINK LTC NEAR OP SEI SUI TON TRX UNI XLM XMR "
                 "WAVES ZRX KAVA JASMY").split())
@@ -174,6 +177,56 @@ def evaluate(markets, specs, sha, timestamp):
             }
             for phase, (a, b) in splits.items()
         }
+    # FROZEN quantum ablations on identical markets, candles, costs and sizing.
+    # 3-qubit Born amplitudes and phase sweeps are computed on a CLASSICAL CPU.
+    # Classical comparison uses precisely QSI's same three causal features.
+    qsi_all = {sym: qsi.candidate_stream(rows[:n])
+               for sym, rows in markets.items()}
+    quantum_comparators = {}
+    for family in QUANTUM_POLICIES:
+        quantum_votes = {sym: pols[family] for sym, pols in qsi_all.items()}
+        quantum_comparators[family] = {
+            str(int(lev)) + "x": {
+                p: {
+                    cost: paper(markets, specs, quantum_votes, leverage=lev,
+                                start=a, end=b, fee=fee, slip=slip)
+                    for cost, (fee, slip) in {
+                        "ordinary": (TAKER_FEE, BASE_SLIPPAGE),
+                        "stress": (STRESS_FEE, STRESS_SLIPPAGE),
+                    }.items()
+                }
+                for p, (a, b) in splits.items()
+            }
+            for lev in LEVERAGES
+        }
+    def as_closed(row):
+        return {
+            "closed_equity_usdt": row["end_usdt"],
+            "closed_trades": row["trades"],
+            "max_drawdown_pct": row["max_drawdown_pct"],
+            "ruin_happened": row["ruin_at_closed_equity"],
+            "hit_128": row["reached128_on_closed_paper_trade"],
+        }
+
+    quantum_evidence = quantum_gate.audit_closed_paper_report({
+        "start_usdt": START, "goal_usdt": GOAL,
+        "real_orders": 0, "quantum_hardware_used": False,
+        "data": {"precommitted": True, "public_market_sha256": sha},
+        "models": {
+            "quantum": {
+                p: {cost: as_closed(quantum_comparators[
+                    "quantum_phase_robust"]["3x"][p][cost])
+                    for cost in ("ordinary", "stress")}
+                for p in splits
+            },
+            "classical": {
+                p: {cost: as_closed(quantum_comparators[
+                    "classical_same_features"]["3x"][p][cost])
+                    for cost in ("ordinary", "stress")}
+                for p in splits
+            },
+        },
+    })
     # The primary model is FIXED 3x. Never promote the better of 3x/10x post hoc.
     main = results["3x"]
     train_ok = (main["train"]["stress"]["trades"] >= MIN_TRAIN_TRADES
@@ -204,6 +257,10 @@ def evaluate(markets, specs, sha, timestamp):
         "verdict": "NEEDS_FUTURE_PROSPECTIVE_TEST" if repeated128
                    else "NO_VALIDATED_REPEATED_128_EDGE_DO_NOT_DEPLOY",
         "results": results, "real_orders": 0,
+        "quantum_models": quantum_comparators,
+        "quantum_evidence": quantum_evidence,
+        "quantum_hardware_used": False,
+        "quantum_research_only": True,
         "warnings": [
             "These are retrospective public-bar simulations, not user account PnL",
             "Crypto OHLC cannot model full orderbook execution, mark-price liquidation or real funding",
@@ -247,6 +304,15 @@ def main(argv=None):
               "H1_STRESS", phases["holdout_1"]["stress"]["return_pct"],
               "H2", phases["holdout_2"]["ordinary"]["return_pct"],
               "H2_STRESS", phases["holdout_2"]["stress"]["return_pct"], flush=True)
+    for family, phase_data in report["quantum_models"].items():
+        phases = phase_data["3x"]
+        print("BLIND128 QUANTUM ABLATION", family,
+              "TRAIN_STRESS", phases["train"]["stress"]["return_pct"],
+              "H1_STRESS", phases["holdout_1"]["stress"]["return_pct"],
+              "H2_STRESS", phases["holdout_2"]["stress"]["return_pct"],
+              "NO ORDERS", flush=True)
+    print("BLIND128 QUANTUM AUDIT", report["quantum_evidence"]["verdict"],
+          "QUANTUM_HARDWARE", False, flush=True)
     print("BLIND128 FINAL", report["verdict"],
           "STRICT_REPEATED_128", report["strict_repeated_128_pass"],
           "NO ORDERS", flush=True)
