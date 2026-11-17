@@ -1,0 +1,37 @@
+name: TITAN H128 - Real Historical OKX Quantum Backtest - NO ORDERS
+on:
+  push:
+    paths:
+      - 'trading/titan_h128_quantum_history.py'
+      - 'tests/test_titan_h128_quantum_history.py'
+      - '.github/workflows/titan-h128-quantum-history.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-quantum-paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 3-qubit mathematical integrity and classical baseline (NO ORDERS)
+        run: python -m trading.titan_quantum_gate --ci --out reports/h128_quantum_gate.json
+      - name: Test target +128, real OHLC chronology, and no future price leakage
+        run: python -m unittest discover -s tests -p 'test_titan_h128_quantum_history.py' -v
+      - name: Download 60 days of genuine OKX historical completed 15m candles for six frozen crypto swaps; run all 20 paper cases
+        run: python -m trading.titan_h128_quantum_history --out reports/titan_h128_quantum_history.json --raw-dir reports/titan_h128_quantum_history_raw
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-h128-true-historical-okx-candles-no-orders
+          path: |
+            reports/h128_quantum_gate.json
+            reports/titan_h128_quantum_history.json
+            reports/titan_h128_quantum_history_raw/
+          if-no-files-found: warn
+          retention-days: 60
