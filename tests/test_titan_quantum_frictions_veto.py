@@ -83,6 +83,28 @@ class QFRVTest(unittest.TestCase):
         self.assertEqual(result["trades"],0)
         self.assertFalse(result["hit_128_after_closed_trade"])
 
+    def test_unrealized_peak_is_not_a_closed_128_percent_win(self):
+        """Intratrade price peaks must not be reported as realized +128%."""
+        from unittest.mock import patch
+        sym="AR-USDT-SWAP"
+        bars=candles()
+        votes={name:[] for name in q.POLICIES}
+        votes["quantum_cost_trend"]=[(250,1,1.,.5)]
+        closed_trade={
+            "equity_after":4.20,"exit_i":255,"day":"2026-11-17",
+            "net_usdt":.05,"status":"tp","entry_fee_usdt":0.,
+            "exit_fee_usdt":0.,"unrealized_peak_usdt":1000.,
+        }
+        with patch.object(q.qsi,"sim_one",return_value=closed_trade) as sim:
+            r=q.paper({sym:bars},{sym:{}},{sym:votes},
+                      policy="quantum_cost_trend",leverage=3.,
+                      start=224,end=len(bars),fee=.0005,slip=.0003)
+        sim.assert_called_once()
+        self.assertEqual(r["trades"],1)
+        self.assertEqual(r["end_usdt"],4.20)
+        self.assertFalse(r["hit_128_after_closed_trade"])
+        self.assertIsNone(r["first_target_exit_i"])
+
     def test_reject_old_research_crypto_panel(self):
         self.assertTrue({"CHZ","FLOW","1INCH","CFX"} <= q.PREVIOUS_QSI_QTRW_QGFW)
         self.assertTrue(q.PREVIOUS_QSI_QTRW_QGFW.isdisjoint(q.UNIVERSE))
