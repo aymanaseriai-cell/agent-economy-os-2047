@@ -42,7 +42,9 @@ class EconomicFeasibility(unittest.TestCase):
         swap=instrument("ABC",False,"0.1","0.1","0.03")
         row=carry.limit_no_quote_guess({"coin":"ABC","spot":spot,"swap":swap},
                                      book(1.),book(1.))
-        self.assertTrue(row["status"].startswith("no_exact_hedge"))
+        self.assertEqual(row["status"],"exact_base_delta_matched_quote_snapshot")
+        self.assertEqual(Decimal(row["exact_hedge_base_amount"]),Decimal("0.03"))
+        self.assertEqual(Decimal(row["perp_contracts"])*Decimal("0.03"),Decimal(row["exact_hedge_base_amount"]))
     def test_book_asks_and_bids_consume_visible_size(self):
         levels=[["100","1"],["101","2"]]
         self.assertEqual(carry.vwap_from_books(levels,Decimal("2")),Decimal("100.5"))
