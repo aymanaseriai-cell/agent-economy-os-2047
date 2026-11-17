@@ -1,0 +1,37 @@
+name: TITAN Q6 - 6qubit Convex Tail Real OKX Historical 128 No Orders
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_convex_tail.py'
+      - 'tests/test_titan_q6_convex_tail.py'
+      - '.github/workflows/titan-q6-convex-tail.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-tail-paper:
+    runs-on: ubuntu-latest
+    timeout-minutes: 29
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test six-qubit statevector, causality, stop-first fills, and no orders
+        run: python -m unittest discover -s tests -p 'test_titan_q6_convex_tail.py' -v
+      - name: Mandatory identical-features quantum math protocol audit
+        run: python -m trading.titan_quantum_gate --ci --out reports/q6_quantum_protocol.json
+      - name: Download public true 90-day OKX historical 15m candles; test frozen 6-qubit asymmetrical trailing exit and classical control
+        run: python -m trading.titan_q6_convex_tail --out reports/titan_q6_128_results.json --raw-dir reports/titan_q6_real_market_bars
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6-128-true-okx-history-no-orders
+          path: |
+            reports/titan_q6_128_results.json
+            reports/titan_q6_real_market_bars/
+            reports/q6_quantum_protocol.json
+          if-no-files-found: warn
+          retention-days: 60
