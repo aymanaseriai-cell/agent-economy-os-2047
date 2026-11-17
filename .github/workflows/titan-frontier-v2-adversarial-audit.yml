@@ -1,0 +1,61 @@
+name: TITAN Frontier V2 - Independent Hostile Audit and V1 Same-Cohort Comparison
+on:
+  push:
+    paths:
+      - '.github/workflows/titan-frontier-v2-adversarial-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-forensic-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download frozen original Gen2 artifact from prior successful run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence
+          gh run download 44068601312 --repo "$GITHUB_REPOSITORY" --name titan-infinite-frontier-v2-original-okx-full-evidence --dir evidence
+          cd evidence && zip -qr ../evidence.zip .
+      - name: Independent hostile audit of SHA-256 sources, chronological contracts, liquidity and full PnL
+        run: python -m trading.titan_frontier_v2_redteam --zip evidence.zip --out reports/frontier_v2_redteam.json
+      - name: Falsification check that tampering with original price archive is detected
+        run: |
+          python - <<'PY'
+          import zipfile
+          with zipfile.ZipFile("evidence.zip") as z:
+              paths=z.namelist()
+              suspect=next(n for n in paths if n.endswith("-original-15m.json.gz"))
+              with zipfile.ZipFile("evidence_tampered.zip","w",compression=zipfile.ZIP_DEFLATED) as out:
+                  for name in paths:
+                      raw=z.read(name)
+                      if name==suspect:
+                          raw=raw[:8]+bytes([raw[8]^0x7f])+raw[9:]
+                      out.writestr(name,raw)
+          PY
+          if python -m trading.titan_frontier_v2_redteam --zip evidence_tampered.zip --out reports/frontier_v2_intentional_tamper.json; then
+            echo "SECURITY REGRESSION: tampered archived data passed unexpectedly"
+            exit 1
+          else
+            echo "Tampered real OHLCV rejected as required"
+          fi
+      - name: Run frozen original OMEGA V1 on EXACT same Gen2 original OKX markets
+        run: python -m trading.titan_frontier_v2_compare --raw-dir evidence/frontier_v2_raw_okx --new-report evidence/frontier_v2_result.json --out reports/frontier_v2_original_omega_same_cohort.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontier-v2-independent-redteam-original-v1-comparison
+          path: |
+            reports/frontier_v2_redteam.json
+            reports/frontier_v2_intentional_tamper.json
+            reports/frontier_v2_original_omega_same_cohort.json
+          retention-days: 60
+          if-no-files-found: warn
