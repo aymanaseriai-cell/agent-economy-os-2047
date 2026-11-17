@@ -146,7 +146,7 @@ class TestLiveSafety(unittest.TestCase):
             contract_size(inst,Decimal('100'),Decimal('1000'),Decimal('0.005'),
                           capital_mode='full_margin')
 
-    def test_reentry_blocks_until_30_seconds_after_full_close(self):
+    def test_reentry_blocks_until_300_seconds_after_full_close(self):
         class History:
             def __init__(self, rows):
                 self.rows=rows
@@ -156,13 +156,16 @@ class TestLiveSafety(unittest.TestCase):
                     raise AssertionError('Unexpected API request')
                 return self.rows
         clock=1_800_000_000_000
-        full={'instType':'SWAP','type':'2','uTime':str(clock-29*1000)}
+        full={'instType':'SWAP','type':'2','uTime':str(clock-299*1000)}
         with self.assertRaisesRegex(ExecutionBlocked, 'cooldown active'):
             enforce_exit_cooldown(History([full]), now_ms=clock)
         enforce_exit_cooldown(History([full]), now_ms=clock+1000)
         enforce_exit_cooldown(History([]), now_ms=clock)
-        recent={'instType':'SWAP','type':'2','uTime':str(clock-30*1000)}
+        recent={'instType':'SWAP','type':'2','uTime':str(clock-300*1000)}
         enforce_exit_cooldown(History([recent]),now_ms=clock)
+        inside={'instType':'SWAP','type':'2','uTime':str(clock-4*60*1000)}
+        with self.assertRaises(ReentryCooldownActive):
+            enforce_exit_cooldown(History([inside]),now_ms=clock)
         old={'instType':'SWAP','type':'2','uTime':str(clock-9*60*1000)}
         enforce_exit_cooldown(History([old]),now_ms=clock)
 

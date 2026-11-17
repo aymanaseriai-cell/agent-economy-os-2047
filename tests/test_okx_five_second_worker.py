@@ -431,9 +431,9 @@ class CooldownRacingMonitorTests(unittest.TestCase):
         self.assertEqual(pauses,[5,5])
 
 
-    def test_exchange_30_second_lock_never_shortened_by_faster_polling(self):
-        # Six five-second polls until the exchange itself reports FLAT_ELIGIBLE.
-        # No public scan or order executor is called before the 30s mark.
+    def test_exchange_300_second_lock_never_shortened_by_faster_polling(self):
+        # Sixty five-second polls until the exchange itself reports FLAT_ELIGIBLE.
+        # No public scan or order executor is called before the 300s mark.
         now=[0.0]
         events=[]
         pauses=[]
@@ -441,7 +441,7 @@ class CooldownRacingMonitorTests(unittest.TestCase):
             component=cmd[2]
             events.append((component,now[0]))
             if component=="trading.okx_resume_monitor":
-                state="COOLDOWN_ACTIVE" if now[0] < 30 else "FLAT_ELIGIBLE"
+                state="COOLDOWN_ACTIVE" if now[0] < 300 else "FLAT_ELIGIBLE"
                 return subprocess.CompletedProcess(cmd,0,
                          "OKX MONITOR RESULT: "+state+"\n","")
             if component=="trading.okx_live_executor":
@@ -454,12 +454,12 @@ class CooldownRacingMonitorTests(unittest.TestCase):
             result=loop(max_cycles=1,resume_after_protected_fill=True,
                         run=fake_run,clock=lambda:now[0],sleep=fake_sleep)
         self.assertEqual(result,0)
-        self.assertEqual(pauses,[5]*6)
+        self.assertEqual(pauses,[5]*60)
         self.assertEqual(
-            sum(name=="trading.okx_resume_monitor" for name,_ in events),7)
+            sum(name=="trading.okx_resume_monitor" for name,_ in events),61)
         for name,second in events:
             if name in ("trading.six_agent_council","trading.okx_live_executor"):
-                self.assertGreaterEqual(second,30.0)
+                self.assertGreaterEqual(second,300.0)
         self.assertEqual(
             sum(name=="trading.okx_live_executor" for name,_ in events),1)
 

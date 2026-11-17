@@ -1,4 +1,4 @@
-"""Read-only auto-reentry state checks, including exchange-side 10m cooldown."""
+"""Read-only auto-reentry state checks, including exchange-side 5-minute cooldown."""
 import unittest
 from trading.okx_resume_monitor import inspect_account_state
 from trading.okx_live_executor import ExecutionBlocked
@@ -66,13 +66,20 @@ class ResumeMonitorTests(unittest.TestCase):
                             "uTime":str(now-2000)}])
         self.assertEqual(inspect_account_state(c),"COOLDOWN_ACTIVE")
 
-    def test_just_after_thirty_seconds_allows_fresh_scans(self):
+    def test_just_after_five_minutes_allows_fresh_scans(self):
         import time
         now=int(time.time()*1000)
         c=FakeOKX(history=[{'instType':'SWAP','type':'2',
-                            'uTime':str(now-31*1000)}])
+                            'uTime':str(now-301*1000)}])
         self.assertEqual(inspect_account_state(c,max_positions=1),
                          'FLAT_ELIGIBLE')
+
+    def test_inside_five_minute_cooldown_blocks_fresh_scan(self):
+        import time
+        now=int(time.time()*1000)
+        c=FakeOKX(history=[{'instType':'SWAP','type':'2',
+                            'uTime':str(now-299*1000)}])
+        self.assertEqual(inspect_account_state(c), 'COOLDOWN_ACTIVE')
 
     def test_expired_cooldown_allows_new_scan(self):
         import time

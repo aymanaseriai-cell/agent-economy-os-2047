@@ -44,7 +44,7 @@ STRICT_MAX_BOOK_AGE_SECONDS = Decimal('30')
 EQUITY_RISK_FRACTION = Decimal('0.0025')   # 0.25% account equity at initial stop, *not* guaranteed realised loss
 NOTIONAL_CAP_FRACTION = Decimal('0.20')   # 20% equity notional cap
 MARGIN_CAP_FRACTION = Decimal('0.05')     # 5% equity margin cap
-REENTRY_COOLDOWN_MS = 30 * 1000  # minimum 30 seconds after exchange-confirmed full SWAP close
+REENTRY_COOLDOWN_MS = 5 * 60 * 1000  # minimum 300 seconds after exchange-confirmed full SWAP close
 FULL_MARGIN_MODE = 'full_margin'  # Optional, independently armed; default stays guarded.
 FULL_MARGIN_ARM = 'I_ACCEPT_FULL_MARGIN_LIQUIDATION_RISK'
 MARGIN_99999_MODE = 'margin_99999'  # Allocate up to 99.999% of available USDT margin.
@@ -514,7 +514,7 @@ def daily_order_limit(client, *, now_ms=None, candidate_id=None):
 
 
 def enforce_exit_cooldown(client, *, now_ms=None):
-    """Block all new entries for 30 seconds after a full SWAP close or liquidation.
+    """Block all new entries for 5 minutes after a full SWAP close or liquidation.
 
     Reads OKX's durable exchange-side position history, so a GitHub runner
     restarting does not erase the cooldown. Never infer exits from an absent

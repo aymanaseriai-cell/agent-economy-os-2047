@@ -1,10 +1,10 @@
 # TITAN Omega guarded active re-entry
 
-- After a confirmed full close, the exchange state monitor polls a 30-second
+- After a confirmed full close, the exchange state monitor polls a 300-second
   cooldown at 5-second intervals, instead of 10 seconds.
-- The original exchange-confirmed 30-second minimum is unchanged.
+- The exchange-confirmed minimum is now 300 seconds (5 minutes).
 - Startup scans immediately; no qualifying signal means no order. Not a
-  guaranteed position at startup or exactly 30 seconds after exiting.
+  guaranteed position at startup or exactly 300 seconds after exiting.
 - Existing six-agent council, seven filters, Omega vetoes, stop protection,
   margin and portfolio caps, and owner emergency stop remain unchanged.
 - No private order retries and no automatic override of a missing signal.

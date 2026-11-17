@@ -9,7 +9,7 @@ cron cannot schedule every five seconds; its minimum is five minutes.
 Uses the public 6+7 scanner and guarded executor. Normal one-off mode stops
 after submitting an order. Separately armed auto-reentry mode only resumes after
 a FILLED_PROTECTED result, repeatedly verifies open-position protection and
-exchange-recorded thirty-second cooldown, and stops on all unknown states.
+exchange-recorded five-minute cooldown, and stops on all unknown states.
 No blind order retries and no new write endpoints.
 """
 from __future__ import annotations
@@ -23,7 +23,7 @@ from typing import Callable
 
 INTERVAL_SECONDS = 5
 # Poll exchange-reported cooldown every five seconds without shortening
-# the authoritative 30-second post-exit lock.
+# the authoritative 300-second post-exit lock.
 COOLDOWN_POLL_SECONDS = 5
 ALLOWED_NONORDER_STATUSES = frozenset(("NO_CONSENSUS","DRY_RUN_SIGNAL_ONLY"))
 MONITOR_WAIT_STATES = frozenset(("POSITION_OPEN_PROTECTED","COOLDOWN_ACTIVE"))
@@ -301,7 +301,7 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
             if max_runtime_seconds and clock()+pause+15>start+max_runtime_seconds:
                 print("TITAN bounded runtime reached",flush=True)
                 return 0
-            print("TITAN executor verified 30s exit cooldown; no order; "
+            print("TITAN executor verified 300s exit cooldown; no order; "
                   "returning to read-only monitoring after 5s",flush=True)
             sleep(pause)
             continue
