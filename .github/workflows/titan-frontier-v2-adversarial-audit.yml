@@ -30,7 +30,7 @@ jobs:
       - name: Falsification check that tampering with original price archive is detected
         run: |
           python - <<'PY'
-          import zipfile
+          import zipfile, gzip, json
           with zipfile.ZipFile("evidence.zip") as z:
               paths=z.namelist()
               suspect=next(n for n in paths if n.endswith("-original-15m.json.gz"))
@@ -38,7 +38,9 @@ jobs:
                   for name in paths:
                       raw=z.read(name)
                       if name==suspect:
-                          raw=raw[:8]+bytes([raw[8]^0x7f])+raw[9:]
+                          candles=json.loads(gzip.decompress(raw))
+                          candles[0][4]=str(float(candles[0][4])*1.01)
+                          raw=gzip.compress(json.dumps(candles,separators=(",",":")).encode())
                       out.writestr(name,raw)
           PY
           if python -m trading.titan_frontier_v2_redteam --zip evidence_tampered.zip --out reports/frontier_v2_intentional_tamper.json; then
