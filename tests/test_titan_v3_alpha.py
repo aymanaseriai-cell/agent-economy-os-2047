@@ -31,7 +31,9 @@ class V3Independent(unittest.TestCase):
         bars=fake_bars();syms=["FET","FLOW","RLC","KAVA","TWT","QTUM"]
         panel={s+"-USDT-SWAP":bars for s in syms}
         self.assertTrue(a.observations(panel))
-        bad=copy.deepcopy(panel)
+        # Make each symbol's fixture an independent list: the original
+        # test copied a dictionary with SIX aliases to the SAME list.
+        bad={sym:copy.deepcopy(rows) for sym,rows in panel.items()}
         for bar in bad["FET-USDT-SWAP"]:
             bar["ts"]+=16*BAR_MS
         with self.assertRaises(ValueError):a.observations(bad)
