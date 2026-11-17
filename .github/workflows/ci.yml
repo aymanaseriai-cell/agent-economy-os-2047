@@ -22,6 +22,15 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Verify sample agent evidence
         run: python verifier.py evidence-manifest.json --root . --json-out evidence-report.json
+      - name: Frozen historical regime experiment (NO ORDERS)
+        run: python -m trading.titan_regime_research --offline-dir reports --out reports/titan_regime_research.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-830-regime-shadow-only
+          path: reports/titan_regime_research.json
+          if-no-files-found: ignore
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:

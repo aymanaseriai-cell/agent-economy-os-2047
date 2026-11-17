@@ -142,7 +142,7 @@ jobs:
           OKX_AUTOREENTRY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
           OKX_ROTATE_AFTER_EXIT_ENABLED: ${{ vars.OKX_ROTATE_AFTER_EXIT_ENABLED || 'NO' }}
           OKX_TARGET9_ENABLED: 'YES'
-          OKX_TARGET9_CLOSE_ARM: 'I_AUTHORIZE_CLOSE_USDT_SWAPS_AT_9_USDT'
+          OKX_TARGET9_CLOSE_ARM: 'I_AUTHORIZE_CLOSE_USDT_SWAPS_AT_8_30_USDT'
           OKX_PUBLIC_RECOVERY_ENABLED: ${{ inputs.resume_after_exit && inputs.confirm_repeat_entries && inputs.continuous && inputs.confirm_continuous_live && 'YES' || 'NO' }}
           NVIDIA_API_KEY: ${{ secrets.NVIDIA_API_KEY }}
           NVIDIA_MODEL: ${{ vars.NVIDIA_MODEL }}

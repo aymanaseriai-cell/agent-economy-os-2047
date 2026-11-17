@@ -22,7 +22,7 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 from trading.nvidia_execution_gate import GateRejected, _fresh_report
-from trading.six_agent_council import CORE_MIN_DIRECTIONAL_LEAD
+from trading.six_agent_council import CORE_MIN_DIRECTIONAL_LEAD, INCOMPLETE_HISTORY_REASON
 
 ALLOWED_DOMAINS = {'https://www.okx.com', 'https://eea.okx.com', 'https://us.okx.com'}
 MODE_ARM = {'demo': 'CONFIRM_DEMO_ORDER', 'live': 'I_ACCEPT_REAL_MONEY_LOSS'}
@@ -232,9 +232,33 @@ def read_report(path, now_ms=None):
                 or report['markets_selected'] < 1
                 or report.get('markets_analyzed') != report['markets_selected']):
             raise ExecutionBlocked('Incomplete full-universe scan: refuse order')
-        # A full batch must cover all safety/liquidity-passing contracts,
-        # even when they are not selected for real-money execution.
-        if report.get('markets_screened_for_liquidity',0) < report['markets_selected']:
+        # Only genuine, explicitly recorded insufficient-history exclusions
+        # can reduce actionable markets; verify complete universe accounting.
+        preselected = report['markets_selected']
+        if ('markets_skipped_insufficient_history' in report or
+                'markets_preselected_for_deep_analysis' in report):
+            skipped = report.get('markets_skipped_insufficient_history')
+            preselected = report.get('markets_preselected_for_deep_analysis')
+            ready = report.get('results')
+            if (type(preselected) is not int or not isinstance(skipped, list)
+                    or not isinstance(ready, list)
+                    or len(ready) != report['markets_analyzed']
+                    or preselected != report['markets_selected'] + len(skipped)):
+                raise ExecutionBlocked('Invalid history-exclusion accounting')
+            ready_symbols = [x.get('symbol') for x in ready if isinstance(x, dict)]
+            skipped_symbols = [x.get('symbol') for x in skipped if isinstance(x, dict)]
+            if (len(ready_symbols) != len(ready) or
+                    len(skipped_symbols) != len(skipped) or
+                    any(not isinstance(x, str) for x in ready_symbols)
+                    or any(not isinstance(x, str) or not x.endswith('-USDT-SWAP')
+                           for x in skipped_symbols)
+                    or len(set(ready_symbols)) != len(ready_symbols)
+                    or len(set(skipped_symbols)) != len(skipped_symbols)
+                    or set(ready_symbols).intersection(skipped_symbols)
+                    or any(e.get('reason') != INCOMPLETE_HISTORY_REASON
+                           for e in skipped)):
+                raise ExecutionBlocked('Unverified market-history exclusion')
+        if report.get('markets_screened_for_liquidity',0) < preselected:
             raise ExecutionBlocked('Invalid exchange-universe coverage count')
     timestamp = datetime.fromisoformat(report['utc_timestamp'].replace('Z', '+00:00'))
     age = now_ms / 1000 - timestamp.timestamp()

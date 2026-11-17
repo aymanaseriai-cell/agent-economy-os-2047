@@ -1,6 +1,6 @@
-"""One-way, explicitly armed 9 USDT equity exit for OKX USDT-SWAP.
+"""One-way, explicitly armed 8.30 USDT equity exit for OKX USDT-SWAP.
 
-This module cannot promise 9 USDT after realized fills, fees, slippage or funding.
+This module cannot promise 8.30 USDT after realized fills, fees, slippage or funding.
 No entries are made here. Every uncertain exchange state blocks the trade worker.
 """
 import os
@@ -9,8 +9,8 @@ import time
 from decimal import Decimal, InvalidOperation
 from trading.okx_live_executor import OKX, ExecutionBlocked, check_mode
 
-TARGET = Decimal("9")
-ARM = "I_AUTHORIZE_CLOSE_USDT_SWAPS_AT_9_USDT"
+TARGET = Decimal("8.30")
+ARM = "I_AUTHORIZE_CLOSE_USDT_SWAPS_AT_8_30_USDT"
 ALGO_TYPES = ("conditional", "oco", "trigger", "move_order_stop")
 
 
@@ -163,6 +163,11 @@ def check_target(client, *, close_armed=False, pause=time.sleep):
         _verify_empty(lambda: pending_algos(client), pause)
     _verify_empty(lambda: active_swaps(client, mode) or pending_orders(client) or pending_algos(client),
                   pause)
+    # The initial equity threshold includes open-position mark-to-market P/L.
+    # Closing costs may reduce realized equity; never claim the target was
+    # achieved without a separate post-exit balance verification.
+    if usdt_equity(client) < TARGET:
+        raise ExecutionBlocked("Target equity fell below 8.30 USDT after closing; stop safely")
     return "TARGET9_FLAT"
 
 
