@@ -1,0 +1,34 @@
+name: TITAN QOPW invented noncommuting quantum witness real OKX test
+on:
+  push:
+    paths:
+      - 'trading/titan_noncommuting_witness.py'
+      - 'tests/test_titan_noncommuting_witness.py'
+      - '.github/workflows/titan-noncommuting-witness.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  independent-public-historical-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate CPTP POVM algebra, noncommutativity, next-bar causality
+        run: python -m unittest discover -s tests -p 'test_titan_noncommuting_witness.py' -v
+      - name: Fetch six fresh public OKX swaps and compare QOPW to classical control (NO ORDERS)
+        run: python -m trading.titan_noncommuting_witness --out reports/titan_qopw_noncommutative.json --data-dir reports/titan_qopw_new_market_data
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qopw-real-unseen-60day-candle-audit
+          path: |
+            reports/titan_qopw_noncommutative.json
+            reports/titan_qopw_new_market_data/
+          if-no-files-found: warn
+          retention-days: 60
