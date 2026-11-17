@@ -1,0 +1,61 @@
+name: TITAN V4 Independent Hostile Audit and Price Tamper Falsification
+on:
+  push:
+    paths:
+      - '.github/workflows/titan-v4-independent-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  forensic-2023-to-2025-source-and-ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download the SEALED earlier V4 primary research archive, not current rerun
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence
+          gh run download 44078431108 --repo "$GITHUB_REPOSITORY" --name titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence --dir evidence
+          cd evidence && zip -qr ../evidence.zip .
+      - name: Verify 30 source hashes, original full clocks, 2023-24 selection only, every executed paper trade and net PnL
+        run: python -m trading.titan_v4_independent_redteam --zip evidence.zip --out reports/titan_v4_hostile_audit.json
+      - name: Independently change one ACTUAL 2023 historical trade close and demand SHA256 rejection
+        run: |
+          python - <<'PY'
+          import gzip,json,zipfile
+          with zipfile.ZipFile("evidence.zip") as original:
+              names=original.namelist()
+              target=next(n for n in names if n.endswith("-trade.json.gz"))
+              with zipfile.ZipFile("evidence_tampered.zip","w",compression=zipfile.ZIP_DEFLATED) as out:
+                  for name in names:
+                      data=original.read(name)
+                      if name==target:
+                          bars=json.loads(gzip.decompress(data))
+                          bars[0][4]=str(float(bars[0][4])*1.005)
+                          data=gzip.compress(json.dumps(bars,separators=(",",":")).encode())
+                      out.writestr(name,data)
+          PY
+          if python -m trading.titan_v4_independent_redteam --zip evidence_tampered.zip --out reports/v4_tamper_detected.json; then
+            echo "ERROR: altered original OHLCV has been accepted unexpectedly"
+            exit 1
+          else
+            echo "PASS: independent auditor rejected modified original OHLCV"
+          fi
+      - name: Archive independent adversarial evidence and negative control
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-v4-2023-2025-independent-adversarial-verification
+          path: |
+            reports/titan_v4_hostile_audit.json
+            reports/v4_tamper_detected.json
+          if-no-files-found: warn
+          retention-days: 60
