@@ -269,6 +269,12 @@ def loop(*, interval_seconds=INTERVAL_SECONDS, max_cycles=0,
                   file=sys.stderr,flush=True)
             return 3
         status=statuses[0]
+        if status=="PROFIT_FIRST_UNPROVEN_NO_ORDER":
+            # No 5-second retry storm, no clean automatic workflow re-dispatch.
+            # Leave existing protected positions to independent read-only monitor.
+            print("TITAN PROFIT-FIRST WAIT: no audited future profit proof; no new order",
+                  flush=True)
+            return 0
         if status in ("RISK_REJECTED_NO_ORDER", "CANDIDATE_REJECTED_NO_ORDER",
                       "STALE_SIGNAL_NO_ORDER", "PORTFOLIO_CAPACITY_NO_ORDER",
                       "PORTFOLIO_CHANGED_NO_ORDER"):

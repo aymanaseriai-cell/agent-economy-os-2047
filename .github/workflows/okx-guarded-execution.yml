@@ -61,6 +61,7 @@ jobs:
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
           OKX_REQUIRE_OMEGA: 'YES'
+          OKX_PROFIT_FIRST_REQUIRE_PROOF: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
@@ -133,6 +134,7 @@ jobs:
           OKX_ENABLE_REAL_TRADING: ${{ vars.OKX_ENABLE_REAL_TRADING || 'NO' }}
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
           OKX_REQUIRE_OMEGA: 'YES'
+          OKX_PROFIT_FIRST_REQUIRE_PROOF: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM }}
           OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}

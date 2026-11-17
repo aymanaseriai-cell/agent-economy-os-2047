@@ -800,6 +800,12 @@ def execute(report, client, mode, env, *, allow_post=True):
     # Dry-run stays public-only, even with portfolio settings.
     if mode=='dry_run':
         return 'DRY_RUN_SIGNAL_ONLY'
+    # Fail-closed new-entry gate. Existing target-exit and position monitoring
+    # remain independent; do not issue private order/leverage POST without proof.
+    if mode=='live' and env.get('OKX_PROFIT_FIRST_REQUIRE_PROOF')=='YES':
+        from trading.titan_profit_first_gate import permitted_new_live_entry
+        if not permitted_new_live_entry():
+            return 'PROFIT_FIRST_UNPROVEN_NO_ORDER'
     max_positions = int(env.get('OKX_MAX_ACTIVE_POSITIONS','1'))
     if (env.get('OKX_AUTOREENTRY_ENABLED') == 'YES'
             and env.get('OKX_ROTATE_AFTER_EXIT_ENABLED') == 'YES'
