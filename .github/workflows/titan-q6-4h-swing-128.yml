@@ -1,0 +1,37 @@
+name: TITAN Q6 Quantum 4h Swing - Real Historical +128% Research
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_4h_swing_128.py'
+      - 'tests/test_titan_q6_4h_swing_128.py'
+      - '.github/workflows/titan-q6-4h-swing-128.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q6-genuine-okx-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test 4h completed regime, stop-first trade engine, lot sizing and no live orders
+        run: python -m unittest discover -s tests -p 'test_titan_q6_4h_swing_128.py' -v
+      - name: Mandatory quantum mathematical guard
+        run: python -m trading.titan_quantum_gate --ci --out reports/q6_quantum_guard.json
+      - name: Fetch 90 days real completed OKX 15m data and run 4h Q6 swing on 16 cases
+        run: python -m trading.titan_q6_4h_swing_128 --out reports/titan_q6_4h_swing_128.json --raw-dir reports/titan_q6_true_history
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6-quantum-4h-true-90d-historical
+          path: |
+            reports/q6_quantum_guard.json
+            reports/titan_q6_4h_swing_128.json
+            reports/titan_q6_true_history/
+          if-no-files-found: warn
+          retention-days: 60
