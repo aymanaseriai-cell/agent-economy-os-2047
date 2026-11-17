@@ -62,7 +62,7 @@ jobs:
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
           OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM_V2 }}
-          OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
+          OKX_LEVERAGE_MODE: 'dynamic'  # Version 23:09 supports dynamic rather than exchange_max
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
@@ -134,7 +134,7 @@ jobs:
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'YES' }}
           OKX_REQUIRE_OMEGA: 'YES'
           OKX_EXECUTION_ARM: ${{ secrets.OKX_EXECUTION_ARM_V2 }}
-          OKX_LEVERAGE_MODE: ${{ vars.OKX_LEVERAGE_MODE || 'fixed' }}
+          OKX_LEVERAGE_MODE: 'dynamic'  # Version 23:09 supports dynamic rather than exchange_max
           OKX_DYNAMIC_LEVERAGE_ARM: ${{ secrets.OKX_DYNAMIC_LEVERAGE_ARM }}
           OKX_CAPITAL_MODE: ${{ vars.OKX_CAPITAL_MODE || 'guarded' }}
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
