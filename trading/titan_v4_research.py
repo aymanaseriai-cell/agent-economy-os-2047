@@ -230,7 +230,7 @@ def simulate_event(book,bars,specs,case):
             refused["execution"]+=1;continue
         if trade["ts"]!=t or mark["ts"]!=t:raise ValueError("Future-mark clock leakage")
         openp=trade["open"];closep=trade["close"];direction=ev["direction"]
-        rangep=max(.0001,(trade["high"]-trade["low"])/openp)
+        rangep=max(.0001,(prev["high"]-prev["low"])/max(prev["close"],1e-8))  # ONLY COMPLETED PREVIOUS BAR
         qty,notional=quantity(specs[sym],equity,openp,rangep)
         if qty<=0:refused["minimum_contract"]+=1;continue
         if prev["vol_quote"]<=0 or notional>VOLUME_SHARE_CAP*prev["vol_quote"]:
@@ -311,19 +311,31 @@ def selected_events(samples,model,policy,year):
                     "strength":round(abs(beta*x),10)})
     return out
 
-def momentum_control(samples,year):
-    """Frozen simple 4h past return direction and fixed 0.6%-shock gate."""
-    out=[];used=set()
-    for e in sorted(samples,key=lambda x:(x["ts"],x["sym"])):
-        if discovery.month_start(e["next_ts"])//100!=year:continue
-        # 2023 data only selects threshold; fixed 0.006 trading-shock.
-        if abs(e["feature"]["mark_index_premium_reversion"])<0:
-            continue
-        own_return=math.log(e["close_next"]/e["open_next"])
-        # DO NOT use future label! Proxy momentum from premium is not
-        # a price-momentum control; this intentionally returns no events.
-        del own_return
-    return out
+def momentum_control(bars,year):
+    """One predeclared simple baseline: 12-hour lagged momentum >=2.5%.
+
+    All features derive from just-completed bar i. The next bar i+1 is
+    used for EXECUTION, never for direction, strength, or position sizing.
+    """
+    events=[]
+    for sym,triple in sorted(bars.items()):
+        hist=triple["trade"]
+        already=set()
+        for i in range(3,len(hist)-1):
+            finished=hist[i];nextbar=hist[i+1]
+            if (discovery.month_start(finished["ts"])//100!=year or
+                discovery.month_start(nextbar["ts"])//100!=year):
+                continue
+            past=math.log(finished["close"]/hist[i-3]["close"])
+            if abs(past)<.025:continue
+            day=finished["ts"]//discovery.DAY_MS
+            if day in already:continue
+            already.add(day)
+            events.append({"sym":sym,"i":i,"signal_ts":finished["ts"],
+                           "next_ts":nextbar["ts"],
+                           "direction":1 if past>0 else -1,
+                           "strength":round(abs(past),10)})
+    return events
 
 def analyze(bars,specs,manifest):
     valid=sorted(bars)
@@ -374,6 +386,11 @@ def analyze(bars,specs,manifest):
         final={c:simulate_event(finalbook,bars,specs,v) for c,v in CASES.items()}
     else:
         final={c:simulate_event([],bars,specs,v) for c,v in CASES.items()}
+    # Precommitted simple classical control, always run ONE final comparison
+    # without using its outcome to change any alpha selection or threshold.
+    fixed_baseline=momentum_control(bars,2025)
+    baseline={c:simulate_event(fixed_baseline,bars,specs,v)
+              for c,v in CASES.items()}
     results={
         "study":IDENTITY,"target_pct":25_000_000.,
         "start_usdt":START_CAPITAL,"target_usdt":TARGET,
@@ -389,6 +406,7 @@ def analyze(bars,specs,manifest):
         "accepted_before_final":accepted,
         "development_execution":execution_dev,
         "final_locked":final,
+        "predeclared_classical_2025_baseline":baseline,
         "tested_event_families":len(discovery.FAMILIES),
         "data_gated_families":discovery.SKIPPED,
         "test_attempts":len(discovery.FAMILIES),
