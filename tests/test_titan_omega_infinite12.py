@@ -6,6 +6,7 @@ import unittest
 from trading import titan_omega_infinite12 as engine
 from trading import titan_omega_infinite12_audit as auditor
 from trading import titan_omega_infinite12_models as models
+from trading import titan_omega_infinite12_curve as curve
 
 
 def candles(n=137, growth=0.001):
@@ -96,6 +97,21 @@ class TestInfinite12(unittest.TestCase):
             a2=copy.deepcopy(a)
             a2["windows"][0]["trades"][0]["fees_usdt"]+=1
             self.assertEqual(auditor.audit(data,a2)["status"],"FAIL")
+
+    def test_equity_curve_all_windows(self):
+        windows=[]
+        for name in models.NAMES:
+            windows.append({"model":name,"cost":"ordinary","start_idx":33,
+                "trades":[]})
+        report={"windows":windows}
+        c=curve.curves(report,"ordinary")
+        self.assertEqual(len(c),4)
+        self.assertTrue(all(len(values)==49 and set(values)=={4.15} for values in c.values()))
+
+    def test_svg_is_well_formed(self):
+        import xml.etree.ElementTree as ET
+        data={name:[4.15]*49 for name in models.NAMES}
+        ET.fromstring(curve.svg("ordinary",data))
 
     def test_no_unjustified_independent_return(self):
         self.assertEqual(engine.START_USDT,4.15)
