@@ -7,7 +7,7 @@ import unittest
 from decimal import Decimal
 from pathlib import Path
 
-from tests.test_okx_target9_guard import Fake, pos, run
+from test_okx_target9_guard import Fake, pos, run
 from trading.okx_live_executor import ExecutionBlocked
 from trading.okx_target9_guard import TARGET, ARM, check_target, usdt_equity
 
