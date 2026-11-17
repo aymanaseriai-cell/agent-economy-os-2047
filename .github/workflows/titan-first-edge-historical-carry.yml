@@ -1,0 +1,48 @@
+name: TITAN FIRST EDGE - 2024 Original 12 Months Cash Carry SPOT plus Perp
+on:
+  push:
+    paths:
+      - 'trading/titan_first_edge_carry_historical.py'
+      - 'tests/test_titan_first_edge_carry.py'
+      - '.github/workflows/titan-first-edge-historical-carry.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  original-funding-and-double-leg-hedge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify eleven fixed-horizon no-lookahead exact hedge and original funding tests
+        run: python -m unittest discover -s tests -p 'test_titan_first_edge_carry.py' -v
+      - name: Restore genuine original 2024 derivatives Mark/Trade and current verified 2026 contract snapshots
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p previous_v4 previous_first
+          gh run download 44078431108 --repo "$GITHUB_REPOSITORY" --name titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence --dir previous_v4
+          gh run download 44087331073 --repo "$GITHUB_REPOSITORY" --name titan-first-edge-genuine-okx-original-2024-funding-L2-and-2026-hedge --dir previous_first
+          cd previous_v4 && zip -qr ../original_V4.zip .
+          cd ../previous_first && zip -qr ../first_original_snapshots.zip .
+      - name: Download 12 separate official 2024 MONTHLY funding archive files for EACH BTC ETH SOL, and real SPOT 4H candles
+        run: python -m trading.titan_first_edge_carry_historical --v4-zip original_V4.zip --first-zip first_original_snapshots.zip --data-dir reports/first_edge_2024_true_spot_perp_funding --out reports/first_edge_cash_carry_2024_dev.json
+      - name: Verify completely frozen original 2024 funding/Spot/Perp/Mark SHA and deterministic offline re-computation of all ledger rows
+        run: python -m trading.titan_first_edge_carry_historical --offline --compare reports/first_edge_cash_carry_2024_dev.json --v4-zip original_V4.zip --first-zip first_original_snapshots.zip --data-dir reports/first_edge_2024_true_spot_perp_funding --out reports/first_edge_cash_carry_2024_offline.json
+      - name: Archive ALL rejected/infeasible signals, 12 original archived months, source checks and paper PnL
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-first-edge-2024-original-spot-perp-real-funding-and-matched-hedge-results
+          path: |
+            reports/first_edge_2024_true_spot_perp_funding/
+            reports/first_edge_cash_carry_2024_dev.json
+            reports/first_edge_cash_carry_2024_offline.json
+          retention-days: 60
+          if-no-files-found: warn
