@@ -1,0 +1,40 @@
+name: TITAN Q6 R2 Locked 180d Repeatability Test - Real OKX History
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_repeatability_proof.py'
+      - 'tests/test_titan_q6_repeatability_proof.py'
+      - '.github/workflows/titan-q6-repeatability-proof.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-real-history-proof-attempt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify binary fingerprint, ex-ante target and holdout chronology
+        run: python -m unittest discover -s tests -p 'test_titan_q6_repeatability_proof.py' -v
+      - name: Verify unchanged original Q6 fills, OHLC causality and contract sizing
+        run: python -m unittest discover -s tests -p 'test_titan_q6_4h_swing_128.py' -v
+      - name: Verify quantum mathematical audit does not claim profit
+        run: python -m trading.titan_quantum_gate --ci --out reports/titan_q6r2_math.json
+      - name: Download 180 days of real OKX 15m historical prices and replay original Q6 exact policy
+        run: python -m trading.titan_q6_repeatability_proof --out reports/titan_q6r2_proof.json --raw-dir reports/titan_q6r2_real_prices
+      - name: Archive true-price SHA256 evidence and 3-holdout results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6r2-180d-locked-repeatability-true-prices-no-orders
+          path: |
+            reports/titan_q6r2_math.json
+            reports/titan_q6r2_proof.json
+            reports/titan_q6r2_real_prices/
+          if-no-files-found: warn
+          retention-days: 60
