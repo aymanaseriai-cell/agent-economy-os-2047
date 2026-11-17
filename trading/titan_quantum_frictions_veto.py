@@ -88,9 +88,9 @@ def market_catalogue():
         candidates.append(spec)
     candidates.sort(key=lambda x:hashlib.sha256(
         (STUDY+"|"+x["instId"]).encode()).hexdigest())
-    if len(candidates)<MARKETS:
+    if len(candidates)<MARKETS*2:
         raise ValueError("Cannot find six preselected genuine new crypto instruments")
-    return candidates[:MARKETS],len(candidates)
+    return candidates[MARKETS:2*MARKETS],len(candidates)
 
 
 def _is_causal_trend(bars,cl,ema_fast,ema_slow,i,side,atr):
@@ -260,7 +260,7 @@ def experiment(markets,specs,*,raw_hashes=None,panel_n=None,stamp_ms=None):
         results[chosen][p][cost]["hit_128_after_closed_trade"]
         for p in ("holdout_1","holdout_2") for cost in ("ordinary","stress"))
     return {
-        "study":STUDY,
+        "study":STUDY,\n        "validation_cohort":"second six of SAME frozen eligible SHA256 rank; no model or threshold tuning",
         "live_quantum_hardware":False,"real_trading":False,
         "source":"60 completed days of PUBLIC OKX 15m crypto USDT swap bars",
         "start_usdt":START,"goal_plus128_usdt":TARGET128,"ruin_usdt":RUIN,
@@ -301,7 +301,7 @@ def main(argv=None):
     args=p.parse_args(argv)
     stamp=int(time.time()*1000)
     panel,panel_n=market_catalogue()
-    print("QFRV LOCKED NEW MARKET PANEL",panel_n,[s["instId"] for s in panel],flush=True)
+    print("QFRV LOCKED SECOND REPLICATION COHORT",panel_n,[s["instId"] for s in panel],flush=True)
     markets={};specs={};sha={}
     raw=Path(args.raw_dir);raw.mkdir(parents=True,exist_ok=True)
     for s in panel:
