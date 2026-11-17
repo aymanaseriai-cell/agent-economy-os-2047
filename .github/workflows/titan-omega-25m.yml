@@ -1,0 +1,39 @@
+name: OMEGA SINGULARITY 25M - 20 Quant Families Real OKX 180 Days
+on:
+  push:
+    paths:
+      - 'trading/titan_omega_25m_families.py'
+      - 'trading/titan_omega_25m_market.py'
+      - 'trading/titan_omega_25m_engine.py'
+      - 'tests/test_titan_omega_25m.py'
+      - '.github/workflows/titan-omega-25m.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-okx-ohlcv-twenty-families:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate 20 research families, unitary math, 25M target, embargo, min lots and no orders
+        run: python -m unittest discover -s tests -p 'test_titan_omega_25m.py' -v
+      - name: Fetch ORIGINAL real OKX 180d 15m OHLCV quote volume and 3-month funding; record all 432 paper evaluations, full trades and SVG
+        run: python -m trading.titan_omega_25m_engine --out reports/omega_25m_report.json --raw-dir reports/omega_25m_original_okx --curve reports/omega_25m_equity.svg --trades reports/omega_25m_all_trades.jsonl.gz
+      - name: Publish auditable evidence on every success or fail
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: omega-singularity-25m-original-okx-quant-evidence
+          path: |
+            reports/omega_25m_report.json
+            reports/omega_25m_original_okx/
+            reports/omega_25m_equity.svg
+            reports/omega_25m_all_trades.jsonl.gz
+          retention-days: 60
+          if-no-files-found: warn
