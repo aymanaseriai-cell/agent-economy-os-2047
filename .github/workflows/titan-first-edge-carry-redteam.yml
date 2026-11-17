@@ -1,0 +1,69 @@
+name: TITAN First Edge - Independent Hostile Historical Hedged Funding Audit
+on:
+  push:
+    paths:
+      - '.github/workflows/titan-first-edge-carry-redteam.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-real-2024-carry-cash-and-margin:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve FROZEN separately committed original 2024 cash carry and original 2024 derivatives and current lot metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p original_carry original_v4 original_first
+          gh run download 44088462331 --repo "$GITHUB_REPOSITORY" --name titan-first-edge-2024-original-spot-perp-real-funding-and-matched-hedge-results --dir original_carry
+          gh run download 44078431108 --repo "$GITHUB_REPOSITORY" --name titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence --dir original_v4
+          gh run download 44087331073 --repo "$GITHUB_REPOSITORY" --name titan-first-edge-genuine-okx-original-2024-funding-L2-and-2026-hedge --dir original_first
+          cd original_carry && zip -qr ../carry.zip .
+          cd ../original_v4 && zip -qr ../v4.zip .
+          cd ../original_first && zip -qr ../first.zip .
+      - name: Independently check original source SHA, real funding timestamps, no future side selection, cost and ALL closed paper ledger rows
+        run: python -m trading.titan_first_edge_carry_redteam --carry-zip carry.zip --v4-zip v4.zip --first-zip first.zip --out reports/first_edge_true_independent_carry_audit.json
+      - name: Negative control modify ONE true historical funding rate and reject source
+        run: |
+          python - <<'PY'
+          import gzip,io,json,zipfile
+          with zipfile.ZipFile("carry.zip") as src:
+              names=src.namelist()
+              target=next(n for n in names if n.endswith("BTC-2024-01-official-funding.zip"))
+              with zipfile.ZipFile("carry_tampered.zip","w",compression=zipfile.ZIP_DEFLATED) as dst:
+                  for name in names:
+                      raw=src.read(name)
+                      if name==target:
+                          with zipfile.ZipFile(io.BytesIO(raw)) as inner:
+                              member=inner.namelist()[0]
+                              data=inner.read(member).decode("utf-8-sig")
+                          data=data.replace("BTC-USDT-SWAP,","BTC-USDT-SWAP,0.1,",1)
+                          changed=io.BytesIO()
+                          with zipfile.ZipFile(changed,"w",compression=zipfile.ZIP_DEFLATED) as rebuilt:
+                              rebuilt.writestr(member,data.encode())
+                          raw=changed.getvalue()
+                      dst.writestr(name,raw)
+          PY
+          if python -m trading.titan_first_edge_carry_redteam --carry-zip carry_tampered.zip --v4-zip v4.zip --first-zip first.zip --out reports/first_edge_expected_mutated_source.json; then
+            echo "REDTEAM FAILED: altered original 2024 historical settlement accepted"
+            exit 1
+          else
+            echo "PASS: altered original 2024 funding settlement detected and refused"
+          fi
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-first-edge-2024-independent-no-strategy-pnl-audit-and-tamper
+          path: |
+            reports/first_edge_true_independent_carry_audit.json
+            reports/first_edge_expected_mutated_source.json
+          retention-days: 60
+          if-no-files-found: warn
