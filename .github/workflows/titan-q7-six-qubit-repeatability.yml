@@ -1,0 +1,37 @@
+name: TITAN Q7 - 6Q Repeated +128 Genuine 180-Day OKX Historical Study
+on:
+  push:
+    paths:
+      - 'trading/titan_q7_six_qubit_repeatability.py'
+      - 'tests/test_titan_q7_six_qubit_repeatability.py'
+      - '.github/workflows/titan-q7-six-qubit-repeatability.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  quantum-six-qubit-falsification:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test unitary six-qubit mathematics and genuine four-fold +128 criteria
+        run: python -m unittest discover -s tests -p 'test_titan_q7_six_qubit_repeatability.py' -v
+      - name: Run common 3-qubit mathematical verification as baseline
+        run: python -m trading.titan_quantum_gate --ci --out reports/titan_q7_prior_quantum_gate.json
+      - name: Retrieve 180 days public historical OKX OHLC for precommitted new six markets and test four monthly holdouts
+        run: python -m trading.titan_q7_six_qubit_repeatability --out reports/titan_q7_repeatability.json --raw-dir reports/titan_q7_original_real_ohlc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q7-six-qubit-128-four-month-replication-no-orders
+          path: |
+            reports/titan_q7_prior_quantum_gate.json
+            reports/titan_q7_repeatability.json
+            reports/titan_q7_original_real_ohlc/
+          if-no-files-found: warn
+          retention-days: 60
