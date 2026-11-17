@@ -5,12 +5,26 @@ on:
   schedule:
     - cron: '23 4 * * *'
   workflow_dispatch:
+    inputs:
+      forward_phase:
+        description: 'Public-only prospective capture, or score a prior immutable artifact'
+        type: choice
+        required: true
+        default: capture
+        options:
+          - capture
+          - score
+      capture_run_id:
+        description: 'GitHub Actions capture run ID, only when scoring'
+        type: string
+        required: false
 permissions:
   contents: read
+  actions: read
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,6 +42,42 @@ jobs:
         run: python -m trading.titan_alpha_tribunal --offline-dir reports --out reports/titan_alpha_tribunal.json
       - name: Classical quantum-inspired Ising self-test (NO ORDERS)
         run: python -m trading.titan_quantum_ising_lab --offline-dir reports --out reports/titan_quantum_ising_lab.json
+      - name: Seal NEW future public market forecasts (NO ORDERS)
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'capture') }}
+        run: python -m trading.titan_forward_vault capture --out reports/titan_forward_sealed.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'capture') }}
+        with:
+          name: titan-forward-sealed-immutable-public-only
+          path: reports/titan_forward_sealed.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Check score input is a specific prior capture run
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'score' }}
+        env:
+          CAPTURE_RUN_ID: ${{ inputs.capture_run_id }}
+        run: |
+          if ! [[ "$CAPTURE_RUN_ID" =~ ^[0-9]+$ ]]; then
+            echo "::error::A numeric capture run ID is required."
+            exit 2
+          fi
+      - uses: actions/download-artifact@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'score' }}
+        with:
+          name: titan-forward-sealed-immutable-public-only
+          run-id: ${{ inputs.capture_run_id }}
+          github-token: ${{ github.token }}
+          path: reports/forward_seal
+      - name: SCORE only the older locked predictions after future candles mature (NO ORDERS)
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'score' }}
+        run: python -m trading.titan_forward_vault score --sealed reports/forward_seal/titan_forward_sealed.json --out reports/titan_forward_matured_score.json
+      - uses: actions/upload-artifact@v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.forward_phase == 'score' }}
+        with:
+          name: titan-forward-matured-score-no-orders
+          path: reports/titan_forward_matured_score.json
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         if: always()
         with:
