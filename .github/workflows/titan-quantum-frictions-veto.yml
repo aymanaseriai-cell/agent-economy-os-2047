@@ -1,0 +1,34 @@
+name: TITAN QFRV +128% new crypto-panel real public OKX paper research, NO ORDERS
+on:
+  push:
+    paths:
+      - 'trading/titan_quantum_frictions_veto.py'
+      - 'tests/test_titan_quantum_frictions_veto.py'
+      - '.github/workflows/titan-quantum-frictions-veto.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  new-market-paper-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check 128 goal, no-lookahead, public-only filters and classical controls
+        run: python -m unittest discover -s tests -p 'test_titan_quantum_frictions_veto.py' -v
+      - name: Select unseen-by-last-three 6 real public crypto SWAP markets with frozen hash, download 60d, research ONLY
+        run: python -m trading.titan_quantum_frictions_veto --out reports/titan_qfrv_128_original.json --raw-dir reports/titan_qfrv_128_raw
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-omega-qfrv-128-new-market-real-candles-no-orders
+          path: |
+            reports/titan_qfrv_128_original.json
+            reports/titan_qfrv_128_raw/
+          if-no-files-found: warn
+          retention-days: 60
