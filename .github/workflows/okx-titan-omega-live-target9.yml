@@ -7,6 +7,7 @@ on:
         type: choice
         options:
           - validate
+          - risk_check
           - research
           - run
         default: validate
@@ -74,6 +75,14 @@ jobs:
           OKX_MAX_ACTIVE_POSITIONS: ${{ vars.OKX_MAX_ACTIVE_POSITIONS || '1' }}
           OKX_PORTFOLIO_ARM: ${{ vars.OKX_PORTFOLIO_ARM || 'NO' }}
           OKX_FULL_MARGIN_ARM: ${{ secrets.OKX_FULL_MARGIN_ARM }}
+          OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
+          OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
+          OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
+          OKX_API_DOMAIN: ${{ vars.OKX_API_DOMAIN || 'https://www.okx.com' }}
+      - name: Read-only OKX risk and collateral diagnostic (NO ORDERS)
+        if: inputs.purpose == 'risk_check'
+        run: python -m trading.okx_risk_watchdog
+        env:
           OKX_API_KEY: ${{ secrets.OKX_API_KEY }}
           OKX_SECRET_KEY: ${{ secrets.OKX_SECRET_KEY }}
           OKX_PASSPHRASE: ${{ secrets.OKX_PASSPHRASE }}
@@ -194,9 +203,12 @@ jobs:
           fi
           gh api --method PUT "repos/$GITHUB_REPOSITORY/actions/workflows/okx-titan-omega-live-target9.yml/disable"
           echo 'TITAN TARGET9: workflow disabled after verified SWAP flat'
+      - name: Highest leverage requires a new manual confirmation for the next session
+        if: inputs.purpose == 'run' && inputs.continuous == true && vars.OKX_LEVERAGE_MODE == 'exchange_max'
+        run: echo '::notice::Highest-exchange-leverage mode does not chain automatically. Start a new run and explicitly confirm maximum leverage again.'
       - name: Chain another session after 20 seconds (clean bounded exit only)
         if: >-
-          ${{ inputs.purpose == 'run' && inputs.confirm_live == true && inputs.continuous == true && inputs.confirm_continuous_live == true && steps.worker.outcome == 'success' }}
+          ${{ inputs.purpose == 'run' && inputs.confirm_live == true && inputs.continuous == true && inputs.confirm_continuous_live == true && vars.OKX_LEVERAGE_MODE != 'exchange_max' && steps.worker.outcome == 'success' }}
         env:
           GH_TOKEN: ${{ github.token }}
           OKX_STOP_CONTINUOUS: ${{ vars.OKX_STOP_CONTINUOUS || 'NO' }}

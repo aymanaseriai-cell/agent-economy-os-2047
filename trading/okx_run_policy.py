@@ -11,7 +11,7 @@ import argparse
 import os
 import sys
 
-PURPOSES = frozenset(("validate", "research", "run"))
+PURPOSES = frozenset(("validate", "risk_check", "research", "run"))
 
 
 def preflight(purpose: str, env: dict[str, str]) -> str:
@@ -22,6 +22,8 @@ def preflight(purpose: str, env: dict[str, str]) -> str:
         return "RESEARCH_ONLY_PUBLIC_NO_ORDERS"
     if purpose == "validate":
         return "READ_ONLY_OKX_CONNECTION_CHECK_NO_ORDERS"
+    if purpose == "risk_check":
+        return "READ_ONLY_OKX_PORTFOLIO_CHECK_NO_ORDERS"
     blockers = []
     if env.get("OKX_ENABLE_REAL_TRADING") != "YES":
         blockers.append(
