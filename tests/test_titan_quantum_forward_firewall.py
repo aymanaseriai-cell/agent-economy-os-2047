@@ -46,7 +46,8 @@ class ForwardResearchTests(unittest.TestCase):
     def test_tampering_or_hindsight_refused(self):
         seal,_=fixture()
         damaged=copy.deepcopy(seal)
-        damaged["rows"][0]["signals"]["quantum_phase_robust"]*=-1
+        old=damaged["rows"][0]["signals"]["quantum_phase_robust"]
+        damaged["rows"][0]["signals"]["quantum_phase_robust"]=1 if old!=1 else -1
         with self.assertRaises(ValueError):
             _validate(damaged)
         damaged=copy.deepcopy(seal)
@@ -92,6 +93,15 @@ class ForwardResearchTests(unittest.TestCase):
         new=dict(modified[-1]);new["ts"]+=BAR_MS
         new["close"]*=5
         self.assertEqual(a,_decision(modified))
+
+    def test_prospective_scan_uses_absolute_utc_bar_phase(self):
+        # Identical 499-bar rolling windows at UTC quarter-hour offsets
+        # should not be permanently pinned to WAIT by len(window)%4.
+        original=series(500,last_ts=499*BAR_MS)
+        shifted=[dict(row,ts=row["ts"]+BAR_MS) for row in original]
+        a=_decision(original)
+        b=_decision(shifted)
+        self.assertNotEqual(a["scan_eligible"],b["scan_eligible"])
 
     def test_fees_and_balance_stay_paper_only(self):
         seal,_=fixture()

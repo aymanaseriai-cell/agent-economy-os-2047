@@ -78,7 +78,10 @@ def _decision(bars):
     close=[float(b["close"]) for b in bars]
     atr=atr_simple(bars,i,14)
     af=atr/close[i]
-    if i<WARMUP or i%SCAN_STRIDE!=0 or not .0012<=af<=.05:
+    # Prospective cadence must be anchored to absolute UTC bar time, NOT
+    # a rolling fetch array index (which can have the same modulo forever).
+    # This is a one-time clock-alignment correction before the first seal.
+    if i<WARMUP or (bars[i]["ts"]//BAR_MS)%SCAN_STRIDE!=0 or not .0012<=af<=.05:
         return {"quantum_phase_robust":0,"classical_same_features":0,
                 "quantum_strength":0.0,"classical_strength":0.0,
                 "atr":round(atr,10),"scan_eligible":False}
