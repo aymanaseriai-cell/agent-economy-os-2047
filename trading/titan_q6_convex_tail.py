@@ -18,7 +18,7 @@ from trading.edge_lab import (BAR_MS, atr_simple, ema_series, fetch_history,
     FUNDING_PER_8H)
 from trading.titan_regime_research import validate_frozen
 
-STUDY = "TITAN-Q6-CONVEX-TAIL-128-LOCKED-20261117-V1"
+STUDY = "TITAN-Q6-CONVEX-TAIL-128-LOCKED-20261117-V2"
 UNIVERSE = set(("AXS BONK CFX DYDX FET FLOW JTO KAS RUNE STX XTZ ZIL 1INCH "
                 "TWT CRV IMX NEO CELO GALA SAND ARKM LDO PENDLE TIA").split())
 EXCLUDE = set(("BTC ETH SOL XRP DOGE HYPE ZEC BNB BLUR MINA ETHFI AR YGG LPT "
@@ -102,7 +102,11 @@ def q6_probability(features,phase=1.):
     for bit in (1,3,5):state=_h(state,bit)
     norm=sum(abs(x)**2 for x in state)
     if abs(norm-1)>1e-9:raise ArithmeticError("Six-qubit simulator unitarity violation")
-    value=sum(abs(x)**2 for i,x in enumerate(state) if i.bit_count()>=4)
+    # Balanced six-qubit readout: states with three 1s vote half-long.
+    # Avoid a structural always-short bias from the >=4 majority rule.
+    value=sum(abs(x)**2*(1 if i.bit_count()>3 else
+                           .5 if i.bit_count()==3 else 0)
+              for i,x in enumerate(state))
     if not -1e-9<=value<=1+1e-9:raise ArithmeticError("Born probability invalid")
     return min(1.,max(0.,value))
 
@@ -180,6 +184,14 @@ def paper_one(bars,signal,spec,*,equity,leverage,fee,slip,end):
     qty,notional=qsi.affordable_contracts(spec,entry,atr,equity,leverage)
     if qty<=0:return None
     ctval=float(spec["ctVal"])
+    step=float(spec["lotSz"])
+    min_qty=math.ceil(float(spec["minSz"])/step-1e-10)*step
+    # The borrowed lot allocator assumes a 1.5 ATR planned stop.
+    # Re-quantize for our own wider 2 ATR stop: max 10% planned equity loss.
+    qty=min(qty,math.floor((equity*.10/
+                 (INITIAL_ATR_STOP*atr*ctval))/step+1e-10)*step)
+    if qty+1e-10<min_qty:return None
+    notional=qty*ctval*entry
     margin=notional/leverage
     enter_fee=notional*fee
     if margin+enter_fee>=equity:return None
@@ -222,11 +234,9 @@ def paper_one(bars,signal,spec,*,equity,leverage,fee,slip,end):
         "confidence":confidence,"day":bars[exit_i]["ts"]//86400000}
 
 def paper(markets,specs,predictions,*,start,end,leverage,fee,slip):
-    if leverage not in LEVERAGES or set(markets)!=set(specs)!=set(predictions):
-        # independently test equal sets below: chained != means either inequality
-        if (leverage not in LEVERAGES or set(markets)!=set(specs) or
-            set(markets)!=set(predictions)):
-            raise ValueError("Unregistered replay inputs")
+    if (leverage not in LEVERAGES or set(markets)!=set(specs) or
+        set(markets)!=set(predictions)):
+        raise ValueError("Unregistered replay inputs")
     events={}
     for sym,rows in predictions.items():
         for signal in rows:

@@ -53,7 +53,7 @@ class Q6(unittest.TestCase):
         # favorable high; liquidations must be counted first for long.
         spec={"instId":"BONK-USDT-SWAP","state":"live",
               "ctType":"linear","ctValCcy":"BONK",
-              "ctVal":"1","lotSz":"0.1","minSz":"0.1"}
+              "ctVal":"0.01","lotSz":"0.1","minSz":"0.1"}
         candles=copy.deepcopy(bars)
         j=225;initial=candles[j]["open"]
         candles[j]["low"]=initial*.5
