@@ -29,6 +29,13 @@ class H128Tests(unittest.TestCase):
     def test_insufficient_market_panel_cannot_pass(self):
         with self.assertRaises(ValueError):
             r.evaluate({"SUI-USDT-SWAP":bars()},{"SUI-USDT-SWAP":{}},{"SUI-USDT-SWAP":"h"})
+    def test_archived_original_market_panel_is_permanently_frozen(self):
+        self.assertEqual(len(r.FROZEN_OHLC_SHA256),6)
+        self.assertEqual(set(r.FROZEN_OHLC_SHA256),
+                         {"ATOM-USDT-SWAP","ONDO-USDT-SWAP",
+                          "WLD-USDT-SWAP","LTC-USDT-SWAP",
+                          "AVAX-USDT-SWAP","OP-USDT-SWAP"})
+        self.assertTrue(all(len(x)==64 for x in r.FROZEN_OHLC_SHA256.values()))
     def test_no_order_endpoint_or_secret_lookup(self):
         from pathlib import Path
         s=(Path(__file__).parents[1]/"trading/titan_h128_quantum_history.py").read_text()

@@ -8,6 +8,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   historical-quantum-paper:
     runs-on: ubuntu-latest
@@ -19,11 +20,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Restore PRE-FROZEN six public OKX historical datasets from initial research run (no refetch)
+        uses: actions/download-artifact@v4
+        with:
+          name: titan-h128-true-historical-okx-candles-no-orders
+          run-id: 44051493945
+          github-token: ${{ github.token }}
+          path: reports
       - name: Verify 3-qubit mathematical integrity and classical baseline (NO ORDERS)
         run: python -m trading.titan_quantum_gate --ci --out reports/h128_quantum_gate.json
       - name: Test target +128, real OHLC chronology, and no future price leakage
         run: python -m unittest discover -s tests -p 'test_titan_h128_quantum_history.py' -v
-      - name: Download 60 days of genuine OKX historical completed 15m candles for six frozen crypto swaps; run all 20 paper cases
+      - name: Replay six SHA256-verified archived REAL OKX 60-day historical datasets and run 20 paper cases
         run: python -m trading.titan_h128_quantum_history --out reports/titan_h128_quantum_history.json --raw-dir reports/titan_h128_quantum_history_raw
       - uses: actions/upload-artifact@v4
         if: always()

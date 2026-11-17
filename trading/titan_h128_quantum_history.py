@@ -22,6 +22,14 @@ DAYS=60
 MIN_BARS=5600
 N=6
 LEVERAGES=(3.,10.)
+FROZEN_OHLC_SHA256 = {
+    "ATOM-USDT-SWAP": "54ba0c07410837499bf42edda1bb4ba4393de7583c425789f1a20df3b96403f7",
+    "ONDO-USDT-SWAP": "e3935accff5dbc11a604aff57b377d342b8e211017eeb014c00be6139f5c73bf",
+    "WLD-USDT-SWAP": "5a10d5ad3c489e27785e29318624748f2bff07aa56b8c2b4df48796429d1bda1",
+    "LTC-USDT-SWAP": "fb86e038d8e36b8ce60cf11b9e79448cf22e2bf88570ca734c7f21fb7e000b37",
+    "AVAX-USDT-SWAP": "32615cb9a27d001ae84a9a795ce1c24e2ba71d63a4245afe0de4d3bf32061521",
+    "OP-USDT-SWAP": "26901150b4bf93f829279cf7979a3830456d2c2ae90c8d85da3ad29305aedb08"
+}
 UNIVERSE=set(("SUI APT ATOM DOT LTC HBAR OP ONDO XLM TIA SEI WLD ENS LDO ADA AVAX "
               "LINK INJ UNI PEPE SHIB TON TRX AAVE BCH NEAR ZRX JUP ARB FIL ALGO "
               "ETC GMT IMX NEO DASH CELO PYTH").split())
@@ -95,7 +103,7 @@ def evaluate(markets,specs,hashes):
     for name in POLICIES:
         # An immutable signal stream is injected into a proven public-lot paper
         # replay slot; no policy chooses based on future realised returns.
-        votes={s:{"quantum_phase_robust":vote[s][name]} for s in markets}
+        votes={s:vote[s][name] for s in markets}
         for lev in LEVERAGES:
             key=name+"_"+str(int(lev))+"x"
             all_results[key]={}
@@ -104,7 +112,7 @@ def evaluate(markets,specs,hashes):
                 for label,fee,slip in (("ordinary",TAKER_FEE,BASE_SLIPPAGE),
                                        ("stress",STRESS_FEE,STRESS_SLIPPAGE)):
                     all_results[key][phase][label]=prior.paper(
-                        markets,specs,votes,policy="quantum_phase_robust",
+                        markets,specs,votes,
                         leverage=lev,start=start,end=end,fee=fee,slip=slip)
     def train_pass(k):
         a=all_results[k]["train"]["ordinary"]
@@ -156,18 +164,27 @@ def main(argv=None):
     args=ap.parse_args(argv)
     basket,count=catalogue()
     print("H128 HISTORICAL PRECOMMITTED MARKET PANEL",count,[x["instId"] for x in basket],flush=True)
-    now=int(time.time()*1000)
+    if set(x["instId"] for x in basket)!=set(FROZEN_OHLC_SHA256):
+        raise ValueError("Public instrument list no longer matches precommitted cohort")
     markets={};specs={};hashes={};raw=Path(args.raw_dir)
     raw.mkdir(parents=True,exist_ok=True)
     for spec in basket:
         sym=spec["instId"]
-        bars=fetch_history(sym,DAYS,now_ms=now)
-        if len(bars)<MIN_BARS:raise ValueError("Missing completed true price history: "+sym)
-        payload=json.dumps(bars,separators=(",",":")).encode()
-        hashes[sym]=hashlib.sha256(payload).hexdigest()
-        with gzip.open(raw/(sym+".json.gz"),"wb") as handle:handle.write(payload)
+        file=raw/(sym+".json.gz")
+        if not file.is_file():
+            raise ValueError("Missing archived true OHLC from GitHub run 44051493945: "+sym)
+        with gzip.open(file,"rb") as handle:
+            payload=handle.read()
+        checksum=hashlib.sha256(payload).hexdigest()
+        if checksum!=FROZEN_OHLC_SHA256[sym]:
+            raise ValueError("Frozen historical OHLC SHA mismatch for "+sym)
+        bars=json.loads(payload)
+        validate_frozen(bars)
+        if len(bars)<MIN_BARS:
+            raise ValueError("Incomplete frozen original OHLC: "+sym)
+        hashes[sym]=checksum
         markets[sym]=bars;specs[sym]=spec
-        print("H128 HISTORICAL SHA",sym,len(bars),hashes[sym],flush=True)
+        print("H128 REPLAYED FROZEN HISTORICAL SHA",sym,len(bars),checksum,flush=True)
     report=evaluate(markets,specs,hashes)
     out=Path(args.out);out.parent.mkdir(parents=True,exist_ok=True)
     out.write_text(json.dumps(report,indent=2,sort_keys=True)+"\n")
