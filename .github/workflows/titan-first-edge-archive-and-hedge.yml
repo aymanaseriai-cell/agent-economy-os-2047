@@ -1,0 +1,38 @@
+name: TITAN FIRST VERIFIED EDGE - Official OKX Historical Funding L2 and Two-Leg Hedge
+on:
+  push:
+    paths:
+      - 'trading/titan_first_edge_sources.py'
+      - 'trading/titan_first_edge_cash_carry.py'
+      - 'tests/test_titan_first_edge.py'
+      - '.github/workflows/titan-first-edge-archive-and-hedge.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  original-exchange-archive-and-cash-carry-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify ten causal and genuine delta-neutral small-account invariants
+        run: python -m unittest discover -s tests -p 'test_titan_first_edge.py' -v
+      - name: Probe official untouched 2024 funding and L2 archives, current real OKX Spot/Swap contract metadata and top5 books
+        run: python -m trading.titan_first_edge_sources --out-dir reports/first_edge_original_okx
+      - name: Prove whether a 4.15 USDT two-leg hedge can fit actual contract lots, market depth, margin and taker fees
+        run: python -m trading.titan_first_edge_cash_carry --sources reports/first_edge_original_okx --out reports/first_edge_exact_hedge_feasibility.json
+      - name: Archive source JSON ZIP bytes hashes every rejected candidate and small-account feasibility assessment
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-first-edge-genuine-okx-original-2024-funding-L2-and-2026-hedge
+          path: |
+            reports/first_edge_original_okx/
+            reports/first_edge_exact_hedge_feasibility.json
+          retention-days: 60
+          if-no-files-found: warn
