@@ -1,0 +1,36 @@
+name: TITAN Q6 - Forensic audit of 131 percent historical paper result
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_evidence_audit.py'
+      - '.github/workflows/titan-q6-evidence-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  audit-original:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/download-artifact@v4
+        with:
+          name: titan-q6-128-true-okx-history-no-orders
+          run-id: 44057013113
+          github-token: ${{ github.token }}
+          path: reports/q6_original
+      - name: Independently check original public OHLC sha256 and closed-paper equity arithmetic
+        run: python -m trading.titan_q6_evidence_audit --archive reports/q6_original --out reports/q6_forensic.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6-exploratory-131-forensic-audit
+          path: reports/q6_forensic.json
+          retention-days: 60
+          if-no-files-found: warn
