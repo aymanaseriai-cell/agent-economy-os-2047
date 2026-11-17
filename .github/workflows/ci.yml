@@ -24,6 +24,15 @@ jobs:
         run: python verifier.py evidence-manifest.json --root . --json-out evidence-report.json
       - name: Frozen historical regime experiment (NO ORDERS)
         run: python -m trading.titan_regime_research --offline-dir reports --out reports/titan_regime_research.json
+      - name: Adversarial goal-first vs severe-loss-first tribunal (NO ORDERS)
+        run: python -m trading.titan_alpha_tribunal --offline-dir reports --out reports/titan_alpha_tribunal.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-adversarial-830-research-only
+          path: reports/titan_alpha_tribunal.json
+          if-no-files-found: error
+          retention-days: 14
       - uses: actions/upload-artifact@v4
         if: always()
         with:
