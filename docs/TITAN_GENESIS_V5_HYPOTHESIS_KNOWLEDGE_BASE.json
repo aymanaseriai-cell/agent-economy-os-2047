@@ -1,0 +1,99 @@
+{
+  "frozen_at": "2026-11-17",
+  "meaning": "Hypothesis register and lower-bound record of prior tests, NOT complete global multiple-testing audit.",
+  "historical_named_model_leverage_trials_lower_bound": 88,
+  "studies": [
+    {
+      "name": "OMEGA V1",
+      "number_of_named_models": 36,
+      "status": "REJECTED",
+      "final_selected_paper_pct": -51.76302,
+      "root_causes": [
+        "gross negative before fees",
+        "9 winners in 34 trades",
+        "stops 30/34",
+        "2026 historical final consumed"
+      ]
+    },
+    {
+      "name": "INFINITE FRONTIER V2",
+      "number_of_named_models": 20,
+      "status": "REJECTED",
+      "diagnostic_paper_pct": -57.92167,
+      "root_causes": [
+        "0/20 eligible development models",
+        "gross negative before fees",
+        "3 liquidation proxies",
+        "2026 historical final consumed"
+      ]
+    },
+    {
+      "name": "BEYOND SINGULARITY V3",
+      "number_of_named_models": 27,
+      "status": "NO_ALPHA",
+      "accepted_policy": "ALWAYS_FLAT",
+      "root_causes": [
+        "0/8 economic hypotheses qualified",
+        "lowest Holm-adjusted p=.703125",
+        "2x momentum baseline -18.68% under extreme costs",
+        "2026 historical final consumed"
+      ]
+    },
+    {
+      "name": "ABSOLUTE FRONTIER V4",
+      "number_of_named_models": 5,
+      "status": "NO_ALPHA",
+      "accepted_policy": "ALWAYS_FLAT",
+      "root_causes": [
+        "5/5 2024 basis hypotheses Holm p=1",
+        "positive gross events still below 0.4% friction",
+        "min lot blocks thousands of tiny 4.15USDT order attempts",
+        "2025 historical final consumed"
+      ]
+    },
+    {
+      "name": "GENESIS V5",
+      "number_of_named_models": 3,
+      "status": "ALL_REJECTED_DEVELOPMENT_ONLY",
+      "events": [
+        {
+          "hypothesis": "funding_crowding_reversal",
+          "N": 69,
+          "gross_mean_pct": -0.07578,
+          "Holm_p": 1
+        },
+        {
+          "hypothesis": "leader_laggard_spillover",
+          "N": 91,
+          "gross_mean_pct": -0.30556,
+          "Holm_p": 1
+        },
+        {
+          "hypothesis": "liquidity_impact_continuation",
+          "N": 329,
+          "gross_mean_pct": -0.01449,
+          "Holm_p": 1
+        }
+      ],
+      "new_prospective_final_available": false
+    }
+  ],
+  "already_consumed_datasets": [
+    "2023–2025 original OKX Trade/Mark/Index 4h historical archive; 2025 V4 final previously opened",
+    "2026 various V1–V3 OHLC/funding windows; V5 new 2026 funding observations still part of consumed calendar"
+  ],
+  "data_not_obtained": [
+    "point-in-time historical L2 and maker queue",
+    "true 2023–25 realized funding history for this study",
+    "historical minimum contract/margin schedule",
+    "prospective unexposed future period"
+  ],
+  "disallowed_interpretations": [
+    "small BASE shadow gains do not imply economic alpha when STRESS losses occur",
+    "0% always-flat is abstention, not a positive return strategy",
+    "do not claim quantum speedup or exact mark-price liquidation on OHLC alone",
+    "do not treat 2023–2026 as fresh independent unseen final after these experiments"
+  ],
+  "multi_hypothesis_note": "Holm only corrects the three V5 families; full cross-study Deflated Sharpe and Probability of Backtest Overfitting remain uncomputed.",
+  "live_orders": 0
+}
