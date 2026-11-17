@@ -1,0 +1,75 @@
+{
+  "artifact_id": 14336076896,
+  "artifact_sha256": "fb04950a9e1e166d03976c2b6b21f85ea91f5dcd0809d8589cb6512a5bed12c3",
+  "audit_checked_fills": 4658,
+  "audit_checked_windows": 640,
+  "audit_errors": 0,
+  "best_independent_net_pct": null,
+  "date": "2026-11-17",
+  "hours": 12,
+  "independent_data": false,
+  "independent_hit_rate": null,
+  "model_cost_evaluations": 640,
+  "outcomes": {
+    "beyondquantum_bayes/ordinary": {
+      "best_pct": 18.739815425311868,
+      "fills": 268,
+      "liqs": 0,
+      "median_pct": -3.9562903295246254
+    },
+    "beyondquantum_bayes/stress": {
+      "best_pct": 4.787344803551652,
+      "fills": 269,
+      "liqs": 0,
+      "median_pct": -10.450092045180892
+    },
+    "classical_momentum/ordinary": {
+      "best_pct": 28.903561162075597,
+      "fills": 359,
+      "liqs": 0,
+      "median_pct": -5.661942993478863
+    },
+    "classical_momentum/stress": {
+      "best_pct": 3.9044984299865915,
+      "fills": 359,
+      "liqs": 1,
+      "median_pct": -17.01430842185834
+    },
+    "hyperquantum_commutator/ordinary": {
+      "best_pct": 24.381731155742848,
+      "fills": 754,
+      "liqs": 0,
+      "median_pct": -12.06963325011331
+    },
+    "hyperquantum_commutator/stress": {
+      "best_pct": 1.4862526127725095,
+      "fills": 752,
+      "liqs": 0,
+      "median_pct": -31.222634686414207
+    },
+    "quantum_walk_interference/ordinary": {
+      "best_pct": 10.819825986481145,
+      "fills": 947,
+      "liqs": 4,
+      "median_pct": -17.661472817910795
+    },
+    "quantum_walk_interference/stress": {
+      "best_pct": -11.748324348678807,
+      "fills": 950,
+      "liqs": 6,
+      "median_pct": -39.775890870081376
+    }
+  },
+  "paper_fills": 4658,
+  "proxy_liquidations": 11,
+  "quantum_hardware": false,
+  "real_orders": 0,
+  "run_id": 44101023146,
+  "run_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44101023146",
+  "start_usdt": 4.15,
+  "target_hits": 0,
+  "target_usdt": 8.3,
+  "tested_sha": "0fb1cbb51e4edb67eb5bf93b94037c22fcb0ca56",
+  "unique_market_time_windows": 80,
+  "unit_tests_passed": 14
+}
