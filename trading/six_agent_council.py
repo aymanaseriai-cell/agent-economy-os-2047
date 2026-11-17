@@ -58,6 +58,9 @@ TRANSIENT_OKX_PUBLIC_CODES = frozenset(("50011", "50013", "50026"))
 TRANSIENT_HTTP_CODES = frozenset((429, 500, 502, 503, 504))
 PUBLIC_GET_MAX_ATTEMPTS = 4
 RECOVERABLE_SCAN_EXIT = 75
+# Exclude only this exact non-tradable market-history condition.
+# All unrelated failures still abort a live-capable scan.
+INCOMPLETE_HISTORY_REASON = "Insufficient completed multi-timeframe candles"
 
 
 def transient_market_errors(errors):
@@ -442,7 +445,7 @@ def analyze_market(ticker):
     bars1h = candles(grab(symbol, "/api/v5/market/candles", {"bar": "1H", "limit": "80"}))
     bars4h = candles(grab(symbol, "/api/v5/market/candles", {"bar": "4H", "limit": "50"}))
     if len(bars15) < 192 or len(bars1h) < 30 or len(bars4h) < 15:
-        raise ValueError("Insufficient completed multi-timeframe candles")
+        raise ValueError(INCOMPLETE_HISTORY_REASON)
     book_rows = grab(symbol, "/api/v5/market/books", {"sz": "50"})
     trade_rows = grab(symbol, "/api/v5/market/trades", {"limit": "200"})
     if not book_rows:
@@ -553,6 +556,12 @@ def main():
                 except Exception as exc:
                     errors.append({"symbol": market["symbol"], "reason": str(exc)[:160]})
                 time.sleep(0.4)
+        # Newly listed swaps may lack the required 48h candle history. A
+        # precise history-only exclusion is non-tradable and fully audited;
+        # every unrelated or transient market fault remains a hard error.
+        history_skips = [e for e in errors if e["reason"] == INCOMPLETE_HISTORY_REASON]
+        errors = [e for e in errors if e["reason"] != INCOMPLETE_HISTORY_REASON]
+        completely_accounted = len(results) + len(errors) + len(history_skips) == len(pool)
         report = {"utc_timestamp": datetime.now(timezone.utc).isoformat(),
                   "mode": "SIX_AGENTS_PLUS_SEVEN_QUANT_SYSTEMS_RESEARCH_ONLY", "genuine_llm_agents": 0,
                   "core_specialist_agents": 6, "advanced_quant_systems": 7,
@@ -568,8 +577,10 @@ def main():
                   "markets_screened_for_liquidity": screened,
                   "markets_excluded_by_liquidity_or_spread": screened-len(pool) if args.all_eligible else None,
                   "deep_analysis_workers": 6 if args.all_eligible else 1,
-                  "market_scan_complete": len(results)+len(errors)==len(pool),
-                  "markets_selected": len(pool), "markets_analyzed": len(results),
+                  "market_scan_complete": completely_accounted,
+                  "markets_preselected_for_deep_analysis": len(pool),
+                  "markets_skipped_insufficient_history": history_skips,
+                  "markets_selected": len(results), "markets_analyzed": len(results),
                   "actionable_research_labels": sum(x["signal"] != "WAIT" for x in results),
                   "fast_entry_research_candidates": sum(
                       x.get("fast_entry_research", {}).get("direction") in ("LONG", "SHORT")
@@ -580,10 +591,11 @@ def main():
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print("SIX AGENTS + QUANT2037: selected=", len(pool), "analyzed=", len(results),
-              "signals=", report["actionable_research_labels"], "errors=", len(errors))
+              "signals=", report["actionable_research_labels"], "errors=", len(errors),
+              "insufficient_history_skips=", len(history_skips))
         print("TITAN SAME-BATCH UNIVERSE: all_eligible=", args.all_eligible,
               "screened=",screened, "qualified_for_deep_analysis=",len(pool),
-              "completed=",len(results)+len(errors),
+              "completed=",len(results)+len(errors)+len(history_skips),
               "workers=", 6 if args.all_eligible else 1,
               "complete=", report["market_scan_complete"])
         print("TITAN 20X SWAP UNIVERSE: eligible=", len(eligible),
@@ -623,6 +635,8 @@ def main():
         for x in results:
             print(x["symbol"], x["signal"], "bull=", x["ordinal_buy_points"],
                   "bear=", x["ordinal_sell_points"], "agents=", len(x["agents"]))
+        for skipped in history_skips:
+            print("DATA SKIP", skipped["symbol"], "INSUFFICIENT_HISTORY_NO_SIGNAL")
         for err in errors:
             print("DATA ERROR", err["symbol"], err["reason"])
         print("Full evidence report:", path)
