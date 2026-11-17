@@ -68,6 +68,20 @@ class Omega24Tests(unittest.TestCase):
         self.assertTrue(fills)
         fills[0]["fee"]+=1
         self.assertEqual(a.audit(d,r)["status"],"FAIL")
+    def test_funding_tamper_rejected(self):
+        d=source();r=e.evaluate(d)
+        fills=[t for w in r["windows"] for t in w["trades"]]
+        self.assertTrue(fills)
+        fills[0]["financing"]+=.4
+        self.assertEqual(a.audit(d,r)["status"],"FAIL")
+
+    def test_fabricated_exit_rejected(self):
+        d=source();r=e.evaluate(d)
+        fills=[t for w in r["windows"] for t in w["trades"]]
+        self.assertTrue(fills)
+        fills[0]["exit_type"]="time" if fills[0]["exit_type"]!="time" else "stop"
+        self.assertEqual(a.audit(d,r)["status"],"FAIL")
+
     def test_window_cherry_pick_rejected(self):
         d=source();r=e.evaluate(d)
         r["windows"].pop()

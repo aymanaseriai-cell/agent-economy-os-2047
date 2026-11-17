@@ -71,6 +71,36 @@ def audit(source,report):
             fee=COST[case]*t["qty"]*t["ct_val"]*(t["entry"]+t["exit"])
             check(near(t["gross"],gross) and near(t["fee"],fee),"FEE_GROSS")
             check(t["financing_source"] in ("observed_public_events","conservative_proxy"),"FUNDING_PROVENANCE")
+            # Independently replay actual recorded funding event selection and fallback cost.
+            events=[f["rate"] for f in source["markets"][sym]["funding"]
+                    if bars[i]["ts"]<f["ts"]<=bars[j]["ts"]+900000]
+            if events:
+                financing=notion*side*sum(events)
+                basis="observed_public_events"
+            else:
+                financing=notion*(.0001 if case=="ordinary" else .0005)*((j-i+1)*900000/28_800_000)
+                basis="conservative_proxy"
+            check(t["financing_source"]==basis and near(t["financing"],financing),"FUNDING_REPLAY")
+            # Independent OHLC exit ordering: liquidation dominates stop on a shared bar.
+            last=min(i+4,end)-1
+            expected_type="time"
+            expected_exit=bars[last]["close"]
+            expected_idx=last
+            liq_at=t["entry"]*(1-side*(1/t["lev"]-.005))
+            stop_at=t["entry"]*(1-side*min(.02,.65/t["lev"]))
+            for k in range(i,last+1):
+                bar=bars[k]
+                hit_liq=bar["low"]<=liq_at if side==1 else bar["high"]>=liq_at
+                hit_stop=bar["low"]<=stop_at if side==1 else bar["high"]>=stop_at
+                if hit_liq or hit_stop:
+                    expected_idx=k
+                    expected_type="liquidation_proxy" if hit_liq else "stop"
+                    level=liq_at if hit_liq else stop_at
+                    expected_exit=min(bar["open"],level) if side==1 else max(bar["open"],level)
+                    break
+            expected_exit*=1-side*slip
+            check(j==expected_idx and t["exit_type"]==expected_type and
+                  near(t["exit"],expected_exit),"EXIT_REPLAY")
             ordinary=gross-fee-t["financing"]
             net=min(ordinary,-t["margin"]-fee-t["financing"]) if t["exit_type"]=="liquidation_proxy" else ordinary
             check(near(net,t["net"]),"NET_LEDGER")
