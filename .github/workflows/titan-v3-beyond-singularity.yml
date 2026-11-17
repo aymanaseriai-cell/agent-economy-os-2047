@@ -1,0 +1,41 @@
+name: TITAN V3 Beyond Singularity 210d Eight New Markets Original OKX
+on:
+  push:
+    paths:
+      - 'trading/titan_v3_alpha_discovery.py'
+      - 'trading/titan_v3_research.py'
+      - 'tests/test_titan_v3_alpha.py'
+      - '.github/workflows/titan-v3-beyond-singularity.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v3-blind-economic-alpha:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Regression and falsification tests for future labels, Holm, margin, min contracts, volume limits
+        run: python -m unittest discover -s tests -p 'test_titan_v3_alpha.py' -v
+      - name: Public ORIGINAL OKX 210d 15m candles eight new markets and actual funding, true paper strategy trials
+        run: python -m trading.titan_v3_research --out reports/v3_discovery_evidence.json --raw-dir reports/v3_original_okx_210d --trades reports/v3_all_paper_trades.jsonl.gz --curve reports/v3_frozen_equity.svg
+      - name: Independent offline frozen-archive exact replay with SHA256 source verification
+        run: python -m trading.titan_v3_research --offline --raw-dir reports/v3_original_okx_210d --out reports/v3_offline_replay.json --trades reports/v3_offline_trades.jsonl.gz --curve reports/v3_offline_curve.svg --compare-report reports/v3_discovery_evidence.json
+      - name: Archive all positive and negative evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: titan-v3-beyond-singularity-original-210d-eight-asset-evidence
+          path: |
+            reports/v3_discovery_evidence.json
+            reports/v3_offline_replay.json
+            reports/v3_original_okx_210d/
+            reports/v3_all_paper_trades.jsonl.gz
+            reports/v3_frozen_equity.svg
+          if-no-files-found: warn
+          retention-days: 60
