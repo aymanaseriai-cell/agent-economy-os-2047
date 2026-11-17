@@ -1,0 +1,37 @@
+name: TITAN Q4 - Four-Qubit Real Historical OKX 128 Paper Study
+on:
+  push:
+    paths:
+      - 'trading/titan_q4_entangled_history.py'
+      - 'tests/test_titan_q4_entangled_history.py'
+      - '.github/workflows/titan-q4-entangled-historical.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  four-qubit-historical:
+    runs-on: ubuntu-latest
+    timeout-minutes: 28
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run four-qubit unitarity, causal history and fee regression tests
+        run: python -m unittest discover -s tests -p 'test_titan_q4_entangled_history.py' -v
+      - name: Mathematical three-qubit legacy audit (NO ORDERS)
+        run: python -m trading.titan_quantum_gate --ci --out reports/titan_q4_legacy_gate.json
+      - name: Fetch fresh 90-day real OKX completed candles and run 4-qubit plus classical backtests
+        run: python -m trading.titan_q4_entangled_history --out reports/titan_q4_128_historical.json --raw-dir reports/titan_q4_128_history_raw
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q4-90d-real-okx-quantum-vs-classical-no-orders
+          path: |
+            reports/titan_q4_128_historical.json
+            reports/titan_q4_128_history_raw/
+            reports/titan_q4_legacy_gate.json
+          if-no-files-found: warn
+          retention-days: 60
