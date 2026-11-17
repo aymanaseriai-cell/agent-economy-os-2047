@@ -1,0 +1,37 @@
+name: TITAN microcapital public eligibility (NO ORDERS)
+on:
+  push:
+    branches:
+      - research/titan-microcapital-feasibility-20261117
+    paths:
+      - trading/okx_microcapital_feasibility.py
+      - research_tests/test_okx_microcapital_feasibility.py
+      - .github/workflows/titan-microcapital-feasibility.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  public-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Unit tests (NO ORDERS)
+        run: python -m unittest research_tests.test_okx_microcapital_feasibility -v
+      - name: Fetch public OKX contract sizes (NO ORDERS)
+        run: |
+          mkdir -p reports
+          python -m trading.okx_microcapital_feasibility --equity 4.14 --leverage 20 | tee reports/microcapital_4_14_public.json
+      - name: Preserve public research evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-microcapital-feasibility-public
+          path: reports/microcapital_4_14_public.json
+          retention-days: 3
+          if-no-files-found: ignore
