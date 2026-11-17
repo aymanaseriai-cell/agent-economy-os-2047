@@ -1,0 +1,39 @@
+name: TITAN Q6 R1 Exact Unchanged Model Replication on REAL Historical OKX
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_replication_128.py'
+      - 'tests/test_titan_q6_replication_128.py'
+      - '.github/workflows/titan-q6-replication-128.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q6-unchanged-out-of-basket:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test nonoverlapping market basket and frozen original Q6 settings
+        run: python -m unittest discover -s tests -p 'test_titan_q6_replication_128.py' -v
+      - name: Re-verify original Q6 4h signal and quantum math tests
+        run: python -m unittest discover -s tests -p 'test_titan_q6_4h_swing_128.py' -v
+      - name: Run 3-qubit cross-study mathematical gate
+        run: python -m trading.titan_quantum_gate --ci --out reports/q6r_quantum_gate.json
+      - name: Download genuine OKX 15m OHLC from six untouched symbols and replay exact Q6
+        run: python -m trading.titan_q6_replication_128 --out reports/titan_q6_replication_128.json --raw-dir reports/titan_q6r_true_history
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6r-one-to-one-quantum-replication-real-okx-no-orders
+          path: |
+            reports/q6r_quantum_gate.json
+            reports/titan_q6_replication_128.json
+            reports/titan_q6r_true_history/
+          if-no-files-found: warn
+          retention-days: 60
