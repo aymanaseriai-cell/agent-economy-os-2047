@@ -41,9 +41,9 @@ class CarryCausality(unittest.TestCase):
     self.assertEqual(h.locate_events(rates,1),[])
  def test_future_funding_rate_is_not_signal(self):
     t=h.START
-    rates={t:.00001,t+8*h.FOUR_H:.00001}
+    rates={t:.00001,t+2*h.FOUR_H:.00001}
     signal=h.locate_events(rates,1)
-    revised=dict(rates);revised[t+8*h.FOUR_H]=-.05
+    revised=dict(rates);revised[t+2*h.FOUR_H]=-.05
     other=h.locate_events(revised,1)
     # The ENTRY based on t is unchanged; later t events may change.
     self.assertEqual(signal[0]["entry_ts"],other[0]["entry_ts"])

@@ -182,7 +182,6 @@ def locate_events(rates,hold):
     for t in keys:
         if not rates[t]>0:continue
         entry=t+FOUR_H
-        target=t+8*FOUR_H*hold//2 # hold 1: t+16h? intentional correction below
         # One funding interval = next 8h settlement; seven days = 21x8h.
         target=t+8*60*60*1000*hold
         exit_at=target+FOUR_H
