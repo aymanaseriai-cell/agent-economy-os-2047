@@ -1,0 +1,40 @@
+name: TITAN Absolute Frontier V4 True OKX Three-Year Trade Mark Index
+on:
+  push:
+    paths:
+      - 'trading/titan_v4_basis_discovery.py'
+      - 'trading/titan_v4_research.py'
+      - 'tests/test_titan_v4_basis.py'
+      - '.github/workflows/titan-v4-absolute-frontier.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  three-year-evidence-2023-2025:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify ten Python causal/source/margin and frozen-selection unit tests
+        run: python -m unittest discover -s tests -p 'test_titan_v4_basis.py' -v
+      - name: Fetch genuine three-year public OKX original 4H trade mark and index sources for ten precommitted swaps
+        run: python -m trading.titan_v4_research --raw-dir reports/v4_original_2023_2025 --out reports/v4_empirical_results.json --curve reports/v4_frozen_2025_equity.svg
+      - name: Independently replay exact full research report from SHA-256 original frozen exchange files OFFLINE
+        run: python -m trading.titan_v4_research --offline --compare reports/v4_empirical_results.json --raw-dir reports/v4_original_2023_2025 --out reports/v4_offline_reproduced.json --curve reports/v4_offline_equity.svg
+      - name: Preserve ALL original public data and negative evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence
+          path: |
+            reports/v4_original_2023_2025/
+            reports/v4_empirical_results.json
+            reports/v4_offline_reproduced.json
+            reports/v4_frozen_2025_equity.svg
+          if-no-files-found: warn
+          retention-days: 60
