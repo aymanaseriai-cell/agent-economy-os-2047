@@ -1,0 +1,34 @@
+name: TITAN QSI — 4.15-to-8.30 micro-quantum survival falsification NO ORDERS
+on:
+  push:
+    paths:
+      - 'trading/titan_quantum_survival_interferometer.py'
+      - 'tests/test_titan_quantum_survival_interferometer.py'
+      - '.github/workflows/titan-quantum-survival-interferometer.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  historical-public-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify 3-qubit unitarity, no-lookahead, 4.15 USDT exact contract sizing
+        run: python -m unittest discover -s tests -p 'test_titan_quantum_survival_interferometer.py' -v
+      - name: Read PUBLIC OKX instrument catalog and deterministic unseen markets, historic 4.15 USDT micro-portfolio (NO ORDERS)
+        run: python -m trading.titan_quantum_survival_interferometer --out reports/titan_qsi_4_15_usdt.json --raw-dir reports/titan_qsi_raw_candles
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qsi-4-15-real-public-data-no-orders
+          path: |
+            reports/titan_qsi_4_15_usdt.json
+            reports/titan_qsi_raw_candles/
+          if-no-files-found: warn
+          retention-days: 60
