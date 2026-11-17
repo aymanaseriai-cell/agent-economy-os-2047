@@ -1,0 +1,63 @@
+name: TITAN GENESIS V5 - Independent Hostile Audit and Tamper Detection
+on:
+  push:
+    paths:
+      - '.github/workflows/titan-genesis-v5-adversarial.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-adversarial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve V5 ACTUAL sources and original V4 triple-source evidence, not new post-hoc data
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p v5 v4
+          gh run download 44082859965 --repo "$GITHUB_REPOSITORY" --name genesis-v5-all-economic-hypotheses-original-2026-funding-evidence --dir v5
+          gh run download 44078431108 --repo "$GITHUB_REPOSITORY" --name titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence --dir v4
+          cd v5 && zip -qr ../v5.zip .
+          cd ../v4 && zip -qr ../v4.zip .
+      - name: Independence: verify every true OHLC/funding SHA and all shadow PnL without importing any strategy code
+        run: python -m trading.titan_genesis_v5_redteam --v5-zip v5.zip --v4-zip v4.zip --out reports/genesis_v5_independent_redteam.json
+      - name: Tamper test must reject an edited actual original funding settlement
+        run: |
+          python - <<'PY'
+          import gzip,json,zipfile
+          with zipfile.ZipFile("v5.zip") as source:
+              files=source.namelist()
+              name=next(n for n in files if n.endswith("-actual_funding.json.gz"))
+              with zipfile.ZipFile("v5_tampered.zip","w",compression=zipfile.ZIP_DEFLATED) as dest:
+                  for entry in files:
+                      contents=source.read(entry)
+                      if entry==name:
+                          rows=json.loads(gzip.decompress(contents))
+                          rows[0]["realizedRate"]=str(float(rows[0]["realizedRate"])+.000123)
+                          contents=gzip.compress(json.dumps(rows,separators=(",",":")).encode())
+                      dest.writestr(entry,contents)
+          PY
+          if python -m trading.titan_genesis_v5_redteam --v5-zip v5_tampered.zip --v4-zip v4.zip --out reports/genesis_v5_expected_tamper_refusal.json; then
+            echo "FAIL: a modified actual funding source was wrongly accepted"
+            exit 1
+          else
+            echo "PASS: a modified actual funding settlement was correctly rejected"
+          fi
+      - name: Publish both verification and negative-control logs
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-genesis-v5-independent-original-data-ledger-proof
+          path: |
+            reports/genesis_v5_independent_redteam.json
+            reports/genesis_v5_expected_tamper_refusal.json
+          retention-days: 60
+          if-no-files-found: warn
