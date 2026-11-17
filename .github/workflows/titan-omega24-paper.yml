@@ -1,0 +1,39 @@
+name: TITAN Omega24 Causal Hamiltonian PUBLIC PAPER Research
+on:
+  push:
+    branches: [research/titan-omega24-causal-hamiltonian-20261117]
+    paths:
+      - 'trading/titan_omega24*.py'
+      - 'tests/test_titan_omega24.py'
+      - 'docs/TITAN_OMEGA24_RESEARCH.md'
+      - '.github/workflows/titan-omega24-paper.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  one-shot-research-no-orders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fail-closed 24h accounting, chronology, Hamiltonian and tamper tests
+        run: python -m unittest discover -s tests -p 'test_titan_omega24.py' -v
+      - name: Collect real completed OKX PUBLIC OHLC plus contract specs and funding
+        run: python -m trading.titan_omega_infinite12 collect --out research_artifacts/omega24_original_okx.json --limit-bars 1000
+      - name: Evaluate all disjoint 24h windows, train-frozen comparators and costs
+        run: python -m trading.titan_omega24 --input research_artifacts/omega24_original_okx.json --out research_artifacts/omega24_all_development.json
+      - name: Independently audit every fill and nonselected window
+        run: python -m trading.titan_omega24_audit --input research_artifacts/omega24_original_okx.json --report research_artifacts/omega24_all_development.json --out research_artifacts/omega24_integrity_audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-omega24-original-public-data-all-paper-ledgers
+          path: research_artifacts/
+          retention-days: 90
+          if-no-files-found: warn
