@@ -1,0 +1,61 @@
+name: TITAN V3 Independent Red-Team Audit of Frozen 210d Eight-Coin OHLCV
+on:
+  push:
+    paths:
+      - '.github/workflows/titan-v3-adversarial-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  independent-raw-market-and-trade-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Retrieve original sealed V3 experiment from earlier exact commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p evidence
+          gh run download 44073642210 --repo "$GITHUB_REPOSITORY" --name titan-v3-beyond-singularity-original-210d-eight-asset-evidence --dir evidence
+          cd evidence && zip -qr ../evidence.zip .
+      - name: Independent source SHA256, contract lot, temporal and entire ledger audit
+        run: python -m trading.titan_v3_redteam --zip evidence.zip --out reports/v3_independent_hostile_audit.json
+      - name: Proof that a real original candle edit is rejected, not just GZIP-header corruption
+        run: |
+          python - <<'PY'
+          import gzip,json,zipfile
+          with zipfile.ZipFile("evidence.zip") as source:
+              names=source.namelist()
+              original=next(name for name in names if name.endswith("-original-15m.json.gz"))
+              with zipfile.ZipFile("evidence_modified.zip","w",compression=zipfile.ZIP_DEFLATED) as target:
+                  for name in names:
+                      payload=source.read(name)
+                      if name==original:
+                          bars=json.loads(gzip.decompress(payload))
+                          bars[0][4]=str(float(bars[0][4])*1.001)
+                          payload=gzip.compress(json.dumps(bars,separators=(",",":")).encode())
+                      target.writestr(name,payload)
+          PY
+          if python -m trading.titan_v3_redteam --zip evidence_modified.zip --out reports/v3_intentional_tamper.json; then
+            echo "SECURITY BUG: modified OHLCV incorrectly accepted"
+            exit 1
+          else
+            echo "Real tampered source candle REFUSED as required"
+          fi
+      - name: Archive adversarial pass and intentional-tamper fail
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-v3-independent-hostile-source-and-execution-proof
+          path: |
+            reports/v3_independent_hostile_audit.json
+            reports/v3_intentional_tamper.json
+          if-no-files-found: warn
+          retention-days: 60
