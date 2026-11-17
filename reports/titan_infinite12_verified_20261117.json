@@ -1,0 +1,75 @@
+{
+  "artifact_id": 14334888112,
+  "artifact_zip_sha256": "7b6920d05a1004920631444aa16b46deb230feb470cff120e0a10d0c2d156c9a",
+  "audit_errors": 0,
+  "best_independent_net_pct": null,
+  "code_commit": "bfabd31c0ffaa8da42d3df5162cbaeca4106e21d",
+  "filled_paper_records": 4668,
+  "github_tests_passed": 12,
+  "independent_evidence": false,
+  "independent_target_hit_pct": null,
+  "initial_usdt": 4.15,
+  "liquidation_proxy_events": 10,
+  "local_tests_passed": 12,
+  "market": "OKX USDT SWAP public",
+  "mode": "PAPER_ONLY",
+  "model_cost_trials": 640,
+  "models": {
+    "beyondquantum_bayes": {
+      "ordinary": {
+        "best_pct": 18.739815425311868,
+        "fills": 266,
+        "median_pct": -4.223978337173628
+      },
+      "stress": {
+        "best_pct": 4.787344803551652,
+        "fills": 267,
+        "median_pct": -11.374077176020602
+      }
+    },
+    "classical_momentum": {
+      "ordinary": {
+        "best_pct": 28.903561162075597,
+        "fills": 362,
+        "median_pct": -5.672700009469745
+      },
+      "stress": {
+        "best_pct": 2.602538200137783,
+        "fills": 362,
+        "median_pct": -16.33243393410814
+      }
+    },
+    "hyperquantum_commutator": {
+      "ordinary": {
+        "best_pct": 20.99039054971874,
+        "fills": 754,
+        "median_pct": -11.150483133337852
+      },
+      "stress": {
+        "best_pct": -1.1978156522877148,
+        "fills": 752,
+        "median_pct": -29.818638868524026
+      }
+    },
+    "quantum_walk_interference": {
+      "ordinary": {
+        "best_pct": 5.549418475800305,
+        "fills": 951,
+        "median_pct": -18.765782052768753
+      },
+      "stress": {
+        "best_pct": -13.095392379737525,
+        "fills": 954,
+        "median_pct": -40.37512432559364
+      }
+    }
+  },
+  "quantum_hardware_used": false,
+  "real_orders": 0,
+  "run_id": 44100256439,
+  "target_hits": 0,
+  "target_usdt": 8.3,
+  "unique_symbol_time_windows": 80,
+  "window_minutes": 720,
+  "windows_per_model_cost": 80
+}
