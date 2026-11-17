@@ -1,0 +1,39 @@
+name: QSI 4.15 to +32 percent realized-profit lock paper retrospective
+on:
+  push:
+    paths:
+      - 'trading/titan_qsi_target32_lock_test.py'
+      - 'tests/test_titan_qsi_target32_lock_test.py'
+      - '.github/workflows/titan-qsi-target32-lock-test.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  historical-replay-no-orders:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test realized-only target capture and no future peak
+        run: python -m unittest discover -s tests -p 'test_titan_qsi_target32_lock_test.py' -v
+      - name: Obtain exact original unmodified six-market QSI paper dataset
+        run: |
+          mkdir -p reports/original_qsi
+          gh run download 44030465243 --repo "${{ github.repository }}" --name titan-qsi-4-15-real-public-data-no-orders --dir reports/original_qsi
+      - name: Validate all archived price SHA, reproduce original returns, test 32 percent post-close lock and stress
+        run: python -m trading.titan_qsi_target32_lock_test --input reports/original_qsi --out reports/titan_qsi_32_profitlock_paper.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-qsi-32-percent-postclose-historical-replay-no-orders
+          path: reports/titan_qsi_32_profitlock_paper.json
+          if-no-files-found: warn
+          retention-days: 60
