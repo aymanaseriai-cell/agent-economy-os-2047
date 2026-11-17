@@ -75,7 +75,7 @@ class V3Independent(unittest.TestCase):
     def test_real_volume_limit_blocks_fantasy_liquidity(self):
         name="RLC-USDT-SWAP";bars=fake_bars()
         for item in bars:item["vol_quote"]=1.
-        specs={name:{"instId":name,"ctVal":"1","lotSz":".01,
+        specs={name:{"instId":name,"ctVal":"1","lotSz":".01",
                     "minSz":".01","ctValCcy":"RLC"}}
         x=r.replay({name:bars},specs,{name:[]},
                    {name:[(40,1,.4,.1,.2)]},3.,30,200,.0005,.0003)
