@@ -1,0 +1,46 @@
+name: TITAN GENESIS V5 - Economic Discovery from Original OKX Sources
+on:
+  push:
+    paths:
+      - 'trading/titan_genesis_v5.py'
+      - 'tests/test_titan_genesis_v5.py'
+      - '.github/workflows/titan-genesis-v5.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  actions: read
+jobs:
+  consumed-data-development-not-blind-final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test anti-lookahead, Holm, lot size, fees, volume and closed-only compounding
+        run: python -m unittest discover -s tests -p 'test_titan_genesis_v5.py' -v
+      - name: Download original V4 raw trade-mark-index data for development ONLY
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p frozen
+          gh run download 44078431108 --repo "$GITHUB_REPOSITORY" --name titan-v4-absolute-frontier-2023-2025-original-okx-basis-evidence --dir frozen
+          cd frozen && zip -qr ../frozen_original.zip .
+      - name: Collect ACTUAL OKX recent public funding rates, develop three economic hypotheses and archive all failures
+        run: python -m trading.titan_genesis_v5 --v4-zip frozen_original.zip --funding-dir reports/genesis_v5_real_funding --report reports/genesis_v5_all_development.json
+      - name: Recalculate exactly from SHA verified original sources with ZERO network
+        run: python -m trading.titan_genesis_v5 --offline --v4-zip frozen_original.zip --funding-dir reports/genesis_v5_real_funding --report reports/genesis_v5_offline_verified.json --compare reports/genesis_v5_all_development.json
+      - name: Preserve real source files plus positive AND negative results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: genesis-v5-all-economic-hypotheses-original-2026-funding-evidence
+          path: |
+            reports/genesis_v5_all_development.json
+            reports/genesis_v5_offline_verified.json
+            reports/genesis_v5_real_funding/
+          retention-days: 60
+          if-no-files-found: warn
