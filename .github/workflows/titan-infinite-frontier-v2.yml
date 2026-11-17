@@ -1,0 +1,41 @@
+name: TITAN Infinite Frontier Gen2 - Independent New OKX Real History
+on:
+  push:
+    paths:
+      - 'trading/titan_frontier_v2_models.py'
+      - 'trading/titan_frontier_v2_research.py'
+      - 'tests/test_titan_frontier_v2.py'
+      - '.github/workflows/titan-infinite-frontier-v2.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  new-cohort-independent-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Strict math and no-orders tests for Koopman Kalman HSMM BOCPD conformal DRO quantum vs exact
+        run: python -m unittest discover -s tests -p 'test_titan_frontier_v2.py' -v
+      - name: Fetch FROZEN new six-market real public OKX 180d 15m OHLCV/funding and run 20 candidates 3 costs
+        run: python -m trading.titan_frontier_v2_research --out reports/frontier_v2_result.json --raw-dir reports/frontier_v2_raw_okx --curve reports/frontier_v2_curve.svg --trades reports/frontier_v2_all_paper_trades.jsonl.gz
+      - name: Replay all candidate results OFFLINE from SHA-verified original candles without network
+        run: python -m trading.titan_frontier_v2_research --offline --raw-dir reports/frontier_v2_raw_okx --out reports/frontier_v2_offline_replayed.json --curve reports/frontier_v2_replayed.svg --trades reports/frontier_v2_replayed_paper_trades.jsonl.gz --compare-report reports/frontier_v2_result.json
+      - name: Preserve both positive and negative evidence
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-infinite-frontier-v2-original-okx-full-evidence
+          path: |
+            reports/frontier_v2_result.json
+            reports/frontier_v2_offline_replayed.json
+            reports/frontier_v2_raw_okx/
+            reports/frontier_v2_curve.svg
+            reports/frontier_v2_all_paper_trades.jsonl.gz
+          retention-days: 60
+          if-no-files-found: warn
