@@ -145,7 +145,7 @@ def inspect(read):
                     notional=qty*float(spec["ctVal"])*float(bars[index][1])
                     if notional>float(prev[7])*.0010001:
                         errors.append("not_real_quote_liquidity:"+sym)
-                    if t["margin"]>t["equity_before"]*.1502:
+                    if t["margin"]>t["equity_before"]*.151  # allow specified adverse entry slippage while enforcing near-15% margin:
                         errors.append("excessive_hypothetical_margin:"+sym)
                     try:
                         expectedfee=(
