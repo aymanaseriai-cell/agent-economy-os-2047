@@ -1,0 +1,37 @@
+name: TITAN Q6 Six-Qubit 128 Real OKX Historical Anti-Churn Paper
+on:
+  push:
+    paths:
+      - 'trading/titan_q6_128.py'
+      - 'tests/test_titan_q6_128.py'
+      - '.github/workflows/titan-q6-historical-128.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  q6-frozen-real-market-history:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check Q6 64-state unitary quantum math, no future leak and strict no orders
+        run: python -m unittest discover -s tests -p 'test_titan_q6_128.py' -v
+      - name: Verify inherited 3-qubit math audit for all quantum backtests
+        run: python -m trading.titan_quantum_gate --ci --out reports/q6_prior_quantum_math.json
+      - name: Download six new precommitted public OKX 90-day actual 15m market histories and run long-horizon Q6 plus controls
+        run: python -m trading.titan_q6_128 --out reports/titan_q6_historical_128.json --raw-dir reports/titan_q6_real_ohlc
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: titan-q6-128-real-okx-90-day-historical-paper-no-orders
+          path: |
+            reports/titan_q6_historical_128.json
+            reports/titan_q6_real_ohlc/
+            reports/q6_prior_quantum_math.json
+          if-no-files-found: warn
+          retention-days: 60
