@@ -50,6 +50,14 @@ RESEARCH_SEED=8302047
 EXCLUDED=set(("BTC ETH SOL XRP DOGE SUI LTC ADA AVAX LINK DOT APT BCH "
     "ETC XLM NEAR ATOM UNI TRX FIL AAVE OP ARB INJ HBAR ICP WLD GALA "
     "SAND CRV PEPE SHIB TON PENDLE TIA SEI JUP ALGO APE ENA ENS LDO ONDO").split())
+# Instrument-type-only audit correction after first finished QSI run:
+# the unrestricted SWAP catalogue included SQQQ, UNH, SOXL, AMZN, NVDA
+# equity-linked swaps. The user specifically wants cryptocurrencies.
+# The first cohort's NEGATIVE results are preserved and documented; this
+# follow-up cohort is a crypto-only sensitivity test, never a hidden retune.
+CRYPTO_ONLY_UNIVERSE=set(("AR AXS BLUR BONK CFX CHZ DYDX ETHFI FET FLOW "
+    "GRT IMX JTO KAS LPT MASK MINA PENGU PYTH RENDER RUNE STX WIF "
+    "XTZ YGG ZEC ZIL 1INCH ZK TWT ENS LDO").split())
 POLICIES=("quantum_interference","quantum_phase_robust",
           "quantum_zero_phase","classical_same_features")
 
@@ -66,6 +74,7 @@ def public_instruments():
         sym=z.get("instId","")
         name=sym.removesuffix("-USDT-SWAP")
         if (not sym.endswith("-USDT-SWAP") or name in EXCLUDED
+            or name not in CRYPTO_ONLY_UNIVERSE
             or z.get("state")!="live" or z.get("ctType")!="linear"
             or z.get("ctValCcy")!=name
             or not str(z.get("listTime","")).isdigit()):
@@ -392,7 +401,8 @@ def evaluate(markets,specs,*,raw_hashes=None,stamp_ms=None,catalogue_count=None)
     return {
         "mode":"3_QUBIT_UNITARY_MICRO_4_15_ACCOUNT_LIVE_DISABLED_RESEARCH",
         "data_source":"OKX public instruments and 15m history candles only",
-        "catalogue_selection":"min listing age 90d, live linear USDT perpetual, exclude 42 earlier symbols, SHA256 sorted exact 6; no return-based choice",
+        "catalogue_selection":"MIN 90d listing age, LIVE linear USDT crypto-only allowlist, exclude prior used symbols, SHA256 sorted six; no return-based choice",
+        "documented_data_universe_correction":"Original fully evaluated QSI panel accidentally contained 5 equity-linked swaps (SQQQ, UNH, SOXL, AMZN, NVDA) and 1 crypto AZTEC. That NEGATIVE panel is not erased. This follow-up locks a named cryptocurrency-only list; model and test thresholds are unchanged and no hidden historical profit search occurred.",
         "eligible_public_market_count":catalogue_count,
         "chosen_public_markets":sorted(markets),
         "raw_market_hashes":raw_hashes or {},

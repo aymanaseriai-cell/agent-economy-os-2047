@@ -2,7 +2,7 @@
 import math,unittest
 from trading.edge_lab import BAR_MS
 from trading.titan_quantum_survival_interferometer import (
-    EXCLUDED,POLICIES,START,TARGET,RUIN,interferometer,
+    EXCLUDED,CRYPTO_ONLY_UNIVERSE,POLICIES,START,TARGET,RUIN,interferometer,
     classical_probability,affordable_contracts,candidate_stream,
     sim_one,paper_portfolio,signflip_pvalue,evaluate
 )
@@ -26,6 +26,11 @@ def spec(coin="TEST",*,ctval="0.001",minsz="1",lot="1"):
 
 
 class MicroQuantumAudit(unittest.TestCase):
+    def test_crypto_only_correction_avoids_equity_linked_swaps(self):
+        self.assertFalse({"AMZN","NVDA","UNH","SQQQ","SOXL"} & CRYPTO_ONLY_UNIVERSE)
+        self.assertTrue({"AR","CFX","PYTH","RENDER"} <= CRYPTO_ONLY_UNIVERSE)
+        self.assertFalse(CRYPTO_ONLY_UNIVERSE & {"BTC","ETH","SOL","XRP"})
+
     def test_three_qubit_norm_and_phases(self):
         for i in range(120):
             v=(math.sin(i/8),math.cos(i/7),math.tanh(i/9-5))
