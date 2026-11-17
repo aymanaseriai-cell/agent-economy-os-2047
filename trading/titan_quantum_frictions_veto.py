@@ -260,7 +260,8 @@ def experiment(markets,specs,*,raw_hashes=None,panel_n=None,stamp_ms=None):
         results[chosen][p][cost]["hit_128_after_closed_trade"]
         for p in ("holdout_1","holdout_2") for cost in ("ordinary","stress"))
     return {
-        "study":STUDY,\n        "validation_cohort":"second six of SAME frozen eligible SHA256 rank; no model or threshold tuning",
+        "study":STUDY,
+        "validation_cohort":"second six of SAME frozen eligible SHA256 rank; no model or threshold tuning",
         "live_quantum_hardware":False,"real_trading":False,
         "source":"60 completed days of PUBLIC OKX 15m crypto USDT swap bars",
         "start_usdt":START,"goal_plus128_usdt":TARGET128,"ruin_usdt":RUIN,
