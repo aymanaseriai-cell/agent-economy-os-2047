@@ -257,6 +257,10 @@ def evaluate(frozen,*, fingerprints=None):
     mu,cov,days=training_matrix(train_days)
     selected, exact_E=exact_ground_state(mu,cov)
     annealed, anneal_E=anneal_ising(mu,cov)
+    # Quantum-like amplitude calculation, emulated classically on six bits.
+    # Optimize cost energy ONLY from training; never from historical holdout.
+    from trading.titan_qaoa_emulator import audit_qaoa
+    qaoa = audit_qaoa(mu,cov,exact_E)
     # Never let a stochastic approximation silently override exact optimum.
     if anneal_E + 1e-8 < exact_E:
         raise ArithmeticError("Annealer beat exhaustive global minimum")
@@ -327,6 +331,7 @@ def evaluate(frozen,*, fingerprints=None):
         "ising_objective":"-mean_daily_train_bp + 0.12*cov_daily_train_bp2 + 100*(count-3)^2",
         "training_day_count":days,
         "annealer_exact_agreement":abs(exact_E-anneal_E)<1e-8,
+        "six_qubit_qaoa_classical_emulator":qaoa,
         "anneal_energy":round(anneal_E,8),
         "exhaustive_global_energy":round(exact_E,8),
         "training_trade_count":ntrain,
@@ -377,6 +382,8 @@ def main(argv=None):
     print("ISING LAB quantum_hardware=NO, annealer_exact_match=",
           r["annealer_exact_agreement"],flush=True)
     print("ISING LAB selected=",r["selected_features_train_only"],flush=True)
+    print("ISING QAOA CLASSICAL emulation=",r["six_qubit_qaoa_classical_emulator"],
+          flush=True)
     print("ISING LAB training n=",r["training_trade_count"],
           "mean_net_pct=",r["training_mean_per_symbol_pct"],
           "stress_pct=",r["training_mean_stress_pct"],flush=True)
