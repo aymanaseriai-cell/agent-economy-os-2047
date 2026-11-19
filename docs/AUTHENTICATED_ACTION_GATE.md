@@ -42,3 +42,5 @@ python -m unittest discover -s tests -p 'test_authenticated_action_gate.py' -v
 - Before adopting it in an actual server, complete an independent security review, trusted identity provisioning, key management, rate-limiting, durable replay storage and auditable side-effect isolation.
 
 Architecture informed by the general principle of least privilege; no competitor implementation copied.
+
+**Durability regression gate:** in-memory SQLite (`:memory:` or other unnamed temporary stores) is rejected by validating the SQLite main database file path; replay protection must never silently fall back to an ephemeral connection.

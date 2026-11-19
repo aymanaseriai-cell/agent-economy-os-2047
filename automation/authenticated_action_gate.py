@@ -152,6 +152,9 @@ def reserve_nonce(database_path, principal, nonce, expires_at, now):
         raise PolicyError("invalid_replay_db")
     try:
         with sqlite3.connect(str(database_path), timeout=5, isolation_level=None) as conn:
+            files = conn.execute("PRAGMA database_list").fetchall()
+            if not any(row[1] == "main" and row[2] for row in files):
+                raise PolicyError("nonpersistent_replay_store")
             conn.execute("PRAGMA busy_timeout=5000")
             conn.execute("CREATE TABLE IF NOT EXISTS used_nonce ("
                          "principal TEXT NOT NULL, nonce TEXT NOT NULL,"
@@ -163,6 +166,8 @@ def reserve_nonce(database_path, principal, nonce, expires_at, now):
             conn.execute("COMMIT")
     except sqlite3.IntegrityError as exc:
         raise PolicyError("replayed_nonce") from exc
+    except PolicyError:
+        raise
     except (sqlite3.DatabaseError, OSError, OverflowError, ValueError) as exc:
         raise PolicyError("replay_store_unavailable") from exc
 

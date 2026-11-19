@@ -205,6 +205,11 @@ class AuthenticatedGateTest(unittest.TestCase):
             authorize_and_execute(policy(), envelope(), self.keys, bad, clock=NOW)
         self.assertEqual(caught.exception.code, 'replay_store_unavailable')
 
+    def test_in_memory_nonce_db_is_rejected(self):
+        with self.assertRaises(PolicyError) as caught:
+            authorize_and_execute(policy(), envelope(), self.keys, ":memory:", clock=NOW)
+        self.assertEqual(caught.exception.code, "nonpersistent_replay_store")
+
     def test_malformed_keyring_is_rejected(self):
         for value in ('{}', '{"audit-agent":"abc"}', '{"audit-agent":"xx","audit-agent":"yy"}', ''):
             with self.subTest(value=value), self.assertRaises(PolicyError):
