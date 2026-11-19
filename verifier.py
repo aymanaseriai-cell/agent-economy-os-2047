@@ -28,6 +28,7 @@ def validate(manifest_path: Path, root: Path) -> dict:
     if not isinstance(records, list) or not records:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": ["Manifest must contain a non-empty 'artifacts' array"]}
 
+    seen_paths = set()
     for idx, record in enumerate(records):
         label = f"artifacts[{idx}]"
         if not isinstance(record, dict):
@@ -44,6 +45,10 @@ def validate(manifest_path: Path, root: Path) -> dict:
         except ValueError:
             errors.append(f"{label}: path escapes project root")
             continue
+        if path in seen_paths:
+            errors.append(f"{label}: duplicate artifact path: {relative}")
+            continue
+        seen_paths.add(path)
         if not path.is_file():
             errors.append(f"{label}: file not found: {relative}")
             continue
