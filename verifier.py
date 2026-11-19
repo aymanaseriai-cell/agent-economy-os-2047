@@ -15,13 +15,24 @@ from pathlib import Path
 SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
+def _reject_duplicate_json_keys(pairs):
+    """Reject ambiguous JSON objects instead of silently taking the last key."""
+    out = {}
+    for key, value in pairs:
+        if key in out:
+            raise ValueError(f"duplicate JSON key: {key!r}")
+        out[key] = value
+    return out
+
+
 def validate(manifest_path: Path, root: Path) -> dict:
     root = root.resolve()
     errors = []
     results = []
+    seen_paths = set()
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": [f"Could not read manifest: {exc}"]}
 
     records = manifest.get("artifacts") if isinstance(manifest, dict) else None
@@ -38,12 +49,22 @@ def validate(manifest_path: Path, root: Path) -> dict:
         if not isinstance(relative, str) or not relative.strip() or not isinstance(expected, str) or not SHA256.fullmatch(expected):
             errors.append(f"{label}: expected non-empty path and 64-character sha256")
             continue
-        path = (root / relative).resolve()
+        try:
+            if "\x00" in relative:
+                raise ValueError("embedded NUL")
+            path = (root / relative).resolve()
+        except (OSError, ValueError, RuntimeError):
+            errors.append(f"{label}: invalid file path")
+            continue
         try:
             path.relative_to(root)
         except ValueError:
             errors.append(f"{label}: path escapes project root")
             continue
+        if path in seen_paths:
+            errors.append(f"{label}: duplicate artifact path (including aliases): {relative}")
+            continue
+        seen_paths.add(path)
         if not path.is_file():
             errors.append(f"{label}: file not found: {relative}")
             continue
