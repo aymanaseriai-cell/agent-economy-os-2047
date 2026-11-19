@@ -24,4 +24,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: node --test tests/work_covenant/test_core.mjs tests/work_covenant/test_http.mjs
+      - run: node --test tests/work_covenant/test_core.mjs tests/work_covenant/test_http.mjs tests/work_covenant/test_replay_guard.mjs
