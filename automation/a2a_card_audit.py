@@ -51,6 +51,22 @@ def public_https(value):
     except (TypeError, ValueError):
         return False
 
+def public_grpc_address(value):
+    """Check public gRPC hostname:port without DNS resolution or network calls."""
+    if not good_text(value) or len(value) > 255 or any(c in value for c in "/?#@\\ \t\n"):
+        return False
+    host, separator, port = value.rpartition(":")
+    if not separator or not port.isascii() or not port.isdecimal() or len(port) > 5:
+        return False
+    if not (1 <= int(port) <= 65535):
+        return False
+    if host.startswith("[") and host.endswith("]"):
+        try:
+            return ipaddress.ip_address(host[1:-1]).is_global
+        except ValueError:
+            return False
+    return public_https("https://" + host)
+
 def audit(card):
     failures, warnings = [], []
     def fail(code, path):
@@ -77,7 +93,7 @@ def audit(card):
                 for field in ("protocolBinding", "protocolVersion"):
                     if not good_text(item.get(field)):
                         fail("required_text", path + "." + field)
-                if not public_https(item.get("url")):
+                if not (public_grpc_address(item.get("url")) if item.get("protocolBinding") == "GRPC" else public_https(item.get("url"))):
                     fail("unsafe_interface_url", path + ".url")
         caps = card.get("capabilities")
         if not isinstance(caps, dict):
