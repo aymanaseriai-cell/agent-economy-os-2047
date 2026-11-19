@@ -1,0 +1,12 @@
+{
+  "schema": "agent-economy.action-policy.v1",
+  "rules": [{
+    "id": "evidence_inspector_readonly",
+    "effect": "allow",
+    "principals": ["audit-agent"],
+    "actions": ["evidence.inspect", "repo.inspect", "agent_card.preflight"],
+    "resources": ["service:work-covenant", "github:aymanaseriai-cell/agent-economy-os-2047"],
+    "environments": ["local", "staging"],
+    "expires_at": "2027-12-31T23:59:59Z"
+  }]
+}
