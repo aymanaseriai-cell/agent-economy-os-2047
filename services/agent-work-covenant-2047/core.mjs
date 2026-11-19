@@ -154,7 +154,11 @@ function pointerGet(value,pointer) {
   }
   return {exists:true,value:current};
 }
-function sameScalar(a,b) {return scalar(a)&&scalar(b)&&Object.is(a,b);}
+function sameScalar(a,b) {
+  if (!scalar(a) || !scalar(b)) return false;
+  // JSON canonicalization serializes signed zero identically; evaluation must too.
+  return Object.is(a,b) || (typeof a==="number" && typeof b==="number" && a===0 && b===0);
+}
 export async function evaluateContract(input) {
   check(isRecord(input) && isRecord(input.contract),"invalid_evaluation");
   const contract=normalizeContract(input.contract);
