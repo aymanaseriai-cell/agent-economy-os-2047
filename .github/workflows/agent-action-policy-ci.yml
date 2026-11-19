@@ -1,0 +1,25 @@
+name: Agent action policy preflight tests
+on:
+  push:
+    paths:
+      - 'automation/agent_action_policy.py'
+      - 'tests/test_agent_action_policy.py'
+      - 'policies/agent_action_policy.example.json'
+      - '.github/workflows/agent-action-policy-ci.yml'
+  pull_request:
+    paths:
+      - 'automation/agent_action_policy.py'
+      - 'tests/test_agent_action_policy.py'
+      - 'policies/agent_action_policy.example.json'
+      - '.github/workflows/agent-action-policy-ci.yml'
+permissions:
+  contents: read
+jobs:
+  policy-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_agent_action_policy.py' -v
