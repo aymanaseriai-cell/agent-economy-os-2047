@@ -5,6 +5,7 @@ Original implementation based on publicly documented A2A metadata requirements.
 import argparse
 import ipaddress
 import json
+import math
 import sys
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -18,6 +19,15 @@ def unique_pairs(pairs):
             raise ValueError("duplicate JSON key: " + key)
         result[key] = value
     return result
+
+def finite_json_float(raw):
+    value = float(raw)
+    if not math.isfinite(value):
+        raise ValueError("non-finite JSON numeric value")
+    return value
+
+def reject_json_constant(raw):
+    raise ValueError("non-standard JSON numeric literal: " + raw)
 
 def good_text(value):
     return isinstance(value, str) and bool(value.strip()) and value == value.strip() and len(value) <= 1024
@@ -40,24 +50,6 @@ def public_https(value):
             return len(parts) >= 2 and all(part and part.replace("-", "").isalnum() and not part.startswith("-") and not part.endswith("-") for part in parts)
     except (TypeError, ValueError):
         return False
-
-def public_grpc_address(value):
-    """Validate a public gRPC host:port binding without DNS or network access."""
-    if not good_text(value) or len(value) > 255 or any(c in value for c in "/?#@\\ \t\n"):
-        return False
-    host, separator, port = value.rpartition(":")
-    if not separator or not port.isascii() or not port.isdecimal() or len(port) > 5:
-        return False
-    if not (1 <= int(port) <= 65535):
-        return False
-    if host.startswith("[") and host.endswith("]"):
-        try:
-            return ipaddress.ip_address(host[1:-1]).is_global
-        except ValueError:
-            return False
-    # Same public hostname restrictions as HTTPS interfaces. The synthetic
-    # URL is validated locally; it is NEVER contacted.
-    return public_https("https://" + host)
 
 def audit(card):
     failures, warnings = [], []
@@ -85,7 +77,7 @@ def audit(card):
                 for field in ("protocolBinding", "protocolVersion"):
                     if not good_text(item.get(field)):
                         fail("required_text", path + "." + field)
-                if not (public_grpc_address(item.get("url")) if item.get("protocolBinding") == "GRPC" else public_https(item.get("url"))):
+                if not public_https(item.get("url")):
                     fail("unsafe_interface_url", path + ".url")
         caps = card.get("capabilities")
         if not isinstance(caps, dict):
@@ -142,7 +134,7 @@ def main():
     try:
         if args.card.stat().st_size > MAX_INPUT:
             raise ValueError("file exceeds 256 KiB")
-        card = json.loads(args.card.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs)
+        card = json.loads(args.card.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs, parse_constant=reject_json_constant, parse_float=finite_json_float)
         report = audit(card)
     except (OSError, UnicodeError, ValueError, RecursionError) as exc:
         report = {"schema": "agent-economy.a2a-card-preflight.v1", "status": "preflight_failed", "failures": [{"code": "invalid_input", "message": str(exc)[:300]}], "warnings": [], "identity_verified": False, "signature_verified": False, "network_requests_made": False}
