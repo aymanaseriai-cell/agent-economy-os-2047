@@ -149,3 +149,24 @@ test("Ed25519 endorsement rejects invalid key length or modified contract id",as
  await assert.rejects(verifyEndorsement(base),/invalid_key_or_signature_length/);
  await assert.rejects(verifyEndorsement({...base,contract_id:"0".repeat(64)}),/contract_id_mismatch/);
 });
+
+test("canonical negative zero cannot change a pinned contract evaluation", async () => {
+ const raw = expected => ({
+   task:{title:"Verify a numeric JSON artifact"},
+   criteria:[{id:"json_zero",type:"json_pointer_equals",
+     artifact:"result.json",pointer:"/value",expected}]
+ });
+ const positive=await compileContract(raw(0));
+ const negative=await compileContract(raw(-0));
+ assert.equal(positive.contract_id,negative.contract_id,
+   "JSON canonicalization commits to the same bytes for +0 and -0");
+ for(const literal of ["0","-0"]) {
+   const submission={artifacts:[{name:"result.json",
+     content:'{"value":'+literal+'}'}]};
+   const a=await evaluateContract({...positive,submission});
+   const b=await evaluateContract({...negative,submission});
+   assert.equal(a.status,"local_checks_passed");
+   assert.equal(b.status,a.status,"identical pinned contract ID must imply identical evaluation");
+   assert.equal(a.proof_id,b.proof_id);
+ }
+});
