@@ -1,0 +1,28 @@
+name: Signed agent action gate security checks
+on:
+  push:
+    paths:
+      - 'automation/authenticated_action_gate.py'
+      - 'automation/agent_action_policy.py'
+      - 'tests/test_authenticated_action_gate.py'
+      - 'policies/agent_action_policy.signed_example.json'
+      - '.github/workflows/authenticated-action-gate-ci.yml'
+  pull_request:
+    paths:
+      - 'automation/authenticated_action_gate.py'
+      - 'automation/agent_action_policy.py'
+      - 'tests/test_authenticated_action_gate.py'
+      - 'policies/agent_action_policy.signed_example.json'
+      - '.github/workflows/authenticated-action-gate-ci.yml'
+permissions:
+  contents: read
+jobs:
+  signature-policy-replay:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -p 'test_authenticated_action_gate.py' -v
