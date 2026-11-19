@@ -5,11 +5,13 @@ on:
     paths:
       - "services/agent-work-covenant-2047/**"
       - "tests/work_covenant/**"
+      - "examples/proof-carrying-work/**"
       - ".github/workflows/work-covenant-ci.yml"
   pull_request:
     paths:
       - "services/agent-work-covenant-2047/**"
       - "tests/work_covenant/**"
+      - "examples/proof-carrying-work/**"
       - ".github/workflows/work-covenant-ci.yml"
 permissions:
   contents: read
@@ -24,4 +26,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-      - run: node --test tests/work_covenant/test_core.mjs tests/work_covenant/test_http.mjs
+      - name: Unit and negative-path tests
+        run: node --test tests/work_covenant/*.mjs
+      - name: One-command offline demo
+        run: |
+          node examples/proof-carrying-work/run.mjs > /tmp/agent-work-demo.json
+          node -e "const r=require('/tmp/agent-work-demo.json'); if(r.valid.status!=='local_checks_passed'||r.tampered.status!=='local_checks_failed'||r.payment_verified!==false||r.buyer_acceptance_verified!==false) process.exit(1)"
