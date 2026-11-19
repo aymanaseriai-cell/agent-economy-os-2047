@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0,str(Path(__file__).resolve().parents[2] / 'examples' / 'work-covenant-client'))
-import work_covenant_client as sdk
+import client as sdk
 
 CID = 'a' * 64
 PROOF = 'b' * 64
