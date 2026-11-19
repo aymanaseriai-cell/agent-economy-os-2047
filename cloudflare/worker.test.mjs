@@ -74,3 +74,9 @@ test("OPTIONS handled locally without external calls",async()=>{
   const r=await workerFetch(new Request(base+"/v1/compile",{method:"OPTIONS"}),{},async()=>{count++;throw Error()});
   assert.equal(r.status,204);assert.equal(count,0);
 });
+
+test("Cloudflare 530 origin/DNS failure uses local fallback",async()=>{
+ const r=await workerFetch(new Request(base+"/health"),{},async()=>new Response("origin error",{status:530}));
+ assert.equal(r.status,200);
+ assert.equal(r.headers.get("x-agent-economy-upstream"),"cloudflare-local-v4");
+});

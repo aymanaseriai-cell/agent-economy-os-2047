@@ -189,7 +189,7 @@ const PRIMARY_ORIGIN = "https://jzallxzbbdtelcpabfgr.supabase.co";
 const PREFIX = "/functions/v1/agent-work-covenant-2047";
 const READ = new Set(["/","/health","/demo","/openapi.json","/skill.md","/.well-known/agent.json"]);
 const COMPUTE = new Set(["/v1/compile","/v1/evaluate","/v1/endorsement-message","/v1/verify-endorsement"]);
-const CAN_RETRY = new Set([502,503,504]);
+const CAN_RETRY = new Set([502,503,504,520,521,522,523,524,530]);
 const MAX_REQUEST = 16384;
 const TIMEOUT_MS = 2500;
 
