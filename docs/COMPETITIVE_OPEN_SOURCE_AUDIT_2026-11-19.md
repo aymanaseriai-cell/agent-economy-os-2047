@@ -45,3 +45,14 @@ References:
 - https://github.com/x402-foundation/x402
 
 No user adoption, stars, revenue, deployments or commercial outcomes are claimed.
+
+
+## Pinned open-source components added (2026-11-19)
+
+- Added **verbatim** A2A v1 protobuf protocol definition from `a2aproject/A2A` at commit `5f931b8a25fe66789f987ec4a55fc16ee9fe41ee` under `third_party/a2a/specification/a2a.proto`.
+- Added **verbatim** two public A2A example cards from `a2aproject/a2a-samples` at commit `1d7b7be24971c60fe5019182c1d26b7e9ae137ed` as offline **negative regression test fixtures** (legacy schemas and unsafe local HTTP endpoints).
+- Added the Apache-2.0 full license and source attribution in `third_party/a2a/`.
+- Fixed the project's original A2A preflight for **gRPC hostname:port interfaces** as explicitly supported by the upstream protobuf, while continuing to reject localhost/private addresses in public deployments.
+- Added regression tests and expanded CI selection. No secrets, keys, payment flows, network calls, or production operations introduced.
+
+This is a scoped integration of an external licensed specification and fixtures, **not** a copy of an entire competing platform or proof of protocol conformance.
