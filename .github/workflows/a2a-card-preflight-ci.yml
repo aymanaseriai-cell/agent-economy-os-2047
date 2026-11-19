@@ -6,6 +6,8 @@ on:
       - 'tests/test_a2a_card_audit.py'
       - 'tests/test_a2a_upstream_fixtures.py'
       - 'third_party/a2a/**'
+      - 'automation/verify_vendor_lock.py'
+      - 'tests/test_vendor_lock.py'
       - '.github/workflows/a2a-card-preflight-ci.yml'
   pull_request:
     paths:
@@ -23,3 +25,5 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -p 'test_a2a*.py' -v
+      - run: python -m unittest discover -s tests -p 'test_vendor_lock.py' -v
+      - run: python automation/verify_vendor_lock.py
