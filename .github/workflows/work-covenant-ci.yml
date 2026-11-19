@@ -5,11 +5,13 @@ on:
     paths:
       - "services/agent-work-covenant-2047/**"
       - "tests/work_covenant/**"
+      - "benchmarks/work_covenant_replay.mjs"
       - ".github/workflows/work-covenant-ci.yml"
   pull_request:
     paths:
       - "services/agent-work-covenant-2047/**"
       - "tests/work_covenant/**"
+      - "benchmarks/work_covenant_replay.mjs"
       - ".github/workflows/work-covenant-ci.yml"
 permissions:
   contents: read
@@ -25,3 +27,5 @@ jobs:
         with:
           node-version: "24"
       - run: node --test tests/work_covenant/test_core.mjs tests/work_covenant/test_http.mjs tests/work_covenant/test_replay_guard.mjs
+      - name: Reproducible baseline versus guard replay control
+        run: node benchmarks/work_covenant_replay.mjs
