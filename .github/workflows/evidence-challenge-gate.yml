@@ -1,0 +1,29 @@
+name: Offline Evidence Gate Tests
+on:
+  push:
+    paths:
+      - "agent_evidence_gate.py"
+      - "verifier.py"
+      - "tests/test_agent_evidence_gate.py"
+      - ".github/workflows/evidence-challenge-gate.yml"
+  pull_request:
+    paths:
+      - "agent_evidence_gate.py"
+      - "verifier.py"
+      - "tests/test_agent_evidence_gate.py"
+      - ".github/workflows/evidence-challenge-gate.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests -p 'test_agent_evidence_gate.py' -v
