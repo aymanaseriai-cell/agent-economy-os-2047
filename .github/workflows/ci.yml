@@ -1,4 +1,4 @@
-name: Test and verify
+name: Agent Economy | tests and evidence verification
 on:
   push:
   pull_request:
@@ -18,18 +18,14 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run unit tests (including quantum mathematical and evidence guards)
+      - name: Run agent-evidence, audit and repository-scope tests
         run: python -m unittest discover -s tests -v
-      - name: Quantum research gate, identical-input classical control (NO ORDERS)
-        run: python -m trading.titan_quantum_gate --ci --out reports/titan_quantum_ci_gate.json
       - name: Verify sample agent evidence
         run: python verifier.py evidence-manifest.json --root . --json-out evidence-report.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: evidence-check-result
-          path: |
-            evidence-report.json
-            reports/titan_quantum_ci_gate.json
+          name: agent-evidence-check-result
+          path: evidence-report.json
           if-no-files-found: ignore
           retention-days: 14

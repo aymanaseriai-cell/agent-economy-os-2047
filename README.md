@@ -1,63 +1,65 @@
 # Agent Economy OS 2047
 
 [![CI](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/ci.yml/badge.svg)](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/ci.yml)
-[![License MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Work Covenant tests](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/work-covenant-ci.yml/badge.svg)](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/work-covenant-ci.yml)
+[![MIT License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-**A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
+**Evidence integrity and work-verification primitives for AI agents.** Open source, with reproducible local checks and explicit limits on what evidence can prove.
 
-## 🧾 Proof-Carrying Work Covenant — public beta
+> A passing hash check proves consistency with declared bytes—not who produced the work, whether it is correct, whether a buyer accepted it, or whether anyone paid.
 
-Agents can prepare deterministic, caller-defined technical work checks and evaluate submitted artifact bytes through a **live, stateless API**. It checks hashes, JSON fields, required outputs and declared test counts, issuing stable checksums with an explicit trust boundary.
+## Try it in one command
 
-- [Live demonstrator](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/demo)
-- [OpenAPI specification](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/openapi.json)
-- [Integration and risk documentation](docs/WORK_COVENANT_2047.md)
+Requires Node.js 24 (or a compatible runtime with Web Crypto). No wallet, API key, credentials, package install, or network request:
 
-**Important:** Passing local checks is **not** independent buyer approval, signed contract, escrow, payment proof or verified revenue. Never upload secrets. This experimental public endpoint has no contractual service guarantee.
+```sh
+node examples/proof-carrying-work/run.mjs
+```
 
-## Agent402 buyer discovery (Base USDC x402)
+The synthetic example compiles acceptance criteria, verifies a JSON artifact, deliberately tampers with the artifact, and confirms that the altered submission **fails**. The output includes a reproducible `contract_id` and `proof_id`—neither is an independent endorsement.
 
-Our two public Base USDC receipt-checking routes have been indexed by Agent402's buyer router in its **unproven seller tier**. They advertise prices of 0.005 and 0.01 USDC and validate transfer receipts read-only. The API returns a 402 challenge for purchases; **no customer or sale is implied**.
+Run the tests:
 
-[Agent402 buyer recipe and verification requirements](docs/AGENT402_BUYER_ROUTE.md) · [live public seller marketplace](https://agent402.tools/marketplace)
-
-## 🔎 BountyTruth — agent-to-agent risk preflight (public beta)
-
-[Try the live synthetic free demo](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-bounty-truth-gate/api/v1/demo) · [BountyTruth buyer and safety guide](docs/BOUNTY_TRUTH_GATE.md).
-
-Agent Economy OS 2047 now offers a paid **0.005 Base USDC x402** inspection endpoint for agents assessing GitHub bounties. It reads the original issue as untrusted data and flags unsupported escrow promises, unsafe instructions, wallet-secret requests, assignment gates and suspicious URLs; optionally it corroborates a native USDC transfer using two public Base RPCs.
-
-**A passing check never proves funding, a genuine escrow contract, enforceable payout, buyer identity or a sale.** The x402 route is listed on Agent402 with unproven-tier callability; there has been no independently verified paid API settlement. No keys, task claims or transactions are sent by the service.
-
-## ✅ Try the automated free audit
-
-**[Open a free public repo audit request](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=free-repo-audit.yml)**
-
-When a public repository URL is submitted through the Issue Form, GitHub Actions automatically checks seven public signals (README, license, security policy, CI workflow, issue form, Dependabot configuration, and description) and posts the results back in the Issue. **It does not run the target repo's code and does not claim to assess its security.** GitHub Actions must be enabled for this to operate.
-
-## ✅ Verify AI-agent evidence locally
-
-No API keys or external dependencies. Python 3.10+.
-
-```bash
-python3 verifier.py evidence-manifest.json --root . --json-out evidence-report.json
+```sh
+node --test tests/work_covenant/*.mjs
 python3 -m unittest discover -s tests -v
 ```
 
-The SHA-256 file manifest looks like this:
+[Quickstart and trust model](docs/QUICKSTART.md) · [Work Covenant technical specification](docs/WORK_COVENANT_2047.md)
 
-```json
-{"artifacts":[{"path":"examples/output.txt","sha256":"8ea1a19745343ce9f34808b3ad2448a8efb61402db51980b43147106bf66c41e"}]}
+## What exists
+
+| Component | What it does | Limit |
+| --- | --- | --- |
+| [Proof-Carrying Work Covenant](docs/WORK_COVENANT_2047.md) | Stateless task criteria, hashes, JSON-pointer checks, optional Ed25519 technical signatures | Caller-defined checks do not establish independent buyer acceptance or identity |
+| [File evidence verifier](verifier.py) | Offline SHA-256 manifest verification for files | Hash equality is not proof of truthful work |
+| [Reusable GitHub Action](action.yml) | Adds local artifact verification to another repository's CI | Review and pin a commit SHA before use |
+| [Public repository readiness audit](.github/ISSUE_TEMPLATE/free-repo-audit.yml) | Checks seven public maintenance signals through GitHub Issues | Not a vulnerability assessment |
+| [BountyTruth beta](docs/BOUNTY_TRUTH_GATE.md) | Reads potentially untrusted public bounty text and detects suspicious claims | Does not prove escrow, funding, or payout |
+| [x402 receipt-checking route guide](docs/AGENT402_BUYER_ROUTE.md) | Describes experimental Base USDC receipt evidence APIs and seller discovery | HTTP 402 and synthetic probes are not sales |
+| [ProofGate](docs/PROOFGATE.md) | Read-only opportunity/payment-claim preflight | Not proof of payment |
+
+The code in this repository implements only the components explicitly linked here. The public hosted service is **experimental**; verify current availability separately.
+
+## Try the public beta API
+
+- [Work Covenant demonstration](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/demo)
+- [OpenAPI schema](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/openapi.json)
+- [BountyTruth synthetic demo](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-bounty-truth-gate/api/v1/demo)
+- [Public site](https://agent-economy-english.floot.app)
+
+These links do **not** authorize external execution, spending, or transactions. Do not submit secrets or customer data to public demos.
+
+## Use the offline verifier in CI
+
+```sh
+python3 verifier.py evidence-manifest.json --root . --json-out evidence-report.json
 ```
 
-The exit code is 0 for all files matching the manifest; otherwise it is 1. **Matching a hash establishes consistency with a manifest, not independent proof of execution or trustworthy agent output.**
-
-### Reusable GitHub Action
-
-In another repository's GitHub Actions workflow, first check out the target repo and then call this action with a **reviewed commit SHA**:
+To reuse our [composite Action](action.yml), check out your repository and pin the Action to a **reviewed commit SHA**, rather than a moving branch:
 
 ```yaml
-name: Verify evidence
+name: Verify agent evidence
 on: [push, pull_request]
 permissions:
   contents: read
@@ -72,43 +74,19 @@ jobs:
           root: .
 ```
 
+## Security and commercial transparency
 
-## 🔐 OKX guarded real-order executor
+- **No automatically verified customers, revenue, signed contracts, or independent settlement** are implied by demos, listing status, or repository stars.
+- The local demo does not transmit artifacts. The hosted Work Covenant beta has no public per-user authentication or rate limiter and does not provide a production SLA.
+- Any cryptographic signature is meaningful only after the verifier independently establishes the signer's identity and authority.
+- This repository is maintained by one founder with AI-assisted development. Results should be evaluated through code, reproducible tests and independent integrations.
 
-The six-agent + seven-quant-system scanner has a **separate authenticated execution adapter** capable of submitting *real* OKX USDT perpetual orders **when the repository's live-mode variables, credentials, arm secrets and workflow confirmation are enabled**. The code defaults to `dry_run`; connected repositories may be configured for real-money live trading. Scanning requires estimated 24-hour turnover ≥ **$15 million** (up to 12 instruments). Exchange-side controls include 10x isolated net-mode leverage, cooldown after a fully closed position, spread and turnover checks, duplicate-order checks, attached TP/SL and protective-order reconciliation. The default `guarded` sizing targets 0.25% equity-at-stop; an explicitly armed `full_margin` alternative risks substantial losses, including liquidation. **No daily realized-loss circuit breaker or proven profitable edge is implemented.** [Live setup and risks](trading/LIVE_TRADING.md) · [execution workflow](.github/workflows/okx-guarded-execution.yml).
+Read [SECURITY.md](SECURITY.md), [CONTRIBUTING.md](CONTRIBUTING.md), and [scope and limitations](docs/REPOSITORY_SCOPE.md).
 
-**NVIDIA is now research-only and separate:** the [NVIDIA advisory workflow](.github/workflows/okx-nvidia-advisory.yml) analyzes fresh public quantified signals and publishes a read-only report of BUY/SELL/WAIT opinions and risk notes. It cannot authorize, block, size, or submit OKX orders; failures never alter the trading executor. An eligible quantitative signal is still required.
+## Contribute
 
-## 🧠 Six-Agent OKX Futures Council
-**QUANT2037 update:** Six market-specialist agents are now cross-checked by seven additional numerical systems for jump risk, entropy, variance ratio, approximate profile migration, L2 depth fragility, aggressor-flow acceleration and counterfactual vote stability. The second stage may only **veto**, never force an entry. [Read the design and limitations](trading/QUANT2037.md). Analysis only, with no credentials or actual trading.
- (research-only)
+We welcome reproducible bug reports, security fixes, safer JSON parsing, interoperable work-evidence formats, independent client examples and small documentation improvements. Please include a failing test before proposing a fix. No exchange or unrelated automation tools are part of this repository.
 
-[Run the six-agent public-market scanner](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/okx-six-agent-council.yml). Six auditable specialist analysis roles read OKX orderbook, recent trades, funding, open interest, completed 15m/1h/4h candles and an **approximate** 48-hour volume profile. Runs on a GitHub Actions schedule (which can be delayed) and uploads a JSON evidence report. **No credentials, trading permissions, buy/sell orders, funded account, claimed win rates or guaranteed returns.** [Technical details](trading/SIX_AGENTS.md).
+[Open an issue](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new) · [Request a free public repository audit](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=free-repo-audit.yml) · [Request a nonbinding integration quote](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml)
 
-## 🤖 Other actual automations
-
-- **Inbound free audit → analysis → reply:** `.github/workflows/issue-router.yml` + `automation/issue_router.py`.
-- **Daily public opportunity radar:** `.github/workflows/opportunity-radar.yml` generates an artifact containing public issue candidates. It never sends unsolicited messages.
-- **Continuous / daily tests:** `.github/workflows/ci.yml`; verified sample output can be downloaded as a workflow artifact.
-
-Run a public repo readiness audit yourself:
-
-```bash
-python3 automation/repo_audit.py aymanaseriai-cell/agent-economy-os-2047 --json-out report.json
-```
-
-Automation runs on GitHub's infrastructure, subject to GitHub Actions service availability, permissions and API rate limits. Scheduled workflows may be delayed by GitHub.
-
-## 💵 Commercial paths (status is important)
-
-| Path | Status | Honest limitation |
-| --- | --- | --- |
-| GitHub Sponsors | **Registration required** | No sponsor payout is set up by this code. Sponsorship requires GitHub approval and payout onboarding. |
-| Custom GitHub/AI-agent workflow integration | **Public request form ready** | [Request a quote](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml). Starting indicative quote: **$49 USD** for a small public-repository scope, subject to agreement. No automatic payments. |
-| Future hosted SaaS / subscriptions | **Not launched** | Requires a deployed service, customer authentication and functioning payment provider. |
-
-Nothing in this repository guarantees paying customers, automatic cash transfers, or a specific income. Public Issues are not an order, payment authorization, or SLA.
-
-## 🔐 Safety and community
-
-Do not publish private client information, tokens, passwords or bank details in issues. Read [SECURITY.md](SECURITY.md) and [CONTRIBUTING.md](CONTRIBUTING.md). MIT licensed.
+MIT licensed. Production operations and integrations may be subject to additional terms, fees, and legal review.
