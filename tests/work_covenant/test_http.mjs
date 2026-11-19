@@ -58,3 +58,43 @@ test("endorsement message and signature-verification endpoints maintain explicit
  assert.equal(result.signer_identity_verified,false);
  assert.equal(result.payment_verified,false);
 });
+
+
+test("new delivery HTTP routes sign exact proof, reject changed bytes and avoid buyer claims",async()=>{
+ const demo=await (await get("/demo")).json();
+ const evaluation=await (await post("/v1/evaluate",{contract:demo.contract,
+   contract_id:demo.contract_id,submission:demo.sample_submission})).json();
+ const envelope={contract:demo.contract,contract_id:demo.contract_id,
+   submission:demo.sample_submission,proof_id:evaluation.proof_id,
+   decision:"delivery-accepted",issued_at:"2026-11-19T10:00:00Z",
+   nonce:"http_challenge_00001",audience:"did:example:buyer"};
+ const response=await post("/v1/delivery-endorsement-message",envelope);
+ assert.equal(response.status,200);
+ const prepared=await response.json();
+ assert.ok(prepared.message.includes(evaluation.proof_id));
+ const keyPair=await crypto.subtle.generateKey("Ed25519",true,["sign","verify"]);
+ const signature=await crypto.subtle.sign("Ed25519",keyPair.privateKey,
+   new TextEncoder().encode(prepared.message));
+ const pub=await crypto.subtle.exportKey("raw",keyPair.publicKey);
+ const signed={...envelope,public_key_b64url:Buffer.from(pub).toString("base64url"),
+   signature_b64url:Buffer.from(signature).toString("base64url")};
+ const good=await post("/v1/verify-delivery-endorsement",signed);
+ assert.equal(good.status,200);
+ const verified=await good.json();
+ assert.equal(verified.signature_valid,true);
+ assert.equal(verified.signer_authority_verified,false);
+ assert.equal(verified.buyer_acceptance_verified,false);
+ assert.equal(verified.payment_verified,false);
+ const bad=await post("/v1/verify-delivery-endorsement",
+   {...signed,submission:{...signed.submission,artifacts:[
+     {...signed.submission.artifacts[0],content:"altered"}
+   ]}});
+ assert.equal(bad.status,400);
+ assert.equal((await bad.json()).error.code,"proof_id_mismatch");
+ const swapped=await (await post("/v1/verify-delivery-endorsement",
+   {...signed,audience:"did:example:someone_else"})).json();
+ assert.equal(swapped.signature_valid,false);
+ const spec=await (await get("/openapi.json")).json();
+ assert.ok(spec.paths["/v1/delivery-endorsement-message"]);
+ assert.ok(spec.paths["/v1/verify-delivery-endorsement"]);
+});
