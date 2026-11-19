@@ -1,0 +1,24 @@
+name: Independent read-only backup service tests
+on:
+  push:
+    paths:
+      - 'backup/**'
+      - 'services/agent-work-covenant-2047/**'
+      - '.github/workflows/render-readonly-backup-ci.yml'
+  pull_request:
+    paths:
+      - 'backup/**'
+      - 'services/agent-work-covenant-2047/**'
+      - '.github/workflows/render-readonly-backup-ci.yml'
+permissions:
+  contents: read
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: cp services/agent-work-covenant-2047/index.ts services/agent-work-covenant-2047/index.mjs
+      - run: node --test backup/render-readonly-server.test.mjs
