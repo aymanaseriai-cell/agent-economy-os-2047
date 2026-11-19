@@ -12,7 +12,11 @@ on:
   pull_request:
     paths:
       - 'automation/a2a_card_audit.py'
+      - 'automation/verify_vendor_lock.py'
       - 'tests/test_a2a_card_audit.py'
+      - 'tests/test_a2a_upstream_fixtures.py'
+      - 'tests/test_vendor_lock.py'
+      - 'third_party/a2a/**'
       - '.github/workflows/a2a-card-preflight-ci.yml'
 permissions:
   contents: read
