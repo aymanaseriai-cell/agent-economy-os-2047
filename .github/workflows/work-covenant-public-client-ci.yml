@@ -1,0 +1,25 @@
+name: Work Covenant public self-serve client tests
+on:
+  push:
+    paths:
+      - 'examples/work-covenant-client/**'
+      - 'tests/work_covenant/test_public_client.py'
+      - '.github/workflows/work-covenant-public-client-ci.yml'
+  pull_request:
+    paths:
+      - 'examples/work-covenant-client/**'
+      - 'tests/work_covenant/test_public_client.py'
+      - '.github/workflows/work-covenant-public-client-ci.yml'
+permissions:
+  contents: read
+jobs:
+  public-client:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests/work_covenant -p 'test_public_client.py' -v
+      - run: python examples/work-covenant-client/client.py
