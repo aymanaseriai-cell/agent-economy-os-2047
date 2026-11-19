@@ -3,7 +3,7 @@
  * Stateless and read-only: no accounts, databases, external fetches,
  * credential handling, contracts signed on behalf of others, or payments.
  */
-import {API_VERSION,compileContract,evaluateContract,prepareEndorsement,verifyEndorsement,CovenantError} from "./core.mjs";
+import {API_VERSION,compileContract,evaluateContract,prepareEndorsement,verifyEndorsement,prepareDeliveryEndorsement,verifyDeliveryEndorsement,CovenantError} from "./core.mjs";
 const FUNCTION_NAME="agent-work-covenant-2047";
 const MAX_BODY=16_384;
 const HEADERS={
@@ -82,6 +82,8 @@ function discovery() {
       evaluate:"POST /v1/evaluate",
       prepare_endorsement:"POST /v1/endorsement-message",
       verify_endorsement:"POST /v1/verify-endorsement",
+      delivery_endorsement_message:"POST /v1/delivery-endorsement-message",
+      verify_delivery_endorsement:"POST /v1/verify-delivery-endorsement",
       discovery:"GET /.well-known/agent.json",
       schema:"GET /openapi.json",
       skill:"GET /skill.md"
@@ -121,6 +123,8 @@ function openapi() {
       description:"Caller-supplied technical evidence checks only; no buyer acceptance or financial settlement."},
     servers:[{url:discovery().service_url}],
     paths:{
+      "/v1/delivery-endorsement-message":{post:{summary:"Prepare externally signed statement binding contract and proof; not buyer acceptance",responses:{"200":{description:"Canonical statement"},"400":{description:"Invalid input"}}}},
+      "/v1/verify-delivery-endorsement":{post:{summary:"Verify proof-bound signature; key identity and nonce tracking are external",responses:{"200":{description:"Signature result"},"400":{description:"Invalid input"}}}},
       "/health":{get:{summary:"Service health",responses:{"200":{description:"Available"}}}},
       "/demo":{get:{summary:"Sample compiled work contract",responses:{"200":{description:"Demo only"}}}},
       "/v1/compile":{post:{summary:"Compile task criteria",requestBody:{required:true,content:{"application/json":{schema:{$ref:"#/components/schemas/CompileRequest"}}}},responses:{"200":{description:"Compiled immutable-checksum descriptor"},"400":{description:"Invalid criteria"}}}},
@@ -165,12 +169,14 @@ export async function handler(req) {
       return error("not_found",404);
     }
     if(req.method==="POST") {
-      if(!["/v1/compile","/v1/evaluate","/v1/endorsement-message","/v1/verify-endorsement"].includes(path)) return error("not_found",404);
+      if(!["/v1/compile","/v1/evaluate","/v1/endorsement-message","/v1/verify-endorsement","/v1/delivery-endorsement-message","/v1/verify-delivery-endorsement"].includes(path)) return error("not_found",404);
       const json=await parseBody(req);
       if(path==="/v1/compile") return response({ok:true,...await compileContract(json)});
       if(path==="/v1/evaluate") return response({ok:true,...await evaluateContract(json)});
       if(path==="/v1/endorsement-message") return response({ok:true,...await prepareEndorsement(json)});
-      return response({ok:true,...await verifyEndorsement(json)});
+      if(path==="/v1/verify-endorsement") return response({ok:true,...await verifyEndorsement(json)});
+      if(path==="/v1/delivery-endorsement-message") return response({ok:true,...await prepareDeliveryEndorsement(json)});
+      return response({ok:true,...await verifyDeliveryEndorsement(json)});
     }
     return error("method_not_allowed",405);
   } catch(e) {

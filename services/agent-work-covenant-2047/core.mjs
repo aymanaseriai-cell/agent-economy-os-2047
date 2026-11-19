@@ -281,3 +281,61 @@ export async function verifyEndorsement(input) {
     warning:"Match the public key to a real authorized counterparty independently. Signature validity alone proves no commercial status."
   };
 }
+
+
+/**
+ * Proof-bound technical signature: independently re-evaluates supplied bytes.
+ * This does not authenticate a buyer, a task execution, payment, or a nonce.
+ */
+export const DELIVERY_ENDORSEMENT_DOMAIN="agent-economy.work-covenant.delivery-endorsement.v1";
+export async function prepareDeliveryEndorsement(input) {
+  check(isRecord(input),"invalid_delivery_endorsement");
+  const result=await evaluateContract(input);
+  check(typeof input.proof_id==="string" && sha256hex.test(input.proof_id)
+    && input.proof_id===result.proof_id,"proof_id_mismatch");
+  const decision=str(input.decision,30,"invalid_delivery_decision");
+  check(["delivery-reviewed","delivery-accepted","delivery-rejected"].includes(decision),
+    "invalid_delivery_decision");
+  if(decision==="delivery-accepted")
+    check(result.status==="local_checks_passed","cannot_accept_failed_checks");
+  const issued_at=str(input.issued_at,30,"invalid_issued_at",
+    /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/);
+  check(!Number.isNaN(Date.parse(issued_at)) &&
+    new Date(issued_at).toISOString().replace(".000Z","Z")===issued_at,
+    "invalid_issued_at");
+  const nonce=str(input.nonce,96,"invalid_delivery_nonce",/^[A-Za-z0-9_-]{16,96}$/);
+  const audience=str(input.audience,160,"invalid_delivery_audience",
+    /^[A-Za-z0-9][A-Za-z0-9_.:@/-]{0,159}$/);
+  const message=canonical({domain:DELIVERY_ENDORSEMENT_DOMAIN,
+    contract_id:result.contract_id,proof_id:result.proof_id,decision,issued_at,nonce,audience});
+  return {
+    schema:DELIVERY_ENDORSEMENT_DOMAIN,status:"message_prepared",message,
+    message_sha256:await digest(message),signature_algorithm:"Ed25519",
+    technical_checks_status:result.status,
+    signer_identity_verified:false,signer_authority_verified:false,
+    buyer_acceptance_verified:false,payment_verified:false,nonce_replay_prevented:false,
+    warning:"Pin signer identity out of band; nonce uniqueness requires independent tracking. Checks cover caller-supplied bytes only."
+  };
+}
+export async function verifyDeliveryEndorsement(input) {
+  const prepared=await prepareDeliveryEndorsement(input);
+  const publicBytes=b64urlBytes(input.public_key_b64url,32);
+  const signatureBytes=b64urlBytes(input.signature_b64url,64);
+  let signature_valid=false;
+  try {
+    const key=await crypto.subtle.importKey("raw",publicBytes,{name:"Ed25519"},false,["verify"]);
+    signature_valid=await crypto.subtle.verify({name:"Ed25519"},key,
+      signatureBytes,textEncoder.encode(prepared.message));
+  } catch {signature_valid=false;}
+  return {
+    schema:DELIVERY_ENDORSEMENT_DOMAIN,
+    status:signature_valid?"cryptographic_signature_valid":"signature_invalid",
+    signature_valid,contract_id:input.contract_id,proof_id:input.proof_id,
+    message_sha256:prepared.message_sha256,
+    public_key_fingerprint:await digest(publicBytes),
+    technical_checks_status:prepared.technical_checks_status,
+    signer_identity_verified:false,signer_authority_verified:false,
+    buyer_acceptance_verified:false,payment_verified:false,nonce_replay_prevented:false,
+    warning:"A valid signature is NOT proven buyer identity, authorization, acceptance, payment, or replay prevention."
+  };
+}

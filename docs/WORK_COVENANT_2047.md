@@ -76,3 +76,10 @@ independent work execution, payment or proof of revenue. The result intentionall
 reports signer_identity_verified=false and signer_authority_verified=false, and
 does not endorse untrusted signers. No external communications or blockchain signing
 occurs as part of this protocol.
+
+
+## Proof-bound delivery technical endorsement (proposed; NOT deployed)
+
+Two optional routes: POST /v1/delivery-endorsement-message prepares a canonical Ed25519 message over re-evaluated contract_id and proof_id, decision, UTC issued_at, buyer-issued nonce (16-96 URL-safe ASCII chars) and audience; POST /v1/verify-delivery-endorsement verifies an externally generated Ed25519 signature over the same exact message. Supply the compiled contract, contract_id, submission, proof_id, decision (delivery-reviewed, delivery-accepted or delivery-rejected), issued_at, nonce and audience; verification also requires externally generated raw public_key_b64url and signature_b64url.
+
+A changed artifact is rejected against the pinned proof_id and a signature cannot transfer to a different audience, nonce or decision. Technical acceptance requires passing caller-defined checks. This does not independently establish execution, buyer identity, signer authority, delivery acceptance or financial settlement. The relying party MUST independently pin the signer's public key and issue plus track challenge nonce uniqueness. This stateless service cannot prevent replay; both nonce_replay_prevented and buyer_acceptance_verified deliberately return false. No secrets are generated, held or logged, and no payment occurs. Keep this feature in code review until separate deployment and authorization.

@@ -1,6 +1,6 @@
 import {test} from "node:test";
 import assert from "node:assert/strict";
-import {compileContract,evaluateContract,digest,API_VERSION} from "../../services/agent-work-covenant-2047/core.mjs";
+import {compileContract,evaluateContract,digest,API_VERSION,prepareDeliveryEndorsement,verifyDeliveryEndorsement} from "../../services/agent-work-covenant-2047/core.mjs";
 
 const sample = async () => {
   const expected = await digest('{"ok":true,"count":3}');
@@ -148,4 +148,62 @@ test("Ed25519 endorsement rejects invalid key length or modified contract id",as
   public_key_b64url:"AAA",signature_b64url:"AAA"};
  await assert.rejects(verifyEndorsement(base),/invalid_key_or_signature_length/);
  await assert.rejects(verifyEndorsement({...base,contract_id:"0".repeat(64)}),/contract_id_mismatch/);
+});
+
+
+test("proof-bound delivery signature verifies and cannot cross audience, decision or nonce",async()=>{
+ const {raw,submission}=await sample();
+ const c=await compileContract(raw);
+ const ev=await evaluateContract({...c,submission});
+ const keyPair=await crypto.subtle.generateKey("Ed25519",true,["sign","verify"]);
+ const pub=Buffer.from(await crypto.subtle.exportKey("raw",keyPair.publicKey)).toString("base64url");
+ const args={...c,submission,proof_id:ev.proof_id,decision:"delivery-accepted",
+   issued_at:"2026-11-19T10:00:00Z",nonce:"buyer_challenge_00001",audience:"did:example:buyer"};
+ const prepared=await prepareDeliveryEndorsement(args);
+ const sig=Buffer.from(await crypto.subtle.sign("Ed25519",keyPair.privateKey,
+   new TextEncoder().encode(prepared.message))).toString("base64url");
+ const proof={public_key_b64url:pub,signature_b64url:sig};
+ const valid=await verifyDeliveryEndorsement({...args,...proof});
+ assert.equal(valid.signature_valid,true);
+ assert.equal(valid.buyer_acceptance_verified,false);
+ assert.equal(valid.payment_verified,false);
+ assert.equal(valid.nonce_replay_prevented,false);
+ for(const override of [
+   {audience:"did:example:other"},{nonce:"buyer_challenge_00002"},
+   {decision:"delivery-reviewed"}]) {
+   const changed=await verifyDeliveryEndorsement({...args,...override,...proof});
+   assert.equal(changed.signature_valid,false);
+ }
+});
+test("delivery signature cannot be moved to another artifact under the same contract",async()=>{
+ const {raw,submission}=await sample();
+ const c=await compileContract(raw);
+ const ev=await evaluateContract({...c,submission});
+ const args={...c,submission,proof_id:ev.proof_id,decision:"delivery-reviewed",
+   issued_at:"2026-11-19T10:00:00Z",nonce:"buyer_challenge_00003",audience:"buyer_001"};
+ await prepareDeliveryEndorsement(args);
+ const altered=structuredClone(submission);
+ altered.artifacts[1].content+=" changed";
+ await assert.rejects(prepareDeliveryEndorsement({...args,submission:altered}),/proof_id_mismatch/);
+});
+test("failed work cannot be marked technically accepted by delivery endorsement",async()=>{
+ const {raw,submission}=await sample();
+ const c=await compileContract(raw);
+ submission.artifacts[0].content='{"ok":false}';
+ const ev=await evaluateContract({...c,submission});
+ const args={...c,submission,proof_id:ev.proof_id,decision:"delivery-accepted",
+   issued_at:"2026-11-19T10:00:00Z",nonce:"buyer_challenge_00004",audience:"buyer_001"};
+ await assert.rejects(prepareDeliveryEndorsement(args),/cannot_accept_failed_checks/);
+ const reject=await prepareDeliveryEndorsement({...args,decision:"delivery-rejected"});
+ assert.equal(reject.technical_checks_status,"local_checks_failed");
+});
+test("delivery endorsement rejects forged proof ids and malformed metadata",async()=>{
+ const {raw,submission}=await sample();
+ const c=await compileContract(raw);
+ const ev=await evaluateContract({...c,submission});
+ const args={...c,submission,proof_id:ev.proof_id,decision:"delivery-reviewed",
+   issued_at:"2026-11-19T10:00:00Z",nonce:"buyer_challenge_00005",audience:"buyer_001"};
+ await assert.rejects(prepareDeliveryEndorsement({...args,proof_id:"0".repeat(64)}),/proof_id_mismatch/);
+ await assert.rejects(prepareDeliveryEndorsement({...args,nonce:"short"}),/invalid_delivery_nonce/);
+ await assert.rejects(prepareDeliveryEndorsement({...args,issued_at:"not-a-date"}),/invalid_issued_at/);
 });
