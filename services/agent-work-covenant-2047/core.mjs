@@ -143,6 +143,69 @@ function parseEvidence(input) {
   }
   return {artifacts,tests};
 }
+
+/**
+ * Reject duplicate JSON object keys before JSON Pointer evaluation.
+ * JSON.parse alone uses last-key-wins; other consumers may interpret the
+ * first value, making apparently passing evidence ambiguous.
+ * Bounded recursion: artifact content is <= 9000 UTF-8 bytes upstream.
+ */
+function parseJsonNoDuplicateKeys(source) {
+  let pos=0;
+  const fail=()=>{throw new Error("ambiguous_or_invalid_json_artifact");};
+  const space=()=>{while(pos<source.length && (source[pos]===" " || source[pos]==="\n" || source[pos]==="\r" || source[pos]==="\t")) pos++;};
+  const readString=()=>{
+    if(source[pos]!=='"') fail();
+    const start=pos++;
+    while(pos<source.length) {
+      const c=source[pos++];
+      if(c==='"') return JSON.parse(source.slice(start,pos));
+      if(c==="\\") { if(pos>=source.length) fail(); pos++; }
+    }
+    fail();
+  };
+  const scan=(depth)=>{
+    if(depth>64) fail();
+    space();
+    if(source[pos]==="{") {
+      pos++; space();
+      const seen=new Set();
+      if(source[pos]==="}") {pos++;return;}
+      while(true) {
+        space();
+        const key=readString();
+        if(seen.has(key)) fail();
+        seen.add(key);
+        space(); if(source[pos++]!==":") fail();
+        scan(depth+1);
+        space();
+        const separator=source[pos++];
+        if(separator==="}") return;
+        if(separator!==",") fail();
+      }
+    }
+    if(source[pos]==="[") {
+      pos++; space();
+      if(source[pos]==="]") {pos++;return;}
+      while(true) {
+        scan(depth+1);
+        space();
+        const separator=source[pos++];
+        if(separator==="]") return;
+        if(separator!==",") fail();
+      }
+    }
+    if(source[pos]==='"') {readString();return;}
+    const start=pos;
+    while(pos<source.length && !/[\s,}\]]/.test(source[pos])) pos++;
+    if(start===pos) fail();
+    JSON.parse(source.slice(start,pos));
+  };
+  scan(0);
+  space(); if(pos!==source.length) fail();
+  return JSON.parse(source);
+}
+
 function pointerGet(value,pointer) {
   const parts=pointer.split("/").slice(1).map(s=>s.replace(/~1/g,"/").replace(/~0/g,"~"));
   let current=value;
@@ -154,7 +217,7 @@ function pointerGet(value,pointer) {
   }
   return {exists:true,value:current};
 }
-function sameScalar(a,b) {return scalar(a)&&scalar(b)&&Object.is(a,b);}
+function sameScalar(a,b) {return scalar(a)&&scalar(b)&&a===b;}
 export async function evaluateContract(input) {
   check(isRecord(input) && isRecord(input.contract),"invalid_evaluation");
   const contract=normalizeContract(input.contract);
@@ -181,7 +244,7 @@ export async function evaluateContract(input) {
       case "json_pointer_equals": {
         if(typeof data==="string") {
           try {
-            const parsed=JSON.parse(data);
+            const parsed=parseJsonNoDuplicateKeys(data);
             const found=pointerGet(parsed,criterion.pointer);
             pass=found.exists && sameScalar(found.value,criterion.expected);
           } catch {pass=false;}
