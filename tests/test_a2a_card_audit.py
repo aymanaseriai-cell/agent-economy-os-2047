@@ -47,6 +47,20 @@ class AuditTest(unittest.TestCase):
             result = subprocess.run([sys.executable, str(script), str(card)], capture_output=True, text=True)
             self.assertEqual(result.returncode, 1)
             self.assertEqual(json.loads(result.stdout)["status"], "preflight_failed")
+    def test_nonfinite_json_values_fail_closed(self):
+        # Ensure JSON extensions and overflowing exponents never pass preflight.
+        for literal in ("NaN", "Infinity", "-Infinity", "1e9999"):
+            with self.subTest(literal=literal), tempfile.TemporaryDirectory() as td:
+                card_path = Path(td) / "card.json"
+                raw = json.dumps(valid())[:-1] + ', "externalHint": ' + literal + '}'
+                card_path.write_text(raw, encoding="utf-8")
+                script = Path(__file__).resolve().parents[1] / "automation" / "a2a_card_audit.py"
+                proc = subprocess.run([sys.executable, str(script), str(card_path)], capture_output=True, text=True)
+                self.assertEqual(proc.returncode, 1, proc.stderr)
+                report = json.loads(proc.stdout)
+                self.assertEqual(report["status"], "preflight_failed")
+                self.assertEqual(report["failures"][0]["code"], "invalid_input")
+
     def test_cli_writes_report(self):
         with tempfile.TemporaryDirectory() as td:
             card = Path(td) / "card.json"; card.write_text(json.dumps(valid()), encoding="utf-8")
