@@ -1,0 +1,14 @@
+{
+  "schema": "agent-economy.action-policy.v1",
+  "rules": [
+    {
+      "id": "signed_local_readonly_example",
+      "effect": "allow",
+      "principals": ["audit-agent"],
+      "actions": ["health.inspect", "evidence.inspect"],
+      "resources": ["service:work-covenant"],
+      "environments": ["local", "staging"],
+      "expires_at": "2027-12-31T23:59:59Z"
+    }
+  ]
+}
