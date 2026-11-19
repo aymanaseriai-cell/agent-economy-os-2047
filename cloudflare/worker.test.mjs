@@ -80,3 +80,33 @@ test("Cloudflare 530 origin/DNS failure uses local fallback",async()=>{
  assert.equal(r.status,200);
  assert.equal(r.headers.get("x-agent-economy-upstream"),"cloudflare-local-v4");
 });
+
+test("discovery stays on the public gateway without an upstream request",async()=>{
+  let called=0;
+  for(const path of ["/","/.well-known/agent.json"]) {
+    const r=await workerFetch(new Request(base+path,{headers:{host:"attacker.invalid"}}),{},async()=>{
+      called++;throw Error("should not fetch upstream");});
+    assert.equal(r.status,200);
+    assert.equal(r.headers.get("x-agent-economy-upstream"),"cloudflare-discovery-v4");
+    const data=await r.json();
+    assert.equal(data.service_url,"https://agent-economy-wc-failover.agent-economy-os2047.workers.dev");
+    assert.equal(data.payment_required,false);
+  }
+  assert.equal(called,0);
+});
+test("OpenAPI server is pinned to the Cloudflare gateway even if primary fails",async()=>{
+  let calls=0;
+  const r=await workerFetch(new Request(base+"/openapi.json"),{},async()=>{
+    calls++;return new Response("origin down",{status:530});});
+  assert.equal(r.status,200);
+  assert.equal((await r.json()).servers[0].url,
+    "https://agent-economy-wc-failover.agent-economy-os2047.workers.dev");
+  assert.equal(calls,0);
+});
+test("HEAD discovery is bodyless, POST discovery cannot be used for writes",async()=>{
+  const h=await workerFetch(new Request(base+"/openapi.json",{method:"HEAD"}),{},async()=>{throw Error("unexpected");});
+  assert.equal(h.status,200);
+  assert.equal(await h.text(),"");
+  const p=await workerFetch(post("/openapi.json",{}),{},async()=>{throw Error("unexpected");});
+  assert.equal(p.status,405);
+});

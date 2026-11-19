@@ -14,3 +14,18 @@ The Worker can be deployed under a separate *.workers.dev address, but it does n
 
 Run: `node --test cloudflare/worker.test.mjs`. Source:
 `cloudflare/worker.mjs` and `cloudflare/core.mjs`.
+
+## API bootstrap / discovery integrity
+
+The Cloudflare gateway is now the advertised entry point in both
+`GET /.well-known/agent.json` (and `GET /`) and `GET /openapi.json`.
+These metadata responses are generated locally from the version-matched
+Work Covenant core without contacting Supabase, and the URL is hardcoded,
+never drawn from untrusted Host/Origin headers. Thus new consumers that
+discover the API through the gateway remain on the gateway for later
+GET/HEAD and safe stateless POST requests.
+
+This does **not** automatically redirect existing clients already using
+the Supabase URL. It is Work Covenant discovery, **not** a certified A2A
+Agent Card implementation. Client-facing authentication, payments and
+database writes are still excluded from failover.

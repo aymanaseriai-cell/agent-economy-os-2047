@@ -186,6 +186,9 @@ if(typeof Deno!=="undefined" && typeof Deno.serve==="function") Deno.serve(handl
 // Only public, stateless, side-effect-free computations are eligible for retry.
 // NEVER route payment, x402, writes to databases, agent execution or settlement.
 const PRIMARY_ORIGIN = "https://jzallxzbbdtelcpabfgr.supabase.co";
+// Deliberately pinned, never derived from the untrusted Host header.
+const PUBLIC_GATEWAY = "https://agent-economy-wc-failover.agent-economy-os2047.workers.dev";
+const DISCOVERY = new Set(["/","/.well-known/agent.json","/openapi.json"]);
 const PREFIX = "/functions/v1/agent-work-covenant-2047";
 const READ = new Set(["/","/health","/demo","/openapi.json","/skill.md","/.well-known/agent.json"]);
 const COMPUTE = new Set(["/v1/compile","/v1/evaluate","/v1/endorsement-message","/v1/verify-endorsement"]);
@@ -232,6 +235,30 @@ function cloneResult(r, label, head=false) {
   h.set("x-agent-economy-upstream",label);
   return new Response(head?null:r.body,{status:r.status,statusText:r.statusText,headers:h});
 }
+async function gatewayDiscovery(path, isHead) {
+  // Self-contained discovery: clients must keep using the tested gateway URL
+  // instead of accidentally bypassing failover via the primary's metadata.
+  // Never use client-supplied Host/Origin to build links (host-header poisoning).
+  const inner=await handler(new Request(PRIMARY_ORIGIN+PREFIX+path,{method:"GET"}));
+  if(inner.status!==200) return rejectHTTP("discovery_unavailable",503);
+  let manifest;
+  try {manifest=await inner.json();} catch {return rejectHTTP("discovery_invalid",503);}
+  if(path==="/openapi.json") {
+    if(!manifest || manifest.openapi!=="3.0.3" || !Array.isArray(manifest.servers))
+      return rejectHTTP("discovery_invalid",503);
+    manifest.servers=[{url:PUBLIC_GATEWAY}];
+  } else {
+    if(!manifest || manifest.schema!=="agent-economy.work-covenant-discovery.v1")
+      return rejectHTTP("discovery_invalid",503);
+    manifest.service_url=PUBLIC_GATEWAY;
+  }
+  const h=new Headers(inner.headers);
+  h.delete("content-length");
+  h.set("x-agent-economy-upstream","cloudflare-discovery-v4");
+  h.set("cache-control","no-store");
+  return new Response(isHead?null:JSON.stringify(manifest),{status:200,headers:h});
+}
+
 export async function workerFetch(request, env={}, upstreamFetch=globalThis.fetch) {
   const path=new URL(request.url).pathname;
   const method=request.method.toUpperCase();
@@ -243,6 +270,10 @@ export async function workerFetch(request, env={}, upstreamFetch=globalThis.fetc
   if(!(["GET","HEAD","POST"].includes(method))) return rejectHTTP("method_not_allowed",405,"GET, HEAD, POST, OPTIONS");
   if(method==="POST" && !COMPUTE.has(path)) return rejectHTTP("method_not_allowed",405,"GET, HEAD, OPTIONS");
   if(method!=="POST" && COMPUTE.has(path)) return rejectHTTP("method_not_allowed",405,"POST, OPTIONS");
+  // Always serve discovery locally to retain the gateway as the canonical API.
+  // This avoids additional remote dependency for agent/bootstrap discovery.
+  if(DISCOVERY.has(path) && (method==="GET" || method==="HEAD"))
+    return gatewayDiscovery(path,method==="HEAD");
   let body=null;
   if(method==="POST") {
     try { body=await boundedBody(request); }
