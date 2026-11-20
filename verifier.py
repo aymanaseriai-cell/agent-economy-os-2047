@@ -28,6 +28,8 @@ def validate(manifest_path: Path, root: Path) -> dict:
     if not isinstance(records, list) or not records:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": ["Manifest must contain a non-empty 'artifacts' array"]}
 
+    # Reject lexical and symlink aliases that resolve to the same artifact.
+    seen_paths = {}
     for idx, record in enumerate(records):
         label = f"artifacts[{idx}]"
         if not isinstance(record, dict):
@@ -38,12 +40,24 @@ def validate(manifest_path: Path, root: Path) -> dict:
         if not isinstance(relative, str) or not relative.strip() or not isinstance(expected, str) or not SHA256.fullmatch(expected):
             errors.append(f"{label}: expected non-empty path and 64-character sha256")
             continue
-        path = (root / relative).resolve()
+        try:
+            path = (root / relative).resolve()
+        except (OSError, RuntimeError, ValueError) as exc:
+            errors.append(f"{label}: cannot resolve artifact path: {relative}: {exc}")
+            continue
         try:
             path.relative_to(root)
         except ValueError:
             errors.append(f"{label}: path escapes project root")
             continue
+        if path in seen_paths:
+            first_index, first_label = seen_paths[path]
+            errors.append(
+                f"{label}: duplicate canonical artifact path: {relative} "
+                f"(same as artifacts[{first_index}]: {first_label})"
+            )
+            continue
+        seen_paths[path] = (idx, relative)
         if not path.is_file():
             errors.append(f"{label}: file not found: {relative}")
             continue
