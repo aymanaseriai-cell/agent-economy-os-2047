@@ -1,0 +1,9 @@
+{
+  "schema_version": "agent-economy.open-evidence-lab.fixture.v1",
+  "artifacts": [
+    {
+      "path": "negative.json",
+      "sha256": "d8ccfd1d2056c5f4625b8f6e26d2eed3baf89a1e63208bec893541d043fec15c"
+    }
+  ]
+}
