@@ -1,5 +1,216 @@
 {
+  "reviews": {},
   "schema": "agent-economy-ceo-memory/1",
-  "seen": {},
-  "reviews": {}
+  "seen": {
+    "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Bokky73/cryptara/issues/14": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/DavidHLP/UltiCode/issues/361": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/DonCervantes/x402-Handle/issues/168": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/INNVoices/waarp/issues/40": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/Maximilien-ai/clawmax/issues/416": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 22,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/OpenHands/OpenHands/issues/19924": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Pi-Defi-world/acbu-backend/issues/1340": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 18,
+      "tier": "research_only"
+    },
+    "https://github.com/Pi-Defi-world/acbu-backend/issues/1380": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 18,
+      "tier": "research_only"
+    },
+    "https://github.com/Significant-Gravitas/AutoGPT/issues/17176": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/TychiWallet/agent-finance/issues/1": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 18,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/WHEELBACK/COMEBACKHERE-contracts/issues/873": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/alibaba/spring-ai-alibaba/issues/5055": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/celo-org/buy-skill/issues/76": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 24,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/cgfixit/LanCartographer/issues/22": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/continuedev/continue/issues/13498": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/e2b-dev/E2B/issues/2162": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/hanzoai/agents/issues/82": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/hanzoai/agents/issues/83": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/hanzoai/cloud/issues/39": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 19,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/humanaios-ui/operations/issues/1057": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/kindrat86/agentmail/issues/40": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/matthewjameswatkins1978-cyber/pepin/issues/16": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 17,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/ozand/kb-bootstrap/issues/129": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/probityai/agent-evidence-vectors/issues/352": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/sanjeevicivil66-chatGPT/Usha.Construction/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 16,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/writfold-dev/writfold/issues/57": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/x402-foundation/x402/issues/2833": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
+      "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/x402-foundation/x402/issues/3379": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 22,
+      "tier": "manual_buyer_intent_review"
+    }
+  }
 }
