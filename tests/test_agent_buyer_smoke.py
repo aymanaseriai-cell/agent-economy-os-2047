@@ -5,7 +5,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from urllib.error import HTTPError
 
-from automation.agent_buyer_smoke import CHECKS, NoRedirect, inspect_target, run
+from automation.agent_buyer_smoke import CHECKS, NoRedirect, inspect_target, parse_strict, run
 
 
 class FakeResponse:
@@ -102,6 +102,15 @@ class DiscoverySmokeTests(unittest.TestCase):
             self.assertEqual(result["checks"][0]["reason"], "catalog_url_not_exactly_allowlisted")
             self.assertEqual(len(opener.calls), 4)
 
+
+
+    def test_nonfinite_json_numbers_rejected(self):
+        for payload in (b'{"meta":NaN}', b'{"meta":Infinity}',
+                        b'{"meta":1e10000}', b'{"meta":-1e10000}'):
+            with self.subTest(payload=payload):
+                with self.assertRaises(ValueError):
+                    parse_strict(payload)
+        self.assertEqual(parse_strict(b'{"meta":1.5}')["meta"], 1.5)
 
 if __name__ == "__main__":
     unittest.main()

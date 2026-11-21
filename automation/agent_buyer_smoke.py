@@ -6,6 +6,7 @@ headers, sign anything, or validate customers/revenue. Never follows redirects.
 """
 import argparse
 import json
+import math
 import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -44,9 +45,16 @@ def reject_constant(token):
     raise ValueError("non_standard_json_constant")
 
 
+def finite_float(token):
+    value = float(token)
+    if not math.isfinite(value):
+        raise ValueError("non_finite_json_float")
+    return value
+
+
 def parse_strict(raw):
     return json.loads(raw.decode("utf-8"), object_pairs_hook=reject_duplicates,
-                      parse_constant=reject_constant)
+                      parse_constant=reject_constant, parse_float=finite_float)
 
 
 def inspect_target(service, key, expected_url, opener):
