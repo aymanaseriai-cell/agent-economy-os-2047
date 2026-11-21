@@ -23,11 +23,12 @@ SHA = re.compile(r"^[a-f0-9]{40}$")
 GITHUB_RUN = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/actions/runs/([1-9][0-9]*)$")
 GITHUB_ISSUE = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/issues/([1-9][0-9]*)$")
 GITHUB_ISSUES_LIST = f"https://api.github.com/repos/{OWNER}/{REPO}/issues?state=open&per_page=100"
+HEALTH_URL = "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/health"
 ALLOWED = {
     "CEO": frozenset({"github_issues_readonly", "review_gate_readonly"}),
     "CTO": frozenset({"local_file_digest", "github_ci_readonly", "github_issue_readonly"}),
     "CRO": frozenset({"github_issues_readonly", "github_inbound_readonly", "local_file_digest"}),
-    "COO_CFO": frozenset({"github_ci_readonly", "github_inbound_readonly"}),
+    "COO_CFO": frozenset({"github_ci_readonly", "github_inbound_readonly", "http_health_readonly"}),
 }
 MAX_BYTES = 4 * 1024 * 1024
 
@@ -37,7 +38,7 @@ class PolicyError(ValueError):
 
 
 def default_fetch(url: str) -> dict:
-    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url == GITHUB_ISSUES_LIST):
+    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url == GITHUB_ISSUES_LIST or url == HEALTH_URL):
         raise PolicyError("URL_NOT_ALLOWLISTED")
     request = Request(url, headers={
         "Accept": "application/vnd.github+json",
@@ -80,7 +81,7 @@ def evaluate(task: dict) -> dict:
     elif kind == "github_inbound_readonly":
         if set(payload) != {"issue_number"} or type(payload["issue_number"]) is not int or payload["issue_number"] < 1:
             raise PolicyError("INVALID_ISSUE_ID")
-    elif kind in ("github_issues_readonly", "review_gate_readonly"):
+    elif kind in ("github_issues_readonly", "review_gate_readonly", "http_health_readonly"):
         if payload:
             raise PolicyError("NO_PARAMETERS_ALLOWED")
     elif kind == "github_issue_readonly":
@@ -179,6 +180,18 @@ def _release_gate_snapshot(doc: dict) -> dict:
             "production_release_authorized": False, "independent_review_proven": False}
 
 
+def _health_snapshot(doc: dict) -> dict:
+    if not isinstance(doc, dict):
+        raise ValueError("INVALID_HEALTH_RESPONSE")
+    # Exact HTTP status is handled by urllib. Service-level health is not inferred
+    # when the payload provides no explicit healthy indicator.
+    status = doc.get("status")
+    if status not in ("ok", "healthy", "degraded", "error"):
+        status = "unknown"
+    return {"reported_health": status, "response_fields": sorted(str(x) for x in doc)[:30],
+            "production_release_authorized": False}
+
+
 def perform(task: dict, root: Path, fetch=default_fetch) -> dict:
     p, kind = task["payload"], task["kind"]
     if kind == "local_file_digest":
@@ -193,6 +206,8 @@ def perform(task: dict, root: Path, fetch=default_fetch) -> dict:
         return _open_inbound_snapshot(fetch(GITHUB_ISSUES_LIST))
     if kind in ("github_issue_readonly", "review_gate_readonly"):
         return _release_gate_snapshot(fetch(f"https://api.github.com/repos/{OWNER}/{REPO}/issues/98"))
+    if kind == "http_health_readonly":
+        return _health_snapshot(fetch(HEALTH_URL))
     raise PolicyError("NO_WORKER")
 
 
@@ -207,7 +222,7 @@ def independently_verify(task: dict, result: dict, root: Path, fetch=default_fet
         return False, "CI_NOT_PASSING_ON_EXPECTED_SHA"
     if task["kind"] == "github_inbound_readonly":
         return True, "PROVIDER_RECHECK_PASSED_NOT_BUYER_VERIFICATION"
-    if task["kind"] in ("github_issues_readonly", "github_issue_readonly", "review_gate_readonly"):
+    if task["kind"] in ("github_issues_readonly", "github_issue_readonly", "review_gate_readonly", "http_health_readonly"):
         return True, "PROVIDER_RECHECK_PASSED_NOT_RELEASE_OR_BUYER_AUTHORIZATION"
     return True, "INDEPENDENT_RECHECK_PASSED"
 
