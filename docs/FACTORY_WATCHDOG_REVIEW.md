@@ -14,3 +14,26 @@ The existing four executive ChatGPT automations and 12 registered limited worker
 **Manual checks completed on 21 November 2026:** 7/7 decision cases passed (healthy, paused, drift, warmup, grace, missed, failed). Invoking the live function twice in the same hour yielded job26 HEALTHY and job27 WARMUP_NOT_DUE, with zero retries; the second invocation reused the same two records. Never inject a fake source incident into live production to force a recovery demonstration.
 
 **Constraints:** private schema with RLS and no anon access; no outbound HTTP, payments, crypto, live trading, customer replies, code deployment, or production release. GitHub issue #98 remains open. Jobs 27/28 require independently observed first unattended execution before making an autonomy claim.
+
+## Pending watchdog safety correction (review-only, 21 Nov 2026)
+
+The deployed function is *not* updated by this review-branch document. Two
+defects were independently identified:
+
+1. A read-only SQL invocation of the currently deployed `factory_watchdog_verdict`
+   returned `REPLAY_ELIGIBLE` for a cron job marked `running` after its due
+   time. Replaying then can overlap with the still-running job. The proposed
+   verdict `RUN_STATUS_UNCERTAIN_NO_REPLAY` fails closed for unknown and
+   nonterminal statuses when a cron run has started.
+2. The deployed watchdog uses `ON CONFLICT(slot,jobid) DO NOTHING`.
+   A preliminary `WAIT_EXPECTED_RUN` record created earlier in the hour can
+   prevent the watchdog's later scheduled due-time check. The review patch
+   permits exactly one in-hour refresh *only* from unattempted preliminary
+   states; terminal results and previous replay attempts never reset.
+
+The changed SQL snapshot is **not deployed**. The existing private job #28
+remains scheduled, but its first unattended success must be verified by
+`cron.job_run_details`. A human release reviewer should compare exact
+Supabase source, inspect any overlapping jobs, verify the schema constraint
+migration, and test retry idempotency/rollback before applying the change.
+Neither successful unit tests nor a manual test constitutes auto-recovery.

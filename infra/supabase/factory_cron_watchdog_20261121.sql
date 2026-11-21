@@ -1,5 +1,6 @@
 -- Agent Economy OS 2047 — PRIVATE BOUNDED CRON SELF-REPLAY WATCHDOG.
--- Already deployed in Supabase. GitHub is a reviewable SOURCE SNAPSHOT only.
+-- The previous version is deployed in Supabase. THIS safety correction is REVIEW-ONLY.
+-- GitHub is a source-review snapshot; do not deploy without independent approval.
 -- NO automatic deployment; release approval issue #98 remains open.
 -- Calls only approved private read-only DB functions, at most once/job/hour.
 -- Never overrides an operator-paused job or changed cron configuration.
@@ -12,7 +13,8 @@ CREATE TABLE IF NOT EXISTS executive_nexus.factory_cron_watchdog_checks (
  observed_cron_status text,
  verdict text NOT NULL CHECK(verdict IN (
    'EVALUATING','HEALTHY','PAUSED_NO_OVERRIDE','CONFIG_DRIFT_BLOCKED',
-   'WARMUP_NOT_DUE','WAIT_EXPECTED_RUN','READONLY_REPLAY_SUCCEEDED','READONLY_REPLAY_FAILED')),
+   'WARMUP_NOT_DUE','WAIT_EXPECTED_RUN','RUN_STATUS_UNCERTAIN_NO_REPLAY',
+   'READONLY_REPLAY_SUCCEEDED','READONLY_REPLAY_FAILED')),
  retry_attempts integer NOT NULL DEFAULT 0 CHECK(retry_attempts BETWEEN 0 AND 1),
  internal_replay_result jsonb NOT NULL DEFAULT '{}'::jsonb,
  checked_at timestamptz NOT NULL DEFAULT now(),
@@ -23,6 +25,16 @@ CREATE TABLE IF NOT EXISTS executive_nexus.factory_cron_watchdog_checks (
 );
 ALTER TABLE executive_nexus.factory_cron_watchdog_checks ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON executive_nexus.factory_cron_watchdog_checks FROM PUBLIC,anon,authenticated;
+
+-- Existing private deployments need this narrowly scoped constraint migration.
+-- This file is not connected to automatic migrations or cron deploys.
+ALTER TABLE executive_nexus.factory_cron_watchdog_checks
+  DROP CONSTRAINT IF EXISTS factory_cron_watchdog_checks_verdict_check;
+ALTER TABLE executive_nexus.factory_cron_watchdog_checks
+  ADD CONSTRAINT factory_cron_watchdog_checks_verdict_check CHECK(verdict IN (
+    'EVALUATING','HEALTHY','PAUSED_NO_OVERRIDE','CONFIG_DRIFT_BLOCKED',
+    'WARMUP_NOT_DUE','WAIT_EXPECTED_RUN','RUN_STATUS_UNCERTAIN_NO_REPLAY',
+    'READONLY_REPLAY_SUCCEEDED','READONLY_REPLAY_FAILED'));
 
 CREATE OR REPLACE FUNCTION executive_nexus.factory_watchdog_verdict(p_enabled boolean, p_config_matches boolean, p_due timestamp with time zone, p_first_seen timestamp with time zone, p_last_run timestamp with time zone, p_last_status text, p_now timestamp with time zone)
  RETURNS text
@@ -35,6 +47,9 @@ AS $function$
  WHEN NOT coalesce(p_config_matches,false) THEN 'CONFIG_DRIFT_BLOCKED'
  WHEN p_first_seen IS NULL OR p_due<=p_first_seen THEN 'WARMUP_NOT_DUE'
  WHEN p_due>p_now-interval '4 minutes' THEN 'WAIT_EXPECTED_RUN'
+ -- A still-running, incomplete, or unknown cron status must not be replayed.
+ WHEN p_last_run IS NOT NULL AND (p_last_status IS NULL OR p_last_status NOT IN ('succeeded','failed'))
+   THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
  WHEN p_last_run>=p_due AND p_last_status='succeeded' THEN 'HEALTHY'
  ELSE 'REPLAY_ELIGIBLE' END
 $function$;
@@ -98,7 +113,21 @@ BEGIN
       CASE WHEN v_decision='REPLAY_ELIGIBLE' THEN 1 ELSE 0 END,
       jsonb_build_object('retry_needed',v_decision='REPLAY_ELIGIBLE',
                          'cron_schedule_unmodified',true,'production_change',false))
-   ON CONFLICT(slot,jobid) DO NOTHING;
+   -- An early same-hour observation must not suppress the later due-time
+   -- inspection. Only replace unattempted preliminary verdicts; terminal
+   -- verdicts and prior replay attempts remain immutable for the hour.
+   ON CONFLICT(slot,jobid) DO UPDATE
+   SET observed_latest_run_at=excluded.observed_latest_run_at,
+       observed_cron_status=excluded.observed_cron_status,
+       verdict=excluded.verdict,
+       retry_attempts=excluded.retry_attempts,
+       internal_replay_result=excluded.internal_replay_result,
+       checked_at=now(),
+       execution_origin='UNVERIFIED'
+   WHERE executive_nexus.factory_cron_watchdog_checks.verdict
+           IN ('WAIT_EXPECTED_RUN','WARMUP_NOT_DUE')
+     AND executive_nexus.factory_cron_watchdog_checks.retry_attempts=0
+     AND executive_nexus.factory_cron_watchdog_checks.verdict IS DISTINCT FROM excluded.verdict;
    GET DIAGNOSTICS v_inserted=ROW_COUNT;
    IF v_inserted=1 AND v_decision='REPLAY_ELIGIBLE' THEN
       BEGIN
