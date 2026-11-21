@@ -40,7 +40,8 @@ VENDOR_TERMS = (
     "we launched", "i built", "check out my", "our product",
     "buy my", "selling", "we are selling", "for sale",
     "our service", "announcement", "promote", "self-promo",
-    "buy (live)", "our pricing", "my service", "subscribe now",
+    "buy (live)", "buy:", "pricing.json", "our pricing",
+    "my service", "subscribe now",
 )
 # Only explicit *commercial solicitation* merits manual buyer-intent review.
 # An issue about implementing an internal feature or fixing payment code is
@@ -78,12 +79,16 @@ def evaluate(entry: dict) -> dict | None:
     buyer = [term for term in BUSINESS_TERMS if term in text_l]
     evidence = [term for term in EVIDENCE_TERMS if term in text_l]
     vendor = [term for term in VENDOR_TERMS if term in text_l]
-    actor = (entry.get("user") or {}).get("login", "")
-    # GitHub bots may post issue titles that look like paid solicitations.
-    # This flag concerns the posting account type, not verified personhood.
-    is_bot = isinstance(actor, str) and (
+    # Treat API author metadata defensively; title/body never establish personhood.
+    author = entry.get("user")
+    author = author if isinstance(author, dict) else {}
+    actor = author.get("login", "")
+    account_type = author.get("type", "")
+    # GitHub bot account type may be present without a '[bot]' username suffix.
+    # A bot-authored issue remains research-only, never a qualified buyer.
+    is_bot = (isinstance(actor, str) and (
         actor.lower().endswith("[bot]") or actor.lower().endswith("-bot")
-    )
+    )) or (isinstance(account_type, str) and account_type.lower() == "bot")
     procurement = any(pattern.search(text_l) for pattern in PROCUREMENT_PATTERNS)
     score = sum(BUSINESS_TERMS[t] for t in buyer) + sum(EVIDENCE_TERMS[t] for t in evidence)
     score -= min(16, 8 * len(vendor))
