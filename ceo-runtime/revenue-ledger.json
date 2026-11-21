@@ -1,0 +1,14 @@
+{
+  "schema": "agent-economy-ceo-revenue-ledger/1",
+  "purpose": "Public-evidence-only CEO conversion ledger; never store personal or private buyer data.",
+  "controls": {
+    "public_information_only": true,
+    "independent_evidence_for_stage_changes": true,
+    "never_infer_purchase_authority_from_wallet_or_agent_card": true,
+    "no_payments_or_binding_contracts_without_owner_and_legal_approval": true
+  },
+  "opportunities": [],
+  "experiments": [],
+  "verified_revenue_usd": null,
+  "revenue_evidence_urls": []
+}
