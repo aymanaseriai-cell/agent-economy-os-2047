@@ -500,7 +500,7 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
-      "score": 11,
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/rammicz/agentswitch/issues/12": {
@@ -550,6 +550,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 19,
+      "tier": "research_only"
+    },
+    "https://github.com/tonydzi/awesome-verified-agents/issues/14": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/writfold-dev/writfold/issues/57": {
