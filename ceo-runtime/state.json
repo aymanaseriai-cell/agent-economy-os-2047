@@ -5,11 +5,11 @@
     "https://github.com/DonCervantes/x402-Handle/issues/168": "suppressed",
     "https://github.com/Maximilien-ai/clawmax/issues/416": "suppressed",
     "https://github.com/OpenHands/OpenHands/issues/19924": "suppressed",
+    "https://github.com/alibaba/spring-ai-alibaba/issues/5055": "suppressed",
     "https://github.com/celo-org/buy-skill/issues/76": "suppressed",
-    "https://github.com/x402-foundation/x402/issues/3379": "suppressed",
     "https://github.com/continuedev/continue/issues/13498": "suppressed",
     "https://github.com/e2b-dev/E2B/issues/2162": "suppressed",
-    "https://github.com/alibaba/spring-ai-alibaba/issues/5055": "suppressed"
+    "https://github.com/x402-foundation/x402/issues/3379": "suppressed"
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
@@ -160,6 +160,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/fyannk/pgToolBox/issues/135": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/hanzoai/agents/issues/82": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -195,11 +202,32 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/jleonelion/chef/issues/198": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/kindrat86/agentmail/issues/40": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/les-cabochons/ajour-plugins/issues/77": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/loftwah/app-composer/issues/658": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/matthewjameswatkins1978-cyber/pepin/issues/16": {

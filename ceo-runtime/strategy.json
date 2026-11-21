@@ -1,4 +1,21 @@
 {
+  "executions": [
+    {
+      "ACTION_EXECUTED": "Merged tested PR #105 into main, updating automation/opportunity_scan.py and tests/test_opportunity_scan.py.",
+      "ACTION_ID": "CEO-20261121-RADAR-VENDOR-CAP-105",
+      "BLOCKER": "No independently verified qualified request or buyer-pinned gate adoption in CEO experiment ledger. Floot free plan does not expose visitor analytics.",
+      "BUSINESS_STAGE": "NONE \u2014 internal research infrastructure only",
+      "BUYER_NEED_EVIDENCE": "NONE. The cited issue promotes another seller's paid service; the same vendor promotion was present in E2B issue 2162. No third-party need for our product or buying authority was evidenced.",
+      "DECISION": "Keep bot-authored and known vendor-promotion issues outside the capped public-buyer review queue; preserve exclusion metrics.",
+      "EXTERNAL_IMPACT": "NOT_VERIFIED. No independent adoption, user response, or revenue change established.",
+      "MERGE_COMMIT": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/commit/b56e5946b63d22eda34599ae119fc24fca3f9a1f",
+      "NEXT_PRIORITY": "Examine explicit opt-in integrations or real RFPs; do not contact vendors or count synthetic fixtures as customer adoption.",
+      "ORIGINAL_OPPORTUNITY": "https://github.com/OpenHands/OpenHands/issues/19924",
+      "TEST_VERIFICATION": "11/11 opportunity scan tests passed in independent checked-out branch; GitHub 'Test and verify' workflow concluded success; CEO memory and board local test suites passed.",
+      "VERIFICATION_URL": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/pull/105",
+      "VERIFIED_REVENUE": null
+    }
+  ],
   "experiments": {
     "h1": {
       "externally_verified_adoptions": 0,
@@ -35,22 +52,5 @@
       "status": "rejected"
     }
   },
-  "schema": "agent-economy-ceo-board-state/1",
-  "executions": [
-    {
-      "ACTION_ID": "CEO-20261121-RADAR-VENDOR-CAP-105",
-      "ORIGINAL_OPPORTUNITY": "https://github.com/OpenHands/OpenHands/issues/19924",
-      "BUYER_NEED_EVIDENCE": "NONE. The cited issue promotes another seller's paid service; the same vendor promotion was present in E2B issue 2162. No third-party need for our product or buying authority was evidenced.",
-      "DECISION": "Keep bot-authored and known vendor-promotion issues outside the capped public-buyer review queue; preserve exclusion metrics.",
-      "ACTION_EXECUTED": "Merged tested PR #105 into main, updating automation/opportunity_scan.py and tests/test_opportunity_scan.py.",
-      "VERIFICATION_URL": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/pull/105",
-      "MERGE_COMMIT": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/commit/b56e5946b63d22eda34599ae119fc24fca3f9a1f",
-      "TEST_VERIFICATION": "11/11 opportunity scan tests passed in independent checked-out branch; GitHub 'Test and verify' workflow concluded success; CEO memory and board local test suites passed.",
-      "EXTERNAL_IMPACT": "NOT_VERIFIED. No independent adoption, user response, or revenue change established.",
-      "BUSINESS_STAGE": "NONE — internal research infrastructure only",
-      "VERIFIED_REVENUE": null,
-      "BLOCKER": "No independently verified qualified request or buyer-pinned gate adoption in CEO experiment ledger. Floot free plan does not expose visitor analytics.",
-      "NEXT_PRIORITY": "Examine explicit opt-in integrations or real RFPs; do not contact vendors or count synthetic fixtures as customer adoption."
-    }
-  ]
+  "schema": "agent-economy-ceo-board-state/1"
 }
