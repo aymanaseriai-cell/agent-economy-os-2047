@@ -66,7 +66,9 @@ class FakeOpener:
             return FakeResponse({"ok": True, "status": "compiled",
                                  "contract": CONTRACT, "contract_id": ID})
         if req.full_url == EVALUATE:
-            tampered = b'{"ok":false}' in req.data
+            body = json.loads(req.data.decode("utf-8"))
+            items = body["submission"]["artifacts"]
+            tampered = items[0]["content"] == '{"ok":false}'
             status = "local_checks_passed" if self.accept_tamper or not tampered else "local_checks_failed"
             item = review(status, 3 if self.accept_tamper or not tampered else 2, tampered and not self.accept_tamper)
             if self.paid_claim:
