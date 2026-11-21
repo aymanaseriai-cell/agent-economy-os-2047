@@ -7,6 +7,7 @@ on:
       - .github/workflows/agent-buyer-live-discovery-smoke.yml
       - automation/agent_buyer_smoke.py
       - automation/assessment_750_quote_guard.py
+      - automation/work_covenant_live_smoke.py
       - docs/agent-services.json
   workflow_dispatch:
 
@@ -29,3 +30,5 @@ jobs:
         run: python -m automation.agent_buyer_smoke
       - name: Validate free preflight and unsigned 750 USDC HTTP 402 quote (no settlement)
         run: python -m automation.assessment_750_quote_guard
+      - name: Validate Work Covenant demo-compile-evaluate and tamper rejection (synthetic)
+        run: python -m automation.work_covenant_live_smoke
