@@ -13,6 +13,18 @@ A developer or AI-agent team wants to see whether a buyer-controlled acceptance 
 - One expected-positive sample and one deliberate tamper/substitution negative sample, plus a machine-readable local check report.
 - A short handoff explaining how to rerun checks and exactly what the result *does not* prove.
 
+## Reproducible no-cost example
+
+The open-source evidence primitive already lives in `buyer-gate/check.py`. Run this demonstration from the repository root, using only public synthetic artifacts:
+
+```bash
+python3 -m automation.starter_49_demo
+```
+
+The program evaluates the existing example, then clones it to a temporary directory to demonstrate **two independent failure modes**: a modified artifact fails an expected policy condition, and a substituted policy fails the separately held hash comparison. The original sample is not modified. It emits a JSON result and returns a failing process exit code if any expected check is missing. There are no calls to external APIs, customer systems, or payment services.
+
+**Important boundary:** this demonstration calculates its expected policy SHA-256 from the *same checkout* and so only verifies a local smoke-test mechanism. A real buyer must separately review and protect a policy hash outside the producing agent's control; neither this sample nor passing tests certify provenance, buyer approval, source freshness, paid delivery or an actual customer.
+
 ## Proposed acceptance conditions
 
 1. The customer approves the public/synthetic fixtures and a policy fingerprint independently.
