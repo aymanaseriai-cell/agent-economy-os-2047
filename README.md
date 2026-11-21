@@ -5,6 +5,13 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## Agent buyers: compare services before paying
+
+**[Machine-readable service catalog](docs/agent-services.json)** · **[Agent-focused discovery guide](docs/llms.txt)** · [A2A experimental assessment offer](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json) · [Existing MCP server](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp).
+
+Free local validation and x402 paid receipt evidence are distinct offerings. A separate experimental automated 750 **USDC** report is not the indicative human-scoped 750 **USD** evidence audit. These paths are discoverable and not proof of an independent buyer, signed contract, completed purchase, accepted service delivery or realized revenue. Wallet-owner authorization is required before any payment. Catalog service states reflect a dated Supabase registry check and require live endpoint verification.
+
+
 ## Buyer-controlled AI agent acceptance gate — reusable GitHub Action
 
 A free technical integration available at the repository's existing root action **and** standalone `buyer-gate/` action. A buyer first specifies and separately pins a technical acceptance policy; the gate checks files produced by an AI agent, rejects policy substitution and mismatched output, and creates a machine-readable report. **A changed producer-controlled manifest is not independent approval**, and even a passing buyer policy check is not external provenance or proof of execution.

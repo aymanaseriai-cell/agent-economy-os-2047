@@ -1,0 +1,111 @@
+{
+  "schema": "agent-economy.service-catalog.v1",
+  "title": "Agent Economy OS 2047 — agent-buyer service directory",
+  "last_registry_check": "2026-11-21",
+  "disclosure": "Machine-readable discovery, not an A2A Agent Card or a promise of service availability. Live HTTP 402 price, chain, token, recipient, legal compliance and response must be checked by the buyer before any payment.",
+  "registry_status": "Listed Supabase Edge Functions were ACTIVE at the recorded check; no live external HTTP smoke test was performed during this catalog build.",
+  "autonomous_purchase": false,
+  "owner_approval_required_for_paid_calls": true,
+  "independently_verified_organic_buyers": false,
+  "independently_verified_commercial_revenue": false,
+  "documentation": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/README.md",
+  "agent_interfaces": [
+    {
+      "kind": "A2A_V1_DISCOVERY",
+      "card_url": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json",
+      "note": "Read-only experimental paid-assessment offer discovery; not a transaction or wallet"
+    },
+    {
+      "kind": "MCP",
+      "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp",
+      "note": "Server exposes read-only discovery tools; correct transport/headers and live service status must be checked independently"
+    }
+  ],
+  "services": [
+    {
+      "id": "work_covenant_free",
+      "name": "Proof-Carrying Work Covenant — local checks",
+      "billing": "free",
+      "value": "Validate caller-specified artifact presence/hash and JSON-field checks, without claiming independent buyer acceptance",
+      "method": "POST",
+      "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/v1/evaluate",
+      "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/demo",
+      "openapi": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/openapi.json",
+      "availability": "public beta; registry active; no contractual SLA",
+      "trust_limit": "Checks only submitted bytes and declared tests; not real-world provenance, payment or independent approval"
+    },
+    {
+      "id": "base_usdc_receipt_lite",
+      "name": "Base USDC Receipt Evidence Lite",
+      "billing": "x402-v2",
+      "price": {
+        "amount": "0.005",
+        "currency": "USDC",
+        "network": "eip155:8453"
+      },
+      "value": "Read-only evidence of Base native USDC transfer and confirmations, using independent public RPC observations",
+      "method": "GET",
+      "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt-lite/api/v1/receipt",
+      "requires_input": [
+        "tx"
+      ],
+      "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt-lite/api/v1/demo",
+      "documentation": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/AGENT402_BUYER_ROUTE.md",
+      "availability": "experimental; confirm live 402 challenge and parameters",
+      "trust_limit": "Not a signed cryptographic state proof or a guarantee of a valid commercial settlement",
+      "buyer_owner_authorization_required": true,
+      "verified_organic_buyer": false
+    },
+    {
+      "id": "base_usdc_receipt",
+      "name": "Base USDC Transfer Receipt Evidence",
+      "billing": "x402-v2",
+      "price": {
+        "amount": "0.01",
+        "currency": "USDC",
+        "network": "eip155:8453"
+      },
+      "value": "Read-only USDC Transfer receipt checks using a two-of-three public RPC quorum",
+      "method": "GET",
+      "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt/api/v1/receipt",
+      "requires_input": [
+        "tx"
+      ],
+      "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt/api/v1/demo",
+      "documentation": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/AGENT402_BUYER_ROUTE.md",
+      "availability": "beta; confirm live 402 challenge and parameters",
+      "trust_limit": "Does not establish external buyer identity or independently proven organic demand",
+      "buyer_owner_authorization_required": true,
+      "verified_organic_buyer": false
+    },
+    {
+      "id": "automated_assessment_750",
+      "name": "Experimental automated duplicate-work assessment",
+      "billing": "x402-v2",
+      "price": {
+        "amount": "750.00",
+        "currency": "USDC",
+        "network": "eip155:8453"
+      },
+      "value": "Machine-generated report of possible duplicate licensed API work, based on caller-supplied aggregate data and hypothetical costs",
+      "method": "POST",
+      "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-automated-assessment/report",
+      "free_preflight": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-automated-assessment/preflight",
+      "sample_report": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-automated-assessment/sample-report",
+      "offer_card": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json",
+      "availability": "experimental; no independently verified end-to-end paid delivery for this 750 USDC offer",
+      "trust_limit": "Not a financial audit, realized saving, guaranteed refund, verified seller delivery, or independent buyer approval",
+      "buyer_owner_authorization_required": true,
+      "verified_organic_buyer": false
+    }
+  ],
+  "human_scoped_pilot": {
+    "name": "AI Agent Evidence Failure-Mode Audit",
+    "indicative_amount": "750",
+    "currency": "USD",
+    "binding_quote": false,
+    "payment_enabled": false,
+    "form": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
+    "note": "Separate human-scoped B2B proposal; not the 750 USDC automated report and not a checkout"
+  }
+}
