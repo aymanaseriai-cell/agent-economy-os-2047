@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 6
     steps:
       - name: Checkout reviewed code (main)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           ref: main
@@ -22,7 +22,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Checkout isolated research memory branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           ref: ceo-state
           path: runtime

@@ -39,7 +39,7 @@ jobs:
       OKX_CAPITAL_MODE: guarded
       # Do not forward ANY exchange or NVIDIA secrets to this workflow.
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           persist-credentials: false
       - uses: actions/setup-python@v5
