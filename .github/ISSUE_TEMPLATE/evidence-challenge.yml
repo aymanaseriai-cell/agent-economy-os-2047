@@ -1,0 +1,44 @@
+name: Free agent evidence challenge
+description: Pick a synthetic AI-agent delivery failure and get an automatic reproducible diagnostic, without payment.
+title: "[Evidence challenge] "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: "Public synthetic technical demonstration only. This does not inspect your actual system or accept payments. Do not share secrets, private code, customer data, transaction signatures or financial details."
+  - type: dropdown
+    id: failure
+    attributes:
+      label: Evidence failure to explore
+      options:
+        - "Saved output changed, reference digest was not updated"
+        - "Output and self-reported digest both changed"
+        - "Supplied reference contradicts the saved claim"
+        - "A synthetic snapshot is misrepresented as live freshness"
+        - "Two declared artifact paths are the same lexical file"
+    validations:
+      required: true
+  - type: dropdown
+    id: intent
+    attributes:
+      label: Preferred next step
+      options:
+        - "Show me the free synthetic demonstration only"
+        - "Explore a scoped enterprise pilot (no payment)"
+        - "I have a public technical review question"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Optional public context
+      description: Only public/synthetic context. This text will not be repeated in the automatic answer.
+    validations:
+      required: false
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Public-only permission
+      options:
+        - label: "I understand this public automated answer uses only synthetic evidence, not my private system."
+          required: true
