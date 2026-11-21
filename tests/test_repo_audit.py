@@ -47,6 +47,33 @@ class RepoAuditTests(unittest.TestCase):
         self.assertNotIn("USD $49", response)
         self.assertIn("NOT an invoice", response)
 
+    def test_enterprise_service_without_public_repo_no_incorrect_requirement(self):
+        body = ("### What service do you want?\n\n"
+                "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)"
+                "\n\n### Public GitHub repository\n\n_No response_"
+                "\n\n### Public, non-sensitive scope\n\n"
+                "An AI agent produces a summary and we need reproducible acceptance tests.")
+        response = build_response({"title": "[Service request] enterprise review", "body": body}, fetch=fake_fetch)
+        self.assertIn("USD $750", response)
+        self.assertIn("A public GitHub repository is optional", response)
+        self.assertIn("No automated repository-readiness check was performed", response)
+        self.assertNotIn("Please include a full public repository link", response)
+        self.assertNotIn("Checklist score", response)
+
+    def test_small_service_without_public_repo_no_incorrect_requirement(self):
+        body = ("### What service do you want?\n\n"
+                "Configure automated agent-evidence integrity checks"
+                "\n\n### Public GitHub repository\n\n_No response_")
+        response = build_response({"title": "[Service request] integration", "body": body}, fetch=fake_fetch)
+        self.assertIn("USD $49", response)
+        self.assertIn("A public GitHub repository is optional", response)
+        self.assertNotIn("Please include a full public repository link", response)
+
+    def test_free_audit_still_requires_public_repo(self):
+        response = build_response({"title": "[Free audit] please check", "body": "_No response_"}, fetch=fake_fetch)
+        self.assertIn("Please include a full public repository link", response)
+        self.assertNotIn("USD $750", response)
+
     def test_does_not_respond_unrelated(self):
         self.assertIsNone(build_response({'title': 'Bug: broken'}))
 

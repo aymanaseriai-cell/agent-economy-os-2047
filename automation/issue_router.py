@@ -45,8 +45,10 @@ def build_response(issue, fetch=None):
             head.append(markdown_report(data))
         except ValueError as exc:
             head.append(f"Unable to complete the automated checklist: {exc}.")
-    else:
+    elif category == "free":
         head.append("Please include a full public repository link such as `https://github.com/OWNER/REPO` in the form.")
+    else:
+        head.append("A public GitHub repository is optional for service inquiries. No automated repository-readiness check was performed. For enterprise evidence reviews, describe only a public or synthetic acceptance failure; any nonpublic scope must be agreed separately via an approved channel.")
     if category == "service":
         chosen = form_value(issue.get("body", ""), "What service do you want?")
         if chosen == "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)":
