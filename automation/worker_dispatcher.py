@@ -87,7 +87,8 @@ def evaluate(task: dict) -> dict:
     elif kind == "github_issue_readonly":
         if set(payload) != {"issue_number"} or payload["issue_number"] != 98:
             raise PolicyError("RELEASE_GATE_ONLY")
-    return {"id": task_id, "role": role, "kind": kind, "payload": payload, "max_attempts": tries}
+    return {"id": task_id, "role": role, "kind": kind, "payload": payload, "max_attempts": tries,
+            "spend_usd": 0, "allow_write": False}
 
 
 def safe_local_file(root: Path, raw: str) -> Path:
