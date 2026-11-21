@@ -7,6 +7,8 @@ on:
       - 'automation/worker_fleet_live.py'
       - 'tests/test_worker_fleet*.py'
       - 'tests/test_worker_dispatcher.py'
+      - 'automation/factory_operator.py'
+      - 'tests/test_factory_operator.py'
       - '.github/workflows/worker-fleet-readonly.yml'
   workflow_dispatch:
   schedule:
@@ -48,6 +50,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_worker_dispatcher.py' -v
           python3 -m unittest discover -s tests -p 'test_worker_fleet.py' -v
           python3 -m unittest discover -s tests -p 'test_worker_fleet_live.py' -v
+          python3 -m unittest discover -s tests -p 'test_factory_operator.py' -v
       - name: Discover current main SHA, provider CI and consent-first public intake
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
