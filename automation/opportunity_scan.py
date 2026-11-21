@@ -40,7 +40,17 @@ VENDOR_TERMS = (
     "we launched", "i built", "check out my", "our product",
     "buy my", "selling", "we are selling", "for sale",
     "our service", "announcement", "promote", "self-promo",
+    "buy (live)", "our pricing", "my service", "subscribe now",
 )
+# Only explicit *commercial solicitation* merits manual buyer-intent review.
+# An issue about implementing an internal feature or fixing payment code is
+# technical backlog, NOT a request to purchase independent agent-evidence work.
+PROCUREMENT_PATTERNS = tuple(re.compile(x) for x in (
+    r"\b(?:looking for|seeking|need)\s+(?:(?:an?|the)\s+)?(?:paid\s+)?(?:external\s+)?(?:vendor|consultant|contractor|reviewer|auditor|integration partner)\b",
+    r"\b(?:looking for|seeking)\s+paid\s+",
+    r"\b(?:rfp|rfq|request for proposals?|request for quotation)\b",
+    r"\b(?:paid\s+bounty|funded\s+bounty|hiring|hire\s+(?:a|an|someone)|budget\s*[:=]|budget\s+(?:of|for))\b",
+))
 MAX_CANDIDATES = 30
 PER_QUERY = 12
 
@@ -68,12 +78,27 @@ def evaluate(entry: dict) -> dict | None:
     buyer = [term for term in BUSINESS_TERMS if term in text_l]
     evidence = [term for term in EVIDENCE_TERMS if term in text_l]
     vendor = [term for term in VENDOR_TERMS if term in text_l]
+    actor = (entry.get("user") or {}).get("login", "")
+    # GitHub bots may post issue titles that look like paid solicitations.
+    # This flag concerns the posting account type, not verified personhood.
+    is_bot = isinstance(actor, str) and (
+        actor.lower().endswith("[bot]") or actor.lower().endswith("-bot")
+    )
+    procurement = any(pattern.search(text_l) for pattern in PROCUREMENT_PATTERNS)
     score = sum(BUSINESS_TERMS[t] for t in buyer) + sum(EVIDENCE_TERMS[t] for t in evidence)
     score -= min(16, 8 * len(vendor))
-    # Never mark as qualified. Qualify via explicit buyer identity and channel review.
+    # Never mark a candidate as an actual buyer, let alone as permission to pitch.
+    # In particular, internal product feature requests and sellers' promos are NOT
+    # actionable commercial demand even if they mention receipts/agents/budgets.
     tier = "research_only"
-    if buyer and evidence and score >= 12 and not vendor:
+    if buyer and evidence and score >= 12 and procurement and not vendor and not is_bot:
         tier = "manual_buyer_intent_review"
+    reason = (
+        "bot_authored" if is_bot else
+        "vendor_promotion" if vendor else
+        "no_explicit_procurement_signal" if not procurement else
+        "external_commercial_intent_needs_verification"
+    )
     return {
         "url": url,
         "title": title[:220],
@@ -83,6 +108,9 @@ def evaluate(entry: dict) -> dict | None:
         "tier": tier,
         "signals": sorted(set(buyer + evidence))[:12],
         "potential_vendor_signals": vendor,
+        "procurement_phrase_present": bool(procurement),
+        "bot_authored": bool(is_bot),
+        "classification_reason": reason,
         "buyer_intent_verified": False,
         "buying_authority_verified": False,
         "funded_opportunity_verified": False,
