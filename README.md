@@ -5,6 +5,10 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## $49 agent-output starter (indicative, scoped)
+
+For a team receiving files from AI agents, the [buyer-controlled evidence starter](docs/PILOT_49.md) proposes a reproducible local acceptance gate for **one public/synthetic workflow and up to five artifacts**, including a passing fixture and a tampering negative case. **USD $49 is an indicative starting price only, not checkout or a contract.** [Request a scoped quote](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml) without posting secrets.
+
 ## Agent buyers: compare services before paying
 
 **[Machine-readable service catalog](docs/agent-services.json)** · **[Agent-focused discovery guide](docs/llms.txt)** · [A2A experimental assessment offer](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json) · [Existing MCP server](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp).

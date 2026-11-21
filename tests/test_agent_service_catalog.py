@@ -67,6 +67,27 @@ class AgentServiceCatalogTests(unittest.TestCase):
         self.assertIs(human["binding_quote"], False)
         self.assertIs(human["payment_enabled"], False)
 
+    def test_starter_49_clear_scope_and_not_a_checkout(self):
+        pilot = self.catalog["human_scoped_starter_pilot"]
+        self.assertEqual((pilot["currency"], pilot["indicative_amount"]), ("USD", "49"))
+        self.assertIs(pilot["binding_quote"], False)
+        self.assertIs(pilot["payment_enabled"], False)
+        self.assertIn("up to five artifact", pilot["scope"])
+        self.assertIn("public or synthetic", pilot["scope"])
+        self.assertNotEqual(pilot["indicative_amount"], self.catalog["human_scoped_pilot"]["indicative_amount"])
+        scope = (ROOT / "docs" / "PILOT_49.md").read_text(encoding="utf-8")
+        template = (ROOT / ".github" / "ISSUE_TEMPLATE" / "service-request.yml").read_text(encoding="utf-8")
+        website = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        for text in (scope, template, website, readme):
+            self.assertIn("49", text)
+        self.assertIn("buyer-pinned output evidence", template)
+        self.assertIn("up to five artifacts", scope)
+        self.assertIn("non-binding", scope)
+        self.assertIn("docs/PILOT_49.md", website)
+        self.assertIn("docs/PILOT_49.md", readme)
+        self.assertIn("human_scoped_pilot", self.catalog)
+
     def test_only_explicit_https_endpoints(self):
         def urls(obj):
             if isinstance(obj, dict):

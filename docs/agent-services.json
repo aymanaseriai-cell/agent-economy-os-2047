@@ -114,5 +114,17 @@
     "checks_total": 5,
     "run_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44907456246",
     "scope": "Free demos and A2A card only; no settlement or paid delivery validated"
+  },
+  "human_scoped_starter_pilot": {
+    "name": "Buyer-Pinned AI Agent Output Evidence Starter",
+    "indicative_amount": "49",
+    "currency": "USD",
+    "binding_quote": false,
+    "payment_enabled": false,
+    "scope": "One public or synthetic AI-agent workflow and up to five artifact files, one buyer-pinned acceptance policy, one positive and one tampered negative example, reproducible local verification report.",
+    "exclusions": "No private access, production deployment, signed agent provenance, customer secrets, certification, automatic checkout or guaranteed performance.",
+    "details": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/PILOT_49.md",
+    "form": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
+    "note": "Indicative USD $49 narrow service proposal, subject to prior scope agreement and lawful invoice/payment setup. Not a paid settlement or self-service x402 API."
   }
 }
