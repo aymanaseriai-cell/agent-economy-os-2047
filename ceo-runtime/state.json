@@ -160,6 +160,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/aaf1007/grove-ade/issues/26": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/aj4359/TA-GuruLabs-AIDES-Brain/issues/107": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -265,12 +272,26 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/dwebagents/AgentPipe/issues/1663": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/e2b-dev/E2B/issues/2162": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/faberline/sift/issues/330": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
     },
     "https://github.com/fyannk/pgToolBox/issues/135": {
       "days_observed": 1,
@@ -412,6 +433,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/nwverse/persona/issues/12697": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -459,6 +487,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/sixLUKEY/little-fire-flames/issues/1": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/tanyapruck/orasqill/issues/23": {
