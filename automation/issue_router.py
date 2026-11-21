@@ -12,7 +12,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from repo_audit import analyze, markdown_report
-from evidence_challenge import build_evidence_response
+from evidence_challenge import build_evidence_response, form_value
 
 MARKER = "<!-- agent-economy-automated-response-v1 -->"
 URL_PATTERN = re.compile(r"https://github\.com/([A-Za-z0-9][A-Za-z0-9-]{0,38})/([A-Za-z0-9_.-]{1,100})", re.IGNORECASE)
@@ -48,7 +48,17 @@ def build_response(issue, fetch=None):
     else:
         head.append("Please include a full public repository link such as `https://github.com/OWNER/REPO` in the form.")
     if category == "service":
-        head += ["", "### Custom integration request", "The indicative *starting* price is **USD $49** for a narrowly scoped, publicly shareable repository integration review. This is **not** an invoice or accepted order. Scope, delivery, payment details and any private access must be agreed separately with the project owner."]
+        chosen = form_value(issue.get("body", ""), "What service do you want?")
+        if chosen == "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)":
+            head += [
+                "",
+                "### Evidence failure-mode audit — enterprise scope (non-binding)",
+                "The indicative **USD $750** pilot scope covers ONE agreed AI-agent workflow, a synthetic negative-case test matrix, and a reproducible evidence-gap report. This is NOT an invoice, automatic subscription, accepted order, customer certification, or guaranteed date. Any contract and lawful invoicing/payment channel require explicit separate agreement.",
+                "[Review the testable scope and limitations](https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/ENTERPRISE_EVIDENCE_PILOT.md).",
+                "**One qualification question:** What exactly must a buyer verify before accepting this agent's output?",
+            ]
+        else:
+            head += ["", "### Custom integration request", "The indicative *starting* price is **USD $49** for a narrowly scoped, publicly shareable repository integration review. This is **not** an invoice or accepted order. Scope, delivery, payment details and any private access must be agreed separately with the project owner."]
     else:
         head += ["", "### Want help implementing the missing items?", "For a scoped integration quote, open the [service-request form](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml). No payment is taken automatically."]
     head += ["", "**Privacy reminder:** GitHub Issues are public. Never post credentials, private source code, financial information, or personal data here."]

@@ -38,6 +38,15 @@ class RepoAuditTests(unittest.TestCase):
         self.assertIn('100/100', response)
         self.assertIn('No payment is taken', response)
 
+    def test_enterprise_service_routes_to_enterprise_offer(self):
+        choice = "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)"
+        body = "### What service do you want?\n\n" + choice + "\n\n### Public GitHub repository\n\nhttps://github.com/example/demo"
+        response = build_response({"title": "[Service request] public agent evidence review", "body": body}, fetch=fake_fetch)
+        self.assertIn("USD $750", response)
+        self.assertIn("One qualification question", response)
+        self.assertNotIn("USD $49", response)
+        self.assertIn("NOT an invoice", response)
+
     def test_does_not_respond_unrelated(self):
         self.assertIsNone(build_response({'title': 'Bug: broken'}))
 

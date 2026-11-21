@@ -19,6 +19,7 @@ body:
     attributes:
       label: What service do you want?
       options:
+        - "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)"
         - Configure automated agent-evidence integrity checks
         - Add safer GitHub Actions CI automation
         - Review public agent-delivery pipeline
