@@ -6,6 +6,7 @@ on:
     paths:
       - .github/workflows/agent-buyer-live-discovery-smoke.yml
       - automation/agent_buyer_smoke.py
+      - automation/assessment_750_quote_guard.py
       - docs/agent-services.json
   workflow_dispatch:
 
@@ -26,3 +27,5 @@ jobs:
           python-version: '3.12'
       - name: Check fixed free discovery endpoints (no payment)
         run: python -m automation.agent_buyer_smoke
+      - name: Validate free preflight and unsigned 750 USDC HTTP 402 quote (no settlement)
+        run: python -m automation.assessment_750_quote_guard

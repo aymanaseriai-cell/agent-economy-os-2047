@@ -3,7 +3,7 @@
   "title": "Agent Economy OS 2047 — agent-buyer service directory",
   "last_registry_check": "2026-11-21",
   "disclosure": "Machine-readable discovery, not an A2A Agent Card or a promise of service availability. Live HTTP 402 price, chain, token, recipient, legal compliance and response must be checked by the buyer before any payment.",
-  "registry_status": "Listed Supabase Edge Functions were ACTIVE at the recorded check; no live external HTTP smoke test was performed during this catalog build.",
+  "registry_status": "Supabase registry functions were ACTIVE at the 2026-11-21 check. External GitHub Actions run #44907456246 independently reached 5/5 free demo/discovery endpoints with HTTP 200 and service-specific JSON checks. This is not paid quote or settlement validation.",
   "autonomous_purchase": false,
   "owner_approval_required_for_paid_calls": true,
   "independently_verified_organic_buyers": false,
@@ -107,5 +107,12 @@
     "payment_enabled": false,
     "form": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
     "note": "Separate human-scoped B2B proposal; not the 750 USDC automated report and not a checkout"
+  },
+  "free_discovery_smoke_evidence": {
+    "date": "2026-11-21",
+    "checks_passed": 5,
+    "checks_total": 5,
+    "run_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44907456246",
+    "scope": "Free demos and A2A card only; no settlement or paid delivery validated"
   }
 }
