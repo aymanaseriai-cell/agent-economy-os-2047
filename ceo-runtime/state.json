@@ -13,6 +13,13 @@
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
+    "https://github.com/Agri-fund/agri-fi/issues/1391": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -54,6 +61,13 @@
       "last_seen_day": "2026-11-21",
       "score": 22,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Mossad-esc/stellar-footprint-engine/issues/112": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
     },
     "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
       "days_observed": 1,
@@ -126,6 +140,13 @@
       "tier": "manual_buyer_intent_review"
     },
     "https://github.com/cgfixit/LanCartographer/issues/22": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/chf3198/megingjord-harness/issues/3576": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
@@ -209,6 +230,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/jonathanung/strike/issues/1962": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/kindrat86/agentmail/issues/40": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -228,6 +256,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/mabrig1/aivideo/issues/16": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/matthewjameswatkins1978-cyber/pepin/issues/16": {
@@ -256,6 +291,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/tire0011/A2A-hub/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 19,
       "tier": "research_only"
     },
     "https://github.com/writfold-dev/writfold/issues/57": {
