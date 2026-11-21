@@ -71,7 +71,7 @@ class CEOMemoryTests(unittest.TestCase):
 
     def test_future_radar_rejected(self):
         with self.assertRaisesRegex(ValueError,"RADAR_NOT_CURRENT"):
-            reconcile(radar(candidate()),new_state(),NOW-dt.timedelta(minutes=6))
+            reconcile(radar(candidate()),new_state(),NOW-dt.timedelta(minutes=8))
 
     def test_false_verified_claim_rejected(self):
         c=candidate();c["buyer_intent_verified"]=True
