@@ -104,6 +104,13 @@
       "score": 18,
       "tier": "research_only"
     },
+    "https://github.com/SAFuDarren/Trellin/issues/111": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/Significant-Gravitas/AutoGPT/issues/17176": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -132,12 +139,40 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/aj4359/TA-GuruLabs-AIDES-Brain/issues/107": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/alibaba/spring-ai-alibaba/issues/5055": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 23,
+      "tier": "research_only"
+    },
+    "https://github.com/bhadkamkar9snehil/Nexus/issues/42": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 18,
+      "tier": "research_only"
+    },
+    "https://github.com/blur88/erp2/issues/1984": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
     },
     "https://github.com/celo-org/buy-skill/issues/76": {
       "days_observed": 1,
@@ -262,7 +297,7 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
-      "score": 13,
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/658": {
