@@ -143,5 +143,45 @@ class BuyerPinnedGateTests(unittest.TestCase):
         self.pin = self.save()
         self.assertEqual(self.run_gate()["errors"], ["SYMLINK_NOT_ALLOWED"])
 
+
+    def test_duplicate_artifact_json_keys_fail_closed(self):
+        self.pin = self.save()
+        (self.p / "outputs" / "answer.json").write_text(
+            '{"result":"denied","result":"approved","ok":true,"count":2}', encoding="utf-8"
+        )
+        report = self.run_gate()
+        self.assertFalse(report["local_checks_passed"])
+        self.assertEqual(report["results"][1]["reason"], "DUPLICATE_JSON_KEY")
+
+    def test_duplicate_policy_json_keys_fail_closed(self):
+        self.pin = self.save()
+        original = self.path.read_text(encoding="utf-8")
+        self.path.write_text(
+            original.replace('"schema":', '"schema": "untrusted", "schema":', 1),
+            encoding="utf-8",
+        )
+        self.pin = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        self.assertEqual(self.run_gate()["errors"], ["DUPLICATE_JSON_KEY"])
+
+    def test_nonfinite_artifact_json_fails_closed(self):
+        self.pin = self.save()
+        (self.p / "outputs" / "answer.json").write_text(
+            '{"result":"approved","ok":true,"count":NaN}', encoding="utf-8"
+        )
+        report = self.run_gate()
+        self.assertFalse(report["local_checks_passed"])
+        self.assertEqual(report["results"][1]["reason"], "NONFINITE_JSON_NUMBER")
+
+    def test_unhashable_policy_type_returns_structured_failure(self):
+        self.policy["requirements"][0]["type"] = ["file_exists"]
+        self.pin = self.save()
+        self.assertEqual(self.run_gate()["errors"], ["UNSUPPORTED_REQUIREMENT"])
+
+    def test_oversized_policy_is_rejected_before_json_parsing(self):
+        self.save()
+        self.path.write_bytes(b"x" * (64 * 1024 + 20))
+        self.pin = hashlib.sha256(self.path.read_bytes()).hexdigest()
+        self.assertEqual(self.run_gate()["errors"], ["POLICY_TOO_LARGE"])
+
 if __name__ == "__main__":
     unittest.main()
