@@ -1,6 +1,10 @@
 name: Test and verify
 on:
+  # ceo-state is the isolated runtime-memory branch and can lag main's tests;
+  # regular push/PR CI remains enabled for all source branches.
   push:
+    branches-ignore:
+      - ceo-state
   pull_request:
   schedule:
     - cron: '23 4 * * *'
