@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -24,6 +25,8 @@ GITHUB_RUN = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/action
 GITHUB_ISSUE = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/issues/([1-9][0-9]*)$")
 GITHUB_ISSUES_LIST = f"https://api.github.com/repos/{OWNER}/{REPO}/issues?state=open&per_page=100"
 HEALTH_URL = "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/health"
+MAIN_BRANCH_URL = f"https://api.github.com/repos/{OWNER}/{REPO}/branches/main"
+MAIN_CI_RUNS_URL = f"https://api.github.com/repos/{OWNER}/{REPO}/actions/workflows/ci.yml/runs?branch=main&per_page=20"
 ALLOWED = {
     "CEO": frozenset({"github_issues_readonly", "review_gate_readonly"}),
     "CTO": frozenset({"local_file_digest", "github_ci_readonly", "github_issue_readonly"}),
@@ -38,13 +41,17 @@ class PolicyError(ValueError):
 
 
 def default_fetch(url: str) -> dict:
-    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url == GITHUB_ISSUES_LIST or url == HEALTH_URL):
+    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url in (GITHUB_ISSUES_LIST, HEALTH_URL, MAIN_BRANCH_URL, MAIN_CI_RUNS_URL)):
         raise PolicyError("URL_NOT_ALLOWLISTED")
-    request = Request(url, headers={
+    headers = {
         "Accept": "application/vnd.github+json",
         "User-Agent": "agent-economy-worker-dispatch/1",
         "X-GitHub-Api-Version": "2022-11-28",
-    })
+    }
+    token = os.environ.get("GITHUB_TOKEN", "")
+    if token and url.startswith("https://api.github.com/"):
+        headers["Authorization"] = "Bearer " + token
+    request = Request(url, headers=headers)
     with urlopen(request, timeout=8) as response:
         payload = json.load(response)
     if not isinstance(payload, (dict, list)):
