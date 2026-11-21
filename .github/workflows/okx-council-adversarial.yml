@@ -35,7 +35,7 @@ jobs:
           print("AUDIT PASS: original six-agent+seven-quant historical evidence reproduced")
           PY
       - name: Archive reproducible offline research
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: actual-titan-counterfactual-proof
           path: reports/replay_adversarial.json

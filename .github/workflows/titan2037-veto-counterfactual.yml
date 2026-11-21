@@ -34,7 +34,7 @@ jobs:
             --out reports/titan2037_veto_counterfactual.json
       - name: Publish outcome evidence only, no orders or secrets
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: titan2037-veto-redteam-no-orders
           path: reports/titan2037_veto_counterfactual.json

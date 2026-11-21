@@ -42,7 +42,7 @@ jobs:
         run: python -m trading.microspot_scout --equity-usdt "$RESEARCH_EQUITY" --max-pairs 25 --output reports/microspot_scout.json
       - name: Store public research report (no credentials, no account data)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: titan-microspot-public-only
           path: reports/microspot_scout.json
