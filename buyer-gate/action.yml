@@ -1,0 +1,32 @@
+name: "Buyer-Pinned AI Agent Acceptance Gate"
+description: "Fail closed when outputs violate a separately SHA-256-pinned technical policy"
+author: "Agent Economy OS 2047"
+branding:
+  icon: "shield-check"
+  color: "blue"
+inputs:
+  policy:
+    description: "Path to buyer-controlled policy JSON (must be independently pinned)"
+    required: true
+  policy-sha256:
+    description: "Exact SHA-256 of approved policy bytes, pinned outside agent-controlled output"
+    required: true
+  root:
+    description: "Root of local output files to inspect"
+    required: false
+    default: "."
+  report:
+    description: "Path for JSON report"
+    required: false
+    default: "buyer-gate-report.json"
+runs:
+  using: "composite"
+  steps:
+    - name: Check independently pinned criteria against outputs
+      shell: bash
+      env:
+        GATE_POLICY: ${{ inputs.policy }}
+        GATE_POLICY_HASH: ${{ inputs.policy-sha256 }}
+        GATE_ROOT: ${{ inputs.root }}
+        GATE_REPORT: ${{ inputs.report }}
+      run: python3 "$GITHUB_ACTION_PATH/check.py" "$GATE_POLICY" --policy-sha256 "$GATE_POLICY_HASH" --root "$GATE_ROOT" --json-out "$GATE_REPORT"

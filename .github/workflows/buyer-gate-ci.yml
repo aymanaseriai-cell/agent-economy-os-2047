@@ -1,0 +1,48 @@
+name: Buyer-pinned evidence gate tests
+on:
+  push:
+    paths:
+      - 'buyer-gate/**'
+      - 'tests/test_buyer_gate.py'
+      - 'examples/buyer-gate/**'
+      - '.github/workflows/buyer-gate-ci.yml'
+  pull_request:
+    paths:
+      - 'buyer-gate/**'
+      - 'tests/test_buyer_gate.py'
+      - 'examples/buyer-gate/**'
+      - '.github/workflows/buyer-gate-ci.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  buyer-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Adversarial local gate tests
+        run: python3 -m unittest discover -s tests -p 'test_buyer_gate.py' -v
+      - name: Smoke-only policy hash calculation
+        id: sample-pin
+        shell: bash
+        run: echo "sha=$(sha256sum examples/buyer-gate/policy.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+      - name: Smoke-test reusable action
+        uses: ./buyer-gate
+        with:
+          policy: examples/buyer-gate/policy.json
+          policy-sha256: ${{ steps.sample-pin.outputs.sha }}
+          root: examples/buyer-gate
+          report: buyer-gate-example-report.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: buyer-gate-smoke-report
+          path: buyer-gate-example-report.json
+          if-no-files-found: ignore
+          retention-days: 7

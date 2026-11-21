@@ -1,0 +1,23 @@
+{
+  "schema": "agent-economy.buyer-gate/1",
+  "requirements": [
+    {
+      "id": "report_exists",
+      "type": "file_exists",
+      "path": "deliverables/report.json"
+    },
+    {
+      "id": "status_accepted_by_policy",
+      "type": "json_pointer_equals",
+      "path": "deliverables/report.json",
+      "pointer": "/status",
+      "expected": "ready_for_review"
+    },
+    {
+      "id": "required_evidence",
+      "type": "text_contains",
+      "path": "deliverables/report.json",
+      "needle": "reviewer_notes"
+    }
+  ]
+}
