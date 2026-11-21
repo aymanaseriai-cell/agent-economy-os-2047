@@ -8,6 +8,7 @@ authenticity, model quality, or real-world truth.
 import argparse
 import hashlib
 import json
+import math
 import re
 import sys
 from pathlib import Path
@@ -15,13 +16,36 @@ from pathlib import Path
 SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
+def reject_duplicate_keys(pairs):
+    """Reject ambiguous JSON objects at any nesting depth (fail closed)."""
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON key: {key}")
+        result[key] = value
+    return result
+
+
+def reject_non_json_constant(value):
+    """Refuse NaN and Infinity tokens, which are invalid JSON."""
+    raise ValueError(f"non-standard JSON constant: {value}")
+
+
+def parse_finite_float(token):
+    """Reject numeric JSON exponents that overflow to non-finite floats."""
+    value = float(token)
+    if not math.isfinite(value):
+        raise ValueError("non-finite JSON number")
+    return value
+
+
 def validate(manifest_path: Path, root: Path) -> dict:
     root = root.resolve()
     errors = []
     results = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicate_keys, parse_constant=reject_non_json_constant, parse_float=parse_finite_float)
+    except (OSError, UnicodeError, ValueError) as exc:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": [f"Could not read manifest: {exc}"]}
 
     records = manifest.get("artifacts") if isinstance(manifest, dict) else None

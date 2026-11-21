@@ -101,5 +101,94 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual(report['checked'], 2)
 
 
+    def test_duplicate_top_level_artifacts_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous.json'
+            m.write_text('{"artifacts":[{"path":"missing.txt","sha256":"%s"}],'
+                         '"artifacts":[{"path":"result.txt","sha256":"%s"}]}' % (sha, sha))
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+    def test_duplicate_nested_path_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous-path.json'
+            m.write_text('{"artifacts":[{"path":"../outside","path":"result.txt",'
+                         '"sha256":"%s"}]}' % sha)
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+    def test_duplicate_nested_sha256_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous-hash.json'
+            m.write_text('{"artifacts":[{"path":"result.txt","sha256":"%s",'
+                         '"sha256":"%s"}]}' % ('0' * 64, sha))
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+
+    def test_nonstandard_json_constants_fail_closed(self):
+        # Python's default json.loads accepts these invalid JSON tokens.
+        for constant in ('NaN', 'Infinity', '-Infinity'):
+            with self.subTest(constant=constant):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'nonstandard.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, constant)
+                    )
+                    report = validate(m, root)
+                    self.assertFalse(report['passed'])
+                    self.assertEqual(report['checked'], 0)
+                    self.assertIn('non-standard JSON constant', report['errors'][0])
+
+
+    def test_overflow_json_numbers_fail_closed(self):
+        # parse_constant misses finite-looking numeric tokens that overflow Python float.
+        for token in ('1e10000', '-1e10000', '9.99e9999'):
+            with self.subTest(token=token):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'numeric-overflow.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, token)
+                    )
+                    report = validate(m, root)
+                    self.assertFalse(report['passed'])
+                    self.assertEqual(report['checked'], 0)
+                    self.assertIn('non-finite JSON number', report['errors'][0])
+
+    def test_finite_json_numbers_still_pass(self):
+        for token in ('1.25', '-0.5', '1e3'):
+            with self.subTest(token=token):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'finite-number.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, token)
+                    )
+                    report = validate(m, root)
+                    self.assertTrue(report['passed'])
+
 if __name__ == '__main__':
     unittest.main()
