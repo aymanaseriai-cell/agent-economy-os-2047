@@ -7,7 +7,7 @@
 A developer or AI-agent team wants to see whether a buyer-controlled acceptance gate catches changed artifacts and a substituted producer-controlled policy before someone accepts an automated handoff. It is **technical consistency checking**, not independent proof that the agent performed work correctly.
 
 **One public or synthetic example only:**
-- One public GitHub repository (or a synthetic, reproducible example), at most five non-sensitive artifact files.
+- One public GitHub repository (or a synthetic, reproducible example), up to five artifacts, all non-sensitive files.
 - A buyer-reviewed acceptance policy with its SHA-256 digest pinned separately from the producing agent; the buyer remains responsible for that trust root.
 - One reproducible GitHub Actions/local verification example using the existing `buyer-gate` tool.
 - One expected-positive sample and one deliberate tamper/substitution negative sample, plus a machine-readable local check report.
