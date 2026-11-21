@@ -6,6 +6,12 @@
 
 **Proposed outcome:** A *reproducible evidence gap report* for a clearly bounded AI-agent workflow, plus practical negative tests. This is a technical evaluation, **not** compliance certification, a contractual attestation, an external timestamp, an automated revenue escrow, or a claim that the project has paying customers.
 
+## No-login, automatic proof-of-value demo
+
+**[Open a public opt-in Evidence Challenge](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=evidence-challenge.yml)**. Choose one of five available failure scenarios and a desired next step, and explicitly agree to a public *synthetic* response. When the GitHub Issue Form creates the issue, the repository's GitHub Actions inbound router recomputes one predetermined fixture case, verifies its expected four-claim verdicts and posts a tailored but non-sensitive diagnostic. No buyer code, API key, wallet, private repository or payment is touched; the optional free-text context is not copied into the reply. The response is **not** a live evaluation of the requester's production workflow.
+
+The GitHub repository is not a confidential CRM. Do not post client identifiers, sensitive business details or private code. A future scoped paid pilot requires independent legal invoicing, identity, buyer acceptance and business terms. Do not count Issue Form submissions as contracts or verified paid customers.
+
 ## Who this is for
 
 Technical leads, AI-agent platform maintainers, and operations teams building multi-agent delivery pipelines, code-generation agents, automated reporting, and evidence-backed task acceptance.

@@ -5,6 +5,12 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## Free self-service evidence challenge (automatic, public, opt-in)
+
+**[Run the free synthetic Evidence Challenge](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=evidence-challenge.yml)** — select one of five real evidence-claim failure categories and explicitly opt into a public answer. GitHub Actions recomputes one synthetic case from the project's published evidence fixture, and replies automatically to your issue. This works without the owner's active ChatGPT session. It does not execute the requester's code, access private systems, ask for money, or echo the optional public context.
+
+The demonstration can reveal contradictory checks, **not** independent customer approval, certified compliance or actual live-source freshness. A buyer who explicitly chooses *Explore a scoped enterprise pilot (no payment)* receives a link to the bounded USD $750 **indicative/non-binding** B2B scope and a safe public service-request form.
+
 ## Enterprise evidence audit pilot
 
 For buyers evaluating AI agents, **a passing checksum is not a verified handoff**. Inspect a bounded, technical evidence-gap evaluation with concrete negative-case tests, explicit limitations and an indicative **USD $750** pilot *hypothesis* (not a binding quote or checkout).

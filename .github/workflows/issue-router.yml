@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   automatic-review:
-    if: startsWith(github.event.issue.title, '[Free audit]') || startsWith(github.event.issue.title, '[Service request]')
+    if: startsWith(github.event.issue.title, '[Free audit]') || startsWith(github.event.issue.title, '[Service request]') || startsWith(github.event.issue.title, '[Evidence challenge]')
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -23,4 +23,5 @@ jobs:
       - name: Analyze public repository and reply on issue
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          AUDIT_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: python automation/issue_router.py

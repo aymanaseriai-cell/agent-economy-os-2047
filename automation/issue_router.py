@@ -12,6 +12,7 @@ from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from repo_audit import analyze, markdown_report
+from evidence_challenge import build_evidence_response
 
 MARKER = "<!-- agent-economy-automated-response-v1 -->"
 URL_PATTERN = re.compile(r"https://github\.com/([A-Za-z0-9][A-Za-z0-9-]{0,38})/([A-Za-z0-9_.-]{1,100})", re.IGNORECASE)
@@ -31,6 +32,8 @@ def find_repo(body):
 
 def build_response(issue, fetch=None):
     title = issue.get("title", "")
+    if isinstance(title, str) and title.startswith("[Evidence challenge]"):
+        return build_evidence_response(issue)
     category = "free" if title.startswith("[Free audit]") else "service" if title.startswith("[Service request]") else None
     if not category:
         return None
