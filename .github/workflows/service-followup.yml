@@ -1,0 +1,29 @@
+name: Consented public service-request follow-up
+on:
+  issue_comment:
+    types: [created]
+permissions:
+  contents: read
+  issues: write
+concurrency:
+  group: service-followup-${{ github.event.issue.number }}
+  cancel-in-progress: false
+jobs:
+  respond:
+    if: >
+      github.event.issue.pull_request == null &&
+      startsWith(github.event.issue.title, '[Service request]') &&
+      github.event.comment.user.login == github.event.issue.user.login
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Reply only with explicit consent and per-issue limits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python automation/issue_followup.py
