@@ -125,6 +125,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/OWASP/Agentic-Evidence/issues/15": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/OpenHands/OpenHands/issues/19924": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -208,6 +215,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/amina69/PetAd-backend/issues/312": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 10,
+      "tier": "research_only"
     },
     "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
       "days_observed": 1,
@@ -489,6 +503,13 @@
       "score": 16,
       "tier": "research_only"
     },
+    "https://github.com/ppenumatsa1/agent-blueprints/issues/25": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -521,7 +542,14 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
-      "score": 11,
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/sameeerkashyap/mars-jepa/issues/2": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/sanjeevicivil66-chatGPT/Usha.Construction/issues/9": {
@@ -557,6 +585,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/voku/agent-decision/issues/4": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/writfold-dev/writfold/issues/57": {
