@@ -129,8 +129,11 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
         priority = choice.get("priority")
         if type(priority) is not int or not 1 <= priority <= 5:
             raise PolicyError("FORGED_PRIORITY")
+    # Recheck interrupted read-only probes. This is safe only because the
+    # worker fleet has no write, payment, customer-contact or deploy capability.
     selected = [o["worker_id"] for o in choices
-                if o["disposition"] == "REVIEW_ONLY_ACTION_ELIGIBLE"]
+                if o["disposition"] in ("REVIEW_ONLY_ACTION_ELIGIBLE",
+                                        "VERIFY_IN_PROGRESS_FIRST")]
     if not selected:
         return {"execution_status": "NO_ELIGIBLE_WORK_TO_EXECUTE",
                 "dispatched_count": 0, "technically_verified_readonly_count": 0,
@@ -149,6 +152,8 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
     result = run_fleet([available[w] for w in selected], root, fetch=fetch, max_concurrent=4)
     return {"execution_status": "REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY",
             "dispatched_count": result["dispatched_count"],
+            "rechecked_in_progress_count": sum(
+                o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" for o in choices),
             "technically_verified_readonly_count": result["technically_verified_readonly_count"],
             "receipts": result["receipts"],
             "production_changes": False, "independent_llm_sessions": 0}

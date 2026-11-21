@@ -103,7 +103,22 @@ class FactoryOperatorTests(unittest.TestCase):
         selected=p["selected"][1]
         self.assertEqual(selected["worker_id"],"AEOS-W03")
         self.assertEqual(selected["disposition"],"VERIFY_IN_PROGRESS_FIRST")
-        self.assertEqual(execute_reviewonly(p,[],Path("."))["dispatched_count"],0)
+        with tempfile.TemporaryDirectory() as d:
+            Path(d, "verifier.py").write_text("print('safe')", encoding="utf-8")
+            jobs=[{"worker_id":"AEOS-W03", "payload":{"path":"verifier.py"}}]
+            result=execute_reviewonly(p,jobs,Path(d))
+            self.assertEqual(result["dispatched_count"],1)
+            self.assertEqual(result["rechecked_in_progress_count"],1)
+            self.assertEqual(result["technically_verified_readonly_count"],1)
+            self.assertEqual([r["worker_id"] for r in result["receipts"]], ["AEOS-W03"])
+            self.assertFalse(result["production_changes"])
+
+    def test_interrupted_in_progress_probe_requires_exact_allowlisted_job(self):
+        p=plan_dispatch([item("AEOS-W03","IN_PROGRESS")])
+        with self.assertRaisesRegex(PolicyError, "MISSING_EXACT_SELECTED_JOB"):
+            execute_reviewonly(p,[],Path("."))
+        with self.assertRaises(PolicyError):
+            execute_reviewonly(p,[{"worker_id":"AEOS-W04","payload":{}}],Path("."))
 
     def test_forged_approval_cannot_be_promoted_to_execution(self):
         p=plan_dispatch([item("AEOS-W06","NEEDS_APPROVAL",priority=1)])
