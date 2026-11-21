@@ -19,6 +19,8 @@ concurrency:
   cancel-in-progress: false
 jobs:
   provider-backed-smoke:
+    # Fail closed: a schedule requires explicit release enablement, never merely a merge.
+    if: ${{ github.event_name != 'schedule' || (github.ref == 'refs/heads/main' && vars.AEOS_WORKER_FLEET_RELEASE_APPROVED == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -28,6 +30,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Require reviewed gate #98 before any scheduled execution
+        if: ${{ github.event_name == 'schedule' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          from automation.worker_dispatcher import default_fetch
+          gate = default_fetch('https://api.github.com/repos/aymanaseriai-cell/agent-economy-os-2047/issues/98')
+          if gate.get('state') != 'closed':
+              raise SystemExit('RELEASE_GATE_98_STILL_OPEN')
+          print('Gate #98 closed, and release-enable repository variable is true')
+          PY
       - name: Validate bounded worker capabilities
         run: |
           python3 -m unittest discover -s tests -p 'test_worker_dispatcher.py' -v
