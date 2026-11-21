@@ -113,6 +113,22 @@ class FactoryOperatorTests(unittest.TestCase):
             self.assertEqual([r["worker_id"] for r in result["receipts"]], ["AEOS-W03"])
             self.assertFalse(result["production_changes"])
 
+    def test_cli_invalid_json_fails_closed_with_stderr_and_no_output(self):
+        import io
+        from contextlib import redirect_stderr
+        from automation import factory_operator
+        with tempfile.TemporaryDirectory() as d:
+            orders = Path(d) / "invalid.json"
+            output = Path(d) / "result.json"
+            orders.write_text("{invalid-json", encoding="utf-8")
+            err = io.StringIO()
+            with redirect_stderr(err):
+                exit_code = factory_operator.main(
+                    ["--orders", str(orders), "--out", str(output)])
+            self.assertEqual(exit_code, 2)
+            self.assertIn("FACTORY_FAIL_CLOSED: JSONDecodeError", err.getvalue())
+            self.assertFalse(output.exists())
+
     def test_interrupted_in_progress_probe_requires_exact_allowlisted_job(self):
         p=plan_dispatch([item("AEOS-W03","IN_PROGRESS")])
         with self.assertRaisesRegex(PolicyError, "MISSING_EXACT_SELECTED_JOB"):
