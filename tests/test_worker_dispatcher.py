@@ -81,6 +81,35 @@ class WorkerDispatchTests(unittest.TestCase):
         with self.assertRaises(PolicyError):
             evaluate(task(max_attempts=99))
 
+    def test_real_work_covenant_health_shape_is_verified(self):
+        calls = []
+        response = {"ok": True, "service": "agent-work-covenant-2047",
+                    "stateless": True, "no_paid_actions": True}
+        def fetch(url):
+            calls.append(url)
+            return response
+        checked = dispatch(task("http_health_readonly", "COO_CFO", {}), Path("."), fetch)
+        self.assertEqual(checked["status"], "VERIFIED_READONLY")
+        self.assertEqual(checked["evidence"]["reported_health"], "healthy")
+        self.assertFalse(checked["evidence"]["production_release_authorized"])
+        self.assertEqual(len(calls), 2)
+
+    def test_unknown_or_contradictory_health_fails_closed(self):
+        health_task = task("http_health_readonly", "COO_CFO", {})
+        samples = (
+            {"unexpected": "JSON not evidence of service health"},
+            {"ok": True, "service": "agent-work-covenant-2047"},
+            {"ok": False, "status": "ok", "service": "agent-work-covenant-2047",
+             "stateless": True, "no_paid_actions": True},
+            {"status": "degraded", "service": "other"},
+        )
+        for document in samples:
+            with self.subTest(document=document):
+                result = dispatch(health_task, Path("."), lambda url: document)
+                self.assertEqual(result["status"], "BLOCKED")
+                self.assertEqual(result["attempts"], 2)
+                self.assertEqual(result["verification"], "HEALTH_NOT_CONFIRMED")
+
     def test_cli_writes_true_receipt_and_rejects_duplicates(self):
         with tempfile.TemporaryDirectory() as d:
             base = Path(d); (base / "f").write_text("hello")

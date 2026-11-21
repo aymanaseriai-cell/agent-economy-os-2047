@@ -6,6 +6,7 @@ on:
       - 'automation/worker_fleet.py'
       - 'automation/worker_fleet_live.py'
       - 'tests/test_worker_fleet*.py'
+      - 'tests/test_worker_dispatcher.py'
       - '.github/workflows/worker-fleet-readonly.yml'
   workflow_dispatch:
   schedule:

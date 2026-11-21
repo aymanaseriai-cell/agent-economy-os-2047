@@ -191,9 +191,19 @@ def _release_gate_snapshot(doc: dict) -> dict:
 def _health_snapshot(doc: dict) -> dict:
     if not isinstance(doc, dict):
         raise ValueError("INVALID_HEALTH_RESPONSE")
-    # Exact HTTP status is handled by urllib. Service-level health is not inferred
-    # when the payload provides no explicit healthy indicator.
+    # Work Covenant v4 /health has {ok, service, stateless, no_paid_actions}
+    # rather than a `status` field. Require the complete known shape
+    # before inferring healthy from `ok: true`; never infer a production SLA.
     status = doc.get("status")
+    if doc.get("service") == "agent-work-covenant-2047":
+        if doc.get("ok") is False or doc.get("stateless") is False or doc.get("no_paid_actions") is False:
+            status = "error"
+        elif (doc.get("ok") is True and doc.get("stateless") is True
+              and doc.get("no_paid_actions") is True):
+            if status is None or status in ("ok", "healthy"):
+                status = "healthy"
+        else:
+            status = "unknown"
     if status not in ("ok", "healthy", "degraded", "error"):
         status = "unknown"
     return {"reported_health": status, "response_fields": sorted(str(x) for x in doc)[:30],
@@ -230,7 +240,11 @@ def independently_verify(task: dict, result: dict, root: Path, fetch=default_fet
         return False, "CI_NOT_PASSING_ON_EXPECTED_SHA"
     if task["kind"] == "github_inbound_readonly":
         return True, "PROVIDER_RECHECK_PASSED_NOT_BUYER_VERIFICATION"
-    if task["kind"] in ("github_issues_readonly", "github_issue_readonly", "review_gate_readonly", "http_health_readonly"):
+    if task["kind"] == "http_health_readonly":
+        if result["reported_health"] not in ("ok", "healthy"):
+            return False, "HEALTH_NOT_CONFIRMED"
+        return True, "PROVIDER_RECHECK_PASSED_SELF_REPORTED_HEALTH_NOT_SLA_PROOF"
+    if task["kind"] in ("github_issues_readonly", "github_issue_readonly", "review_gate_readonly"):
         return True, "PROVIDER_RECHECK_PASSED_NOT_RELEASE_OR_BUYER_AUTHORIZATION"
     return True, "INDEPENDENT_RECHECK_PASSED"
 
