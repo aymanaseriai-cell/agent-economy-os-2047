@@ -4,7 +4,7 @@ from pathlib import Path
 import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "automation"))
-from issue_followup import build_reply, CONSENT, MARKER
+from issue_followup import build_reply, prepare_reply, CONSENT, MARKER
 
 NOW = datetime(2026, 11, 21, 9, 0, tzinfo=timezone.utc)
 
@@ -85,6 +85,41 @@ class FollowupTests(unittest.TestCase):
     def test_valid_documentation_question(self):
         self.assertIn("buyer-controlled GitHub CI",
                       build_reply(inbound("Does the CI integration have a demo?"), [], NOW))
+
+
+    def test_fresh_issue_consent_revoked_after_webhook(self):
+        event = inbound()
+        live = dict(event["issue"], body=event["issue"]["body"].replace("[X]", "[ ]"))
+        calls = []
+        def api(path):
+            calls.append(path)
+            if path.endswith("/issues/33"):
+                return live
+            if path.endswith("/issues/33/comments?per_page=100"):
+                return []
+            self.fail("unexpected API request " + path)
+        self.assertIsNone(prepare_reply(event, api, "aymanaseriai-cell/agent-economy-os-2047", NOW))
+        self.assertTrue(any(path.endswith("/issues/33") for path in calls))
+
+    def test_fresh_issue_closed_after_webhook(self):
+        event = inbound()
+        live = dict(event["issue"], state="closed")
+        def api(path):
+            return live if path.endswith("/issues/33") else []
+        self.assertIsNone(prepare_reply(event, api, "aymanaseriai-cell/agent-economy-os-2047", NOW))
+
+    def test_live_consent_and_current_issue_allows_bounded_reply(self):
+        event = inbound()
+        def api(path):
+            return event["issue"] if path.endswith("/issues/33") else []
+        self.assertIn("USD 49", prepare_reply(event, api, "aymanaseriai-cell/agent-economy-os-2047", NOW))
+
+    def test_live_issue_identity_mismatch_fails_closed(self):
+        event = inbound()
+        live = dict(event["issue"], number=99)
+        def api(path):
+            return live
+        self.assertIsNone(prepare_reply(event, api, "aymanaseriai-cell/agent-economy-os-2047", NOW))
 
 
 if __name__ == "__main__":

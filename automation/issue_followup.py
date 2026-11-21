@@ -74,7 +74,24 @@ def build_reply(event, comments, now=None):
         "Automated, consented follow-up to the original issue author:",
         response,
         "This is not a contract, sale, payment request or endorsement. No emails are sent. "
-        "You can withdraw consent by closing the issue."))
+        "You can withdraw consent by unchecking the issue-form consent box or closing the issue."))
+
+
+def prepare_reply(event, api, repo, now=None):
+    """Fetch current issue consent and state; webhook snapshots may be stale."""
+    original = event.get("issue") or {}
+    number = original.get("number")
+    if not isinstance(number, int):
+        return None
+    current = api(f"/repos/{repo}/issues/{number}")
+    if not isinstance(current, dict) or current.get("number") != number:
+        return None
+    prior_author = (original.get("user") or {}).get("login")
+    live_author = (current.get("user") or {}).get("login")
+    if not prior_author or prior_author != live_author:
+        return None
+    comments = api(f"/repos/{repo}/issues/{number}/comments?per_page=100")
+    return build_reply({**event, "issue": current}, comments, now)
 
 
 def main():
@@ -86,12 +103,13 @@ def main():
     if not isinstance(issue.get("number"), int):
         return 0
     token = os.environ["GITHUB_TOKEN"]
-    endpoint = f"/repos/{repo}/issues/{issue['number']}/comments"
-    comments = github_api(endpoint + "?per_page=100", token)
-    message = build_reply(event, comments)
+    def api(path):
+        return github_api(path, token)
+    message = prepare_reply(event, api, repo)
     if message is None:
-        print("No eligible opted-in reply; no public action")
+        print("No eligible currently consented reply; no public action")
         return 0
+    endpoint = f"/repos/{repo}/issues/{issue['number']}/comments"
     github_api(endpoint, token, "POST", {"body": message})
     print("Posted one bounded public opted-in reply")
     return 0
