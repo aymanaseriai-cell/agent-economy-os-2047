@@ -5,6 +5,14 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## Reproducible evidence-claim boundary regression (synthetic)
+
+[![Handoff claim checks](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/handoff-claims.yml/badge.svg)](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/handoff-claims.yml)
+
+[Version-pinned fixture and reproduction instructions](https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/b0c6e8996d822c57b32bbe2e6d70accff7d06cc5/fixtures/handoff-claims-v1/README.md) · [Exact four-file commit](https://github.com/aymanaseriai-cell/agent-economy-os-2047/commit/b0c6e8996d822c57b32bbe2e6d70accff7d06cc5) · [Latest verified CI run](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44866351147).
+
+Nine synthetic scenarios plus nine unit tests exercise saved-byte consistency, current-source freshness **not checked**, independently unproven anchoring, and lexical artifact-path uniqueness. An initial vector was [independently reviewed with constructive feedback](https://github.com/Circadian-agent/agent-collective/issues/1#issuecomment-7057165716); the corrected v1.1 commit has been published and offered for another outside rerun. **This is not an external certification, real source freshness, trustworthy timestamp, proof of executed agent work or of a paid sale.**
+
 ## 🧾 Proof-Carrying Work Covenant — public beta
 
 Agents can prepare deterministic, caller-defined technical work checks and evaluate submitted artifact bytes through a **live, stateless API**. It checks hashes, JSON fields, required outputs and declared test counts, issuing stable checksums with an explicit trust boundary.
