@@ -1,0 +1,28 @@
+{
+  "experiments": {
+    "h1": {
+      "externally_verified_adoptions": 0,
+      "verified_paid_customers": 0
+    },
+    "h2": {
+      "externally_verified_adoptions": 0,
+      "verified_paid_customers": 0
+    },
+    "h3": {
+      "externally_verified_adoptions": 0,
+      "verified_paid_customers": 0
+    }
+  },
+  "jobs": {
+    "https://github.com/Maximilien-ai/clawmax/issues/416": {
+      "action": "verify_external_issue_before_any_contact",
+      "effect": null,
+      "evidence_url": null,
+      "hypothesis": "h1",
+      "priority": 36,
+      "queued_at": "2026-11-21T06:17:53.495491+00:00",
+      "status": "queued"
+    }
+  },
+  "schema": "agent-economy-ceo-board-state/1"
+}
