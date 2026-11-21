@@ -349,11 +349,25 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/hanzoai/agents/issues/84": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/hanzoai/agents/issues/85": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/hanzoai/agents/issues/86": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/cloud/issues/39": {
