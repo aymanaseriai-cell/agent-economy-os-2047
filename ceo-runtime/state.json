@@ -314,6 +314,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/jdueadev/verified-agent-containment/issues/44": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/jleonelion/chef/issues/198": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
