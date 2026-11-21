@@ -16,3 +16,14 @@
 5. There is no browser-side or unattended buyer wallet automation in this catalog.
 
 This is an informative `llms.txt` page, not a live MCP server or an A2A Agent Card.
+
+
+## Read-only release check (maintainers)
+
+From the repository root:
+
+```bash
+python3 -m automation.agent_buyer_smoke
+```
+
+This script makes at most five `GET` requests to exact, allowlisted **free demo, sample, and A2A card URLs** and returns structured JSON with one status per endpoint. It rejects changed URLs, oversized bodies, redirects, malformed JSON, and unexpected shapes. **It never calls a paid resource, sends a payment signature, holds wallet keys, or proves customer demand.** A successful result means only that the sampled endpoints were reachable at the test time. CI covers the preflight logic with offline fixtures; it does not substitute for a live network check. A failing or unavailable live check must remain `UNVERIFIED`, not be reported as a sale.
