@@ -33,3 +33,11 @@ body:
       description: What should a successful result look like?
     validations:
       required: true
+  - type: checkboxes
+    id: automated-followup-consent
+    attributes:
+      label: Public automated follow-up consent
+      description: Only bounded public replies to your own subsequent issue comments; no email, purchase or private-data access.
+      options:
+        - label: I request automated replies to my follow-up comments on this public GitHub issue.
+          required: true
