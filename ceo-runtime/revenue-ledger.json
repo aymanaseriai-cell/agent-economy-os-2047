@@ -8,7 +8,24 @@
     "no_payments_or_binding_contracts_without_owner_and_legal_approval": true
   },
   "opportunities": [],
-  "experiments": [],
+  "experiments": [
+    {
+      "id": "h3-probity-open-evidence-lab-synthetic-claims-20261121",
+      "hypothesis": "A reproducible, bounded synthetic integrity-versus-provenance case can qualify for an invited public technical partner review; no buyer demand or revenue implied.",
+      "channel": "GitHub open evidence lab explicit opt-in public review",
+      "start_date": "2026-11-21",
+      "external_evidence_urls": [
+        "https://github.com/probityai/agent-evidence-vectors/issues/352#issuecomment-7057488896",
+        "https://github.com/probityai/agent-evidence-vectors/issues/352#issuecomment-7058216068"
+      ],
+      "actions_completed": [
+        "External maintainer confirmed the separate claim-boundary candidate is in scope for review, without acceptance or authorization to run it.",
+        "Owner published immutable 10-case fixture and exact standard-library reproduction instructions; submitted link once for optional review."
+      ],
+      "outcome": "in_scope_for_review; pinned_candidate_submitted; no_accepted_integration; no_verified_buyer; no_authorized_paid_engagement; awaiting independent reviewer choice. Do not follow up without interest.",
+      "stop_or_pivot_date": "2026-11-28"
+    }
+  ],
   "verified_revenue_usd": null,
   "revenue_evidence_urls": []
 }
