@@ -36,7 +36,7 @@ jobs:
         run: python -m trading.titan_survival_council --report reports/okx_six_agents.json --out reports/titan_survival_eight.json --summary "$GITHUB_STEP_SUMMARY"
       - name: 10x-100x multiple-position full-margin STRESS ONLY
         run: python -m trading.titan_portfolio_2037 --report reports/okx_six_agents.json --out reports/titan_portfolio_2037.json --margin-share 1.0 --max-positions 5 --summary "$GITHUB_STEP_SUMMARY"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: titan-2037-public-no-orders

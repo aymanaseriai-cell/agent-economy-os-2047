@@ -20,7 +20,7 @@ jobs:
         run: python -m trading.six_agent_council --top 20 --all-eligible --out reports/okx_six_agents.json
       - name: Simulate three concurrent positions at 20x using 100 percent of hypothetical equity
         run: python -m trading.okx_multi_position_research --slots 3 --report reports/okx_six_agents.json --out reports/okx_multi_position_research.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: multi-position-research-only

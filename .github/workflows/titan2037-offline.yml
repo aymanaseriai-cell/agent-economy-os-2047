@@ -28,7 +28,7 @@ jobs:
           python -m trading.titan2037_suite \
             --evidence reports/titan2037_input.json \
             --out reports/titan2037_capability_report.json
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: titan2037-offline-capabilities

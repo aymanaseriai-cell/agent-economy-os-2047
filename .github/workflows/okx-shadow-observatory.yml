@@ -31,7 +31,7 @@ jobs:
         run: python -m trading.shadow_observatory audit --archive-dir reports/shadow_archive --out reports/quant2037_shadow_outcomes.json
       - name: Upload prequential decision evidence and outcomes
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quant2037-shadow-outcomes
           path: reports/quant2037_shadow_outcomes.json

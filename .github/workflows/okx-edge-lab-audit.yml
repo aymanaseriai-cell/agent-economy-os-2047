@@ -33,7 +33,7 @@ jobs:
           print('AUDIT PASS: frozen OHLC data and every holdout result reproduced')
           PY
       - name: Publish read-only replay artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: okx-public-edge-lab-replay
           path: reports/replay.json

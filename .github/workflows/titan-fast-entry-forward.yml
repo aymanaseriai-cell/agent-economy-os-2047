@@ -30,7 +30,7 @@ jobs:
       - name: Quantify future completed candles after original research publication
         run: python -m trading.titan_fast_entry_forward --archive-dir reports/shadow_archive --out reports/titan_fast_entry_forward.json
       - name: Archive cost-stressed prospective outcome report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: titan-fast-entry-forward-no-orders

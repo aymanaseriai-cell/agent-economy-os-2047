@@ -19,7 +19,7 @@ jobs:
         run: python3 trading/okx_signal_lab.py --out reports/okx_15m_signals.json --top 8
       - name: Upload scan report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: okx-public-signal-report
           path: reports/okx_15m_signals.json

@@ -42,7 +42,7 @@ jobs:
           print('PASS: seven actual source projects executed, market evidence fixed, zero trading authority')
           PY
       - name: Archive research-only evidence
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: nexus7-seven-upstreams-no-trading
           path: reports/nexus7_actions_replay.json

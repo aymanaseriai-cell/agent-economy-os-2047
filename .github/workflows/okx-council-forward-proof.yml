@@ -33,7 +33,7 @@ jobs:
           print('AUDIT PASS: original council candidates all reproduced, six negative 1h results')
           PY
       - name: Archive research-only replay
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: original-council-signal-proof-no-trades
           path: reports/replay_actual_council.json
