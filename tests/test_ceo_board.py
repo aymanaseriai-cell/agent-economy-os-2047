@@ -107,6 +107,38 @@ class CEOBoardTests(unittest.TestCase):
         self.assertEqual(r["decision"]["url"],other)
         self.assertEqual(len(b["jobs"]),2)
 
+    def test_fresh_external_inbound_preempts_stale_research_queue(self):
+        # Existing unverified research must not block genuine unsolicited inbound
+        # (which still does not permit contact without separate consent checks).
+        state, _ = execute_board(decision(research()), blank(), [], NOW)
+        next_state, report = execute_board(
+            decision(research()), state, [inbound()], NOW + dt.timedelta(minutes=5)
+        )
+        self.assertTrue(report["queued_this_run"])
+        self.assertEqual(report["decision"]["url"], SELF_URL)
+        self.assertEqual(report["responsible_role"], "CRO")
+        self.assertFalse(report["outbound_communication_authorized"])
+        self.assertFalse(report["executed_external_action"])
+        self.assertEqual(next_state["jobs"][URL]["status"], "queued")
+        self.assertEqual(next_state["jobs"][SELF_URL]["status"], "queued")
+
+    def test_queued_external_inbound_keeps_fifo_before_new_inbound(self):
+        state, _ = execute_board(decision(), blank(), [inbound()], NOW)
+        second = "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/123"
+        next_state, report = execute_board(
+            decision(), state, [inbound(url=second)], NOW + dt.timedelta(minutes=5)
+        )
+        self.assertFalse(report["queued_this_run"])
+        self.assertEqual(report["decision"]["url"], SELF_URL)
+        self.assertEqual(report["responsible_role"], "CRO")
+        self.assertNotIn(second, next_state["jobs"])
+
+    def test_research_is_ceo_owned_and_not_external_execution(self):
+        state, report = execute_board(decision(research()), blank(), [], NOW)
+        self.assertEqual(report["responsible_role"], "CEO")
+        self.assertEqual(state["jobs"][URL]["owner_role"], "CEO")
+        self.assertFalse(report["executed_external_action"])
+
     def test_no_conflicting_experiment_payout(self):
         a,r=execute_board(decision(research()),blank(),[],NOW)
         self.assertFalse(r["outbound_communication_authorized"])

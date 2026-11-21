@@ -133,14 +133,14 @@ def inbound_candidates(issues):
         if title.startswith("[Service request]"):
             # Requesters may decline a public repo; do not require a repo link.
             out.append({"url": url, "hypothesis": "h2", "priority": 100,
-                        "action": "review_inbound_service_request",
+                        "action": "review_inbound_service_request", "owner_role": "CRO",
                         "reason": "Third-party opened an explicit service request form. Verify intent and existing bot reply.",
                         "verified_buyer": False, "contact_allowed": False,
                         "requires": ["Review full issue and public scope", "Check automated issue-router reply",
                                      "Confirm buying authority and permitted channel before any offer"]})
         elif title.startswith("[Evidence challenge]"):
             out.append({"url": url, "hypothesis": "h1", "priority": 60,
-                        "action": "review_external_opt_in_test",
+                        "action": "review_external_opt_in_test", "owner_role": "CRO",
                         "reason": "Third-party opted into a public synthetic evidence test. Not a purchasing signal.",
                         "verified_buyer": False, "contact_allowed": False,
                         "requires": ["Verify the opt-in and existing challenge response",
@@ -162,7 +162,7 @@ def research_candidates(decision):
         if type(score) is not int or not -100 <= score <= 100:
             continue
         out.append({"url": url, "hypothesis": "h1", "priority": 25 + min(20, max(0, score // 2)),
-                    "action": "verify_external_issue_before_any_contact",
+                    "action": "verify_external_issue_before_any_contact", "owner_role": "CEO",
                     "reason": "Unverified public issue heuristic; inspect original need and venue rules.",
                     "verified_buyer": False, "contact_allowed": False,
                     "requires": ["Read full issue and maintainer context",
@@ -189,25 +189,44 @@ def execute_board(decision, prior, incoming, now, inbound_health="ok"):
         ((url, data) for url, data in jobs.items() if data["status"] == "queued"),
         key=lambda x: (x[1].get("queued_at", ""), x[0]),
     )
+    # A queued low-confidence research review must not starve a NEW explicit
+    # inbound service request. Preserve the older queue; do not mark it done.
+    # Equally urgent queued customer requests keep FIFO precedence.
+    pending_service = next(
+        (c for c in ranked
+         if c["url"] not in jobs and c["action"] == "review_inbound_service_request"),
+        None,
+    )
     queued_now = False
-    if open_jobs:
+    if open_jobs and (
+        pending_service is None
+        or open_jobs[0][1].get("priority", 0) >= pending_service["priority"]
+    ):
         selected_url, record = open_jobs[0]
         next_step = record.get("action", "verify_external_issue_before_any_contact")
-        selected = {"url": selected_url, "action": next_step, "hypothesis": record["hypothesis"],
-                    "priority": record.get("priority", 0), "reason": "Previously queued; not yet executed.",
-                    "requires": ["Inspect source and resolve with a real evidence link before selecting a new job"],
-                    "verified_buyer": False, "contact_allowed": False}
+        selected = {
+            "url": selected_url, "action": next_step,
+            "hypothesis": record["hypothesis"],
+            "priority": record.get("priority", 0),
+            "owner_role": record.get("owner_role", "CEO"),
+            "reason": "Previously queued; not yet executed.",
+            "requires": ["Inspect source and resolve with a real evidence link before selecting a new job"],
+            "verified_buyer": False, "contact_allowed": False,
+        }
     else:
         not_done = [c for c in ranked if c["url"] not in jobs]
-        selected = not_done[0] if not_done else None
+        selected = pending_service if pending_service is not None else (
+            not_done[0] if not_done else None
+        )
         if selected:
             if len(jobs) >= MAX_JOBS:
-                # Do not silently overwrite verified decisions or unreviewed jobs.
+                # Never drop or silently overwrite previous work.
                 raise BoardError("JOB_CAPACITY_REACHED")
             jobs[selected["url"]] = {
                 "hypothesis": selected["hypothesis"],
                 "action": selected["action"],
                 "priority": selected["priority"],
+                "owner_role": selected["owner_role"],
                 "status": "queued",
                 "queued_at": now.isoformat(),
                 "evidence_url": None,
@@ -227,6 +246,7 @@ def execute_board(decision, prior, incoming, now, inbound_health="ok"):
             "finance_lead": "No financial facts validated by this workflow",
         },
         "decision": selected,
+        "responsible_role": selected["owner_role"] if selected else None,
         "queued_this_run": queued_now,
         "unresolved_jobs": sum(x["status"] == "queued" for x in jobs.values()),
         "verified_revenue_usd": None,
