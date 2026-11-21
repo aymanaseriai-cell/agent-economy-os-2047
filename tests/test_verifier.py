@@ -101,5 +101,42 @@ class EvidenceTests(unittest.TestCase):
             self.assertEqual(report['checked'], 2)
 
 
+    def test_duplicate_top_level_artifacts_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous.json'
+            m.write_text('{"artifacts":[{"path":"missing.txt","sha256":"%s"}],'
+                         '"artifacts":[{"path":"result.txt","sha256":"%s"}]}' % (sha, sha))
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+    def test_duplicate_nested_path_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous-path.json'
+            m.write_text('{"artifacts":[{"path":"../outside","path":"result.txt",'
+                         '"sha256":"%s"}]}' % sha)
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+    def test_duplicate_nested_sha256_key_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / 'result.txt').write_text('hello')
+            sha = hashlib.sha256(b'hello').hexdigest()
+            m = root / 'ambiguous-hash.json'
+            m.write_text('{"artifacts":[{"path":"result.txt","sha256":"%s",'
+                         '"sha256":"%s"}]}' % ('0' * 64, sha))
+            report = validate(m, root)
+            self.assertFalse(report['passed'])
+            self.assertIn('duplicate JSON key', report['errors'][0])
+
+
 if __name__ == '__main__':
     unittest.main()
