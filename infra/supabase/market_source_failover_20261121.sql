@@ -122,7 +122,7 @@ BEGIN
       (event_key,owner_role,event_type,result_status,note,evidence_ref)
     VALUES
       ('AEOS2047:MARKET_FAILOVER:'||to_char(v_slot AT TIME ZONE 'UTC','YYYYMMDDHH24'),
-       'COO_CFO','AUTONOMOUS_READONLY_MARKET_SOURCE_SELECTION',
+       'COO_CFO','SYSTEM_INTERNAL_READONLY_MARKET_SOURCE_SELECTION',
        v_state,
        'Based solely on the last 2 separately timed validated real HTTP 200 provider results per source. '||
        'Internal discovery source selection only; no vendor DNS repair, new external request, funded deal, buyer, wallet or revenue.',

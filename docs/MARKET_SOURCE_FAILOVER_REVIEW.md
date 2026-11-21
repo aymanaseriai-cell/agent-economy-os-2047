@@ -23,3 +23,7 @@ The existing private 4-manager roster and 12 worker identities are unchanged. CE
 ## Strict limits
 
 The technical operation proves provider observation and internal source selection, not 100% company autonomy, a working independent language-model agent, vendor repair, qualified inbound consent, paid deal, independently secured contract, or lawful settlement. No cash, client outreach, trading or production deployment is performed.
+
+## Provenance correction
+
+The first source failover check at 20:24 UTC on 2026-11-21 was **USER_REQUEST/manual**, not an unattended scheduled achievement. The private audit row was corrected to `USER_REQUEST_READONLY_MARKET_SOURCE_CHECK`, and future transition rows are labeled `SYSTEM_INTERNAL_READONLY_MARKET_SOURCE_SELECTION` until their actual scheduler provenance is independently verified. The new hourly job 27 was enabled but had not yet executed unattended at the time of this review.
