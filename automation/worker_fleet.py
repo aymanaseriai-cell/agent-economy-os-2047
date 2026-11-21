@@ -78,6 +78,10 @@ def make_task(assignment: dict) -> tuple[Worker, dict]:
     payload = assignment.get("payload", worker.default_payload)
     if not isinstance(payload, dict):
         raise PolicyError("MISSING_REQUIRED_WORKER_EVIDENCE")
+    # A worker with a fixed public artifact or release gate must not be
+    # reassigned to arbitrary repository files or an unrelated issue.
+    if worker.default_payload is not None and payload != worker.default_payload:
+        raise PolicyError("STATIC_WORKER_SCOPE_OVERRIDE")
     priority = assignment.get("priority", 3)
     if type(priority) is not int or not 1 <= priority <= 5:
         raise PolicyError("INVALID_PRIORITY")

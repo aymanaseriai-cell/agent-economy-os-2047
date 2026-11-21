@@ -116,6 +116,23 @@ class WorkerFleetTests(unittest.TestCase):
             with self.subTest(job=job), self.assertRaises(PolicyError):
                 make_task(job)
 
+    def test_static_workers_cannot_read_other_paths_or_release_gates(self):
+        # Worker identity must bind the exact safe asset/endpoint, not allow
+        # task input to retarget a local digest at unrelated repository files.
+        forbidden = (
+            ("AEOS-W03", {"path": "trading/okx_live_executor.py"}),
+            ("AEOS-W09", {"path": "README.md"}),
+            ("AEOS-W10", {"path": "verifier.py"}),
+            ("AEOS-W06", {"issue_number": 112}),
+            ("AEOS-W11", {"issue_number": 98}),
+            ("AEOS-W01", {"issue_number": 112}),
+        )
+        for wid, payload in forbidden:
+            with self.subTest(worker=wid), self.assertRaisesRegex(
+                PolicyError, "STATIC_WORKER_SCOPE_OVERRIDE"
+            ):
+                make_task({"worker_id": wid, "payload": payload})
+
     def test_missing_evidence_fails_closed(self):
         for worker in ("AEOS-W04", "AEOS-W05", "AEOS-W08", "AEOS-W12"):
             with self.subTest(worker=worker), self.assertRaises(PolicyError):
