@@ -102,6 +102,13 @@ class WorkerDispatchTests(unittest.TestCase):
             {"ok": False, "status": "ok", "service": "agent-work-covenant-2047",
              "stateless": True, "no_paid_actions": True},
             {"status": "degraded", "service": "other"},
+            {"status": "healthy"},
+            {"status": "ok", "service": "another-service", "ok": True,
+             "stateless": True, "no_paid_actions": True},
+            {"status": "healthy", "service": "agent-work-covenant-2047",
+             "ok": True, "no_paid_actions": True},
+            {"ok": True, "service": "agent-work-covenant-2047",
+             "stateless": "true", "no_paid_actions": True},
         )
         for document in samples:
             with self.subTest(document=document):

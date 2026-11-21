@@ -191,20 +191,20 @@ def _release_gate_snapshot(doc: dict) -> dict:
 def _health_snapshot(doc: dict) -> dict:
     if not isinstance(doc, dict):
         raise ValueError("INVALID_HEALTH_RESPONSE")
-    # Work Covenant v4 /health has {ok, service, stateless, no_paid_actions}
-    # rather than a `status` field. Require the complete known shape
-    # before inferring healthy from `ok: true`; never infer a production SLA.
-    status = doc.get("status")
-    if doc.get("service") == "agent-work-covenant-2047":
-        if doc.get("ok") is False or doc.get("stateless") is False or doc.get("no_paid_actions") is False:
-            status = "error"
-        elif (doc.get("ok") is True and doc.get("stateless") is True
-              and doc.get("no_paid_actions") is True):
-            if status is None or status in ("ok", "healthy"):
-                status = "healthy"
-        else:
-            status = "unknown"
-    if status not in ("ok", "healthy", "degraded", "error"):
+    # Fail closed: generic status strings are not evidence of this service's health.
+    # Require the exact Work Covenant identity and complete v4 boolean contract.
+    identity_matches = doc.get("service") == "agent-work-covenant-2047"
+    full_positive_shape = (doc.get("ok") is True and doc.get("stateless") is True
+                           and doc.get("no_paid_actions") is True)
+    declared_status = doc.get("status")
+    if identity_matches and full_positive_shape and declared_status in (None, "ok", "healthy"):
+        status = "healthy"
+    elif identity_matches and (doc.get("ok") is False or doc.get("stateless") is False
+                               or doc.get("no_paid_actions") is False or declared_status == "error"):
+        status = "error"
+    elif identity_matches and declared_status == "degraded":
+        status = "degraded"
+    else:
         status = "unknown"
     return {"reported_health": status, "response_fields": sorted(str(x) for x in doc)[:30],
             "production_release_authorized": False}

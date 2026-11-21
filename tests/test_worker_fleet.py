@@ -11,7 +11,8 @@ SHA = "b56e5946b63d22eda34599ae119fc24fca3f9a1f"
 
 def fake_fetch(url):
     if url.endswith("/health"):
-        return {"status": "ok", "service": "Work Covenant"}
+        return {"ok": True, "service": "agent-work-covenant-2047",
+                "stateless": True, "no_paid_actions": True}
     if "/actions/runs/" in url:
         return {"status": "completed", "conclusion": "success", "head_sha": SHA}
     if url.endswith("/issues/98"):
