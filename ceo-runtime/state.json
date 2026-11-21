@@ -1,5 +1,7 @@
 {
-  "reviews": {},
+  "reviews": {
+    "https://github.com/celo-org/buy-skill/issues/76": "suppressed"
+  },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
     "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
