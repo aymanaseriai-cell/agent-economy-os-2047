@@ -27,6 +27,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/Blummer92/agent-os/issues/4079": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Bokky73/cryptara/issues/14": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -272,6 +279,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/google-agentic-commerce/a2a-x402/issues/198": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/hanzoai/agents/issues/82": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -412,11 +426,46 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/rammicz/agentswitch/issues/11": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/rammicz/agentswitch/issues/12": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/rammicz/agentswitch/issues/5": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/rammicz/agentswitch/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/sanjeevicivil66-chatGPT/Usha.Construction/issues/9": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/tanyapruck/orasqill/issues/23": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-21",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/tire0011/A2A-hub/issues/9": {
