@@ -1,0 +1,28 @@
+name: Synthetic handoff claim regression
+on:
+  push:
+    paths:
+      - 'fixtures/handoff-claims-v1/**'
+      - '.github/workflows/handoff-claims.yml'
+  pull_request:
+    paths:
+      - 'fixtures/handoff-claims-v1/**'
+      - '.github/workflows/handoff-claims.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  handoff-verdicts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check synthetic four-verdict fixture
+        run: python3 fixtures/handoff-claims-v1/verify_handoff_claims_v1_1.py
+      - name: Run nine unit tests
+        run: python3 -m unittest discover -s fixtures/handoff-claims-v1 -p 'test_handoff_claims_v1_1.py' -v
