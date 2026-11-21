@@ -138,5 +138,23 @@ class EvidenceTests(unittest.TestCase):
             self.assertIn('duplicate JSON key', report['errors'][0])
 
 
+    def test_nonstandard_json_constants_fail_closed(self):
+        # Python's default json.loads accepts these invalid JSON tokens.
+        for constant in ('NaN', 'Infinity', '-Infinity'):
+            with self.subTest(constant=constant):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'nonstandard.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, constant)
+                    )
+                    report = validate(m, root)
+                    self.assertFalse(report['passed'])
+                    self.assertEqual(report['checked'], 0)
+                    self.assertIn('non-standard JSON constant', report['errors'][0])
+
 if __name__ == '__main__':
     unittest.main()

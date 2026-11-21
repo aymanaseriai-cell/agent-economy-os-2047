@@ -25,12 +25,17 @@ def reject_duplicate_keys(pairs):
     return result
 
 
+def reject_non_json_constant(value):
+    """Refuse NaN and Infinity tokens, which are invalid JSON."""
+    raise ValueError(f"non-standard JSON constant: {value}")
+
+
 def validate(manifest_path: Path, root: Path) -> dict:
     root = root.resolve()
     errors = []
     results = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicate_keys)
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=reject_duplicate_keys, parse_constant=reject_non_json_constant)
     except (OSError, UnicodeError, ValueError) as exc:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": [f"Could not read manifest: {exc}"]}
 
