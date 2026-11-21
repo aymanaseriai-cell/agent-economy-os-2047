@@ -66,12 +66,18 @@ def plan_dispatch(orders: list) -> dict:
             selections.append({"executive": role, "disposition": "NO_ASSIGNED_WORK",
                                "worker_id": None, "work_key": None})
             continue
-        candidates = [o for o in entries if o[2] in ("QUEUED", "IN_PROGRESS")]
+        in_progress = [o for o in entries if o[2] == "IN_PROGRESS"]
+        queued = [o for o in entries if o[2] == "QUEUED"]
         approvals = [o for o in entries if o[2] == "NEEDS_APPROVAL"]
         blocked = [o for o in entries if o[2] == "BLOCKED"]
-        if candidates:
-            priority, worker_id, status, key = min(candidates, key=lambda x: (x[0], x[1]))
-            disposition = "REVIEW_ONLY_ACTION_ELIGIBLE" if status == "QUEUED" else "VERIFY_IN_PROGRESS_FIRST"
+        # Reconcile existing work before dispatching a new task for this
+        # executive, even when the queued item has higher numeric priority.
+        if in_progress:
+            priority, worker_id, status, key = min(in_progress, key=lambda x: (x[0], x[1]))
+            disposition = "VERIFY_IN_PROGRESS_FIRST"
+        elif queued:
+            priority, worker_id, status, key = min(queued, key=lambda x: (x[0], x[1]))
+            disposition = "REVIEW_ONLY_ACTION_ELIGIBLE"
         elif approvals:
             priority, worker_id, status, key = min(approvals, key=lambda x: (x[0], x[1]))
             disposition = "ESCALATE_INDEPENDENT_APPROVAL"
@@ -99,16 +105,30 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
     choices = plan.get("selected")
     if not isinstance(choices, list) or len(choices) != 4:
         raise PolicyError("FORGED_EXECUTIVE_PLAN")
+    allowed_dispositions = {
+        "REVIEW_ONLY_ACTION_ELIGIBLE": "QUEUED",
+        "VERIFY_IN_PROGRESS_FIRST": "IN_PROGRESS",
+        "ESCALATE_INDEPENDENT_APPROVAL": "NEEDS_APPROVAL",
+        "WAIT_EXTERNAL_EVIDENCE": "BLOCKED",
+    }
     for expected_role, choice in zip(ROLES, choices):
         if not isinstance(choice, dict) or choice.get("executive") != expected_role:
             raise PolicyError("FORGED_EXECUTIVE_PLAN")
         candidate = choice.get("worker_id")
-        if candidate is not None and (candidate not in REGISTRY
-                                      or REGISTRY[candidate].owner_role != expected_role):
+        disposition = choice.get("disposition")
+        if candidate is None:
+            if disposition not in ("NO_ASSIGNED_WORK", "NO_NEW_EVIDENCE") or choice.get("work_key") is not None:
+                raise PolicyError("FORGED_EMPTY_EXECUTIVE_DECISION")
+            continue
+        if candidate not in REGISTRY or REGISTRY[candidate].owner_role != expected_role:
             raise PolicyError("FORGED_ROLE_ROUTE")
-        if choice.get("disposition") == "REVIEW_ONLY_ACTION_ELIGIBLE":
-            if candidate is None or choice.get("action_code") != ALLOWED_ACTION[candidate]:
-                raise PolicyError("FORGED_ACTION_SELECTION")
+        if choice.get("work_key") != PREFIX + candidate or choice.get("action_code") != ALLOWED_ACTION[candidate]:
+            raise PolicyError("FORGED_ACTION_SELECTION")
+        if choice.get("source_status") != allowed_dispositions.get(disposition):
+            raise PolicyError("PLAN_STATUS_DISPOSITION_MISMATCH")
+        priority = choice.get("priority")
+        if type(priority) is not int or not 1 <= priority <= 5:
+            raise PolicyError("FORGED_PRIORITY")
     selected = [o["worker_id"] for o in choices
                 if o["disposition"] == "REVIEW_ONLY_ACTION_ELIGIBLE"]
     if not selected:

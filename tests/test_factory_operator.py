@@ -97,5 +97,25 @@ class FactoryOperatorTests(unittest.TestCase):
         with self.assertRaises(PolicyError):
             execute_reviewonly(p,[{"worker_id":"AEOS-W04","payload":{}}],Path("."))
 
+    def test_active_work_preempts_new_queued_worker_with_higher_priority(self):
+        p=plan_dispatch([item("AEOS-W03","IN_PROGRESS",priority=5),
+                         item("AEOS-W04","QUEUED",priority=1)])
+        selected=p["selected"][1]
+        self.assertEqual(selected["worker_id"],"AEOS-W03")
+        self.assertEqual(selected["disposition"],"VERIFY_IN_PROGRESS_FIRST")
+        self.assertEqual(execute_reviewonly(p,[],Path("."))["dispatched_count"],0)
+
+    def test_forged_approval_cannot_be_promoted_to_execution(self):
+        p=plan_dispatch([item("AEOS-W06","NEEDS_APPROVAL",priority=1)])
+        p["selected"][1]["disposition"]="REVIEW_ONLY_ACTION_ELIGIBLE"
+        with self.assertRaisesRegex(PolicyError,"PLAN_STATUS_DISPOSITION_MISMATCH"):
+            execute_reviewonly(p,[{"worker_id":"AEOS-W06","payload":{"issue_number":98}}],Path("."))
+
+    def test_forged_work_key_cannot_route_other_reviewonly_worker(self):
+        p=plan_dispatch([item("AEOS-W03")])
+        p["selected"][1]["work_key"]=PREFIX+"AEOS-W04"
+        with self.assertRaisesRegex(PolicyError,"FORGED_ACTION_SELECTION"):
+            execute_reviewonly(p,[{"worker_id":"AEOS-W03","payload":{"path":"verifier.py"}}],Path("."))
+
 if __name__=="__main__":
     unittest.main()
