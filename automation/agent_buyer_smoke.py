@@ -88,12 +88,43 @@ def inspect_target(service, key, expected_url, opener):
             item["reason"] = "unexpected_json_shape"
             return item
         if key == "offer_card":
-            if not isinstance(value.get("skills"), list) or not isinstance(value.get("supportedInterfaces"), list):
+            interfaces = value.get("supportedInterfaces")
+            skills = value.get("skills")
+            expected_interface = HOST + "/agent-assessment-750-a2a"
+            if (value.get("name") != "Agent Economy — Assessment 750 Offer Agent"
+                    or not isinstance(interfaces, list)
+                    or not any(isinstance(x, dict)
+                               and x.get("url") == expected_interface
+                               and x.get("protocolBinding") == "JSONRPC"
+                               and x.get("protocolVersion") == "1.0"
+                               for x in interfaces)
+                    or not isinstance(skills, list)
+                    or not any(isinstance(x, dict)
+                               and x.get("id") == "discover-automated-assessment-750"
+                               for x in skills)):
                 item["reason"] = "invalid_agent_card"
                 return item
         elif service.get("id") == "work_covenant_free":
-            if not {"contract", "contract_id", "sample_submission"}.issubset(value):
+            if not (isinstance(value.get("contract"), dict)
+                    and isinstance(value.get("contract_id"), str)
+                    and bool(value["contract_id"])
+                    and isinstance(value.get("sample_submission"), dict)):
                 item["reason"] = "invalid_work_covenant_demo"
+                return item
+        elif key == "demo":
+            if (value.get("demonstration") is not True
+                    or value.get("paid") is not False
+                    or not isinstance(value.get("result"), dict)):
+                item["reason"] = "invalid_receipt_demo"
+                return item
+        elif key == "sample_report":
+            if (value.get("demo") is not True
+                    or value.get("paid") is not False
+                    or not isinstance(value.get("report"), dict)
+                    or value["report"].get("financial_status")
+                       != "synthetic_demonstration_not_verified_customer_savings"
+                    or not isinstance(value.get("report_markdown"), str)):
+                item["reason"] = "invalid_synthetic_assessment_demo"
                 return item
         item["status"] = "REACHABLE_DEMO_ONLY"
         item["http_status"] = 200

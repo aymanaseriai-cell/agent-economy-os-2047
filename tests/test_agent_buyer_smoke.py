@@ -44,9 +44,19 @@ class DiscoverySmokeTests(unittest.TestCase):
                 self.assertTrue(url.startswith("https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/"))
                 self.assertNotIn("/report", url)
                 self.assertNotIn("/receipt", url.rsplit("/api/v1/", 1)[-1] if "/api/v1/" in url else "")
-                fixture = ({"skills": [], "supportedInterfaces": []} if key == "offer_card"
-                           else {"contract": {}, "contract_id": "abc", "sample_submission": {}} if service_id == "work_covenant_free"
-                           else {"ok": True})
+                fixture = (
+                    {"name": "Agent Economy — Assessment 750 Offer Agent",
+                     "skills": [{"id": "discover-automated-assessment-750"}],
+                     "supportedInterfaces": [{"url": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a",
+                                               "protocolBinding": "JSONRPC", "protocolVersion": "1.0"}]}
+                    if key == "offer_card"
+                    else {"contract": {}, "contract_id": "abc", "sample_submission": {}}
+                    if service_id == "work_covenant_free"
+                    else {"demo": True, "paid": False,
+                          "report": {"financial_status": "synthetic_demonstration_not_verified_customer_savings"},
+                          "report_markdown": "# synthetic"} if key == "sample_report"
+                    else {"demonstration": True, "paid": False, "result": {"found": True}}
+                )
                 opener = FakeOpener(FakeResponse(fixture))
                 result = inspect_target({"id": service_id, key: url}, key, url, opener)
                 self.assertEqual(result["status"], "REACHABLE_DEMO_ONLY")
@@ -55,6 +65,28 @@ class DiscoverySmokeTests(unittest.TestCase):
                 self.assertEqual(method, "GET")
                 self.assertEqual(timeout, 8)
                 self.assertFalse(any("payment" in h.lower() or "authorization" in h.lower() for h in headers))
+
+    def test_wrong_service_json_never_qualifies_as_reachable(self):
+        cases = [
+            ("base_usdc_receipt_lite", "demo", {"ok": True}, "invalid_receipt_demo"),
+            ("base_usdc_receipt", "demo", {"demonstration": True, "paid": True,
+                                            "result": {}}, "invalid_receipt_demo"),
+            ("automated_assessment_750", "sample_report",
+                {"demo": True, "paid": True,
+                 "report": {"financial_status": "synthetic_demonstration_not_verified_customer_savings"},
+                 "report_markdown": "fake"}, "invalid_synthetic_assessment_demo"),
+            ("automated_assessment_750", "offer_card",
+                {"name": "Other agent", "skills": [], "supportedInterfaces": []}, "invalid_agent_card"),
+            ("work_covenant_free", "demo",
+                {"contract": {}, "contract_id": "", "sample_submission": {}}, "invalid_work_covenant_demo"),
+        ]
+        for service_id, key, payload, reason in cases:
+            with self.subTest(service=service_id, reason=reason):
+                url = next(u for x, k, u in CHECKS if x == service_id and k == key)
+                checked = inspect_target({"id": service_id, key: url}, key, url,
+                                         FakeOpener(FakeResponse(payload)))
+                self.assertEqual(checked["status"], "UNVERIFIED")
+                self.assertEqual(checked["reason"], reason)
 
     def test_host_substitution_is_blocked_before_network(self):
         key, url = CHECKS[0][1], CHECKS[0][2]
