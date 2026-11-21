@@ -26,12 +26,13 @@
     },
     "https://github.com/x402-foundation/x402/issues/3379": {
       "action": "verify_external_issue_before_any_contact",
-      "effect": null,
-      "evidence_url": null,
+      "effect": "vendor_feature_proposal_not_buyer_demand",
+      "evidence_url": "https://github.com/x402-foundation/x402/issues/3379",
       "hypothesis": "h1",
       "priority": 36,
       "queued_at": "2026-11-21T06:18:47.699421+00:00",
-      "status": "queued"
+      "status": "rejected",
+      "review_reason": "Issue author proposes their own Tamga Protocol future integration and does not request or budget purchase of our agent evidence service."
     }
   },
   "schema": "agent-economy-ceo-board-state/1"

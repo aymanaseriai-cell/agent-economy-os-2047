@@ -1,7 +1,8 @@
 {
   "reviews": {
     "https://github.com/Maximilien-ai/clawmax/issues/416": "suppressed",
-    "https://github.com/celo-org/buy-skill/issues/76": "suppressed"
+    "https://github.com/celo-org/buy-skill/issues/76": "suppressed",
+    "https://github.com/x402-foundation/x402/issues/3379": "suppressed"
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
