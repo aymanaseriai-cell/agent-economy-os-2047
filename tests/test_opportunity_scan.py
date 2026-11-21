@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import unittest
-from automation.opportunity_scan import evaluate
+from automation.opportunity_scan import evaluate, select_review_queue
 
 class RadarTests(unittest.TestCase):
     def issue(self, title, body=""):
@@ -58,6 +58,28 @@ class RadarTests(unittest.TestCase):
                                 "Please implement support for the callback next sprint."))
         self.assertEqual(x["tier"], "research_only")
         self.assertFalse(x["procurement_phrase_present"])
+
+    def test_ads_cannot_fill_thirty_review_slots(self):
+        candidates = {}
+        for i in range(35):
+            item = self.issue("Paid agent evidence audit with receipts",
+                              "Buy (live): our pricing for a third-party agent audit service")
+            item["html_url"] = f"https://github.com/vendor/repo/issues/{i + 1}"
+            item["user"] = {"login": "cursor[bot]" if i % 2 == 0 else "vendor-seller"}
+            result = evaluate(item)
+            candidates[result["url"]] = result
+        rfp = evaluate(self.issue(
+            "RFP: independent AI agent handoff evidence verification",
+            "We are seeking a consultant for reproducible acceptance review."))
+        candidates[rfp["url"]] = rfp
+        queue, counts = select_review_queue(candidates)
+        self.assertEqual([x["url"] for x in queue], [rfp["url"]])
+        self.assertEqual(counts["total"], 36)
+        self.assertEqual(counts["eligible"], 1)
+        self.assertEqual(counts["excluded_bot_authored"], 18)
+        self.assertEqual(counts["excluded_vendor_promotion"], 17)
+        self.assertEqual(counts["manual_buyer_intent_review"], 1)
+        self.assertFalse(queue[0]["buyer_intent_verified"])
 
     def test_unsafe_url_rejected(self):
         x=self.issue("Need evidence audit");x["html_url"]="https://evil.test/request"

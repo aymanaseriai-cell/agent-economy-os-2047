@@ -133,6 +133,29 @@ def fetch(query: str) -> dict:
         return json.load(response)
 
 
+def select_review_queue(findings: dict[str, dict]) -> tuple[list[dict], dict]:
+    """Prevent bot/vendor issue advertisements from filling capped review slots.
+
+    Exclusion is not proof that remaining issues are actual buyers.
+    """
+    candidates = list(findings.values())
+    bot_count = sum(bool(x["bot_authored"]) for x in candidates)
+    vendor_count = sum(not x["bot_authored"] and bool(x["potential_vendor_signals"])
+                       for x in candidates)
+    eligible = [x for x in candidates
+                if not x["bot_authored"] and not x["potential_vendor_signals"]]
+    eligible.sort(key=lambda x: (x["tier"] != "manual_buyer_intent_review",
+                                 -x["score"], x["url"]))
+    return eligible[:MAX_CANDIDATES], {
+        "total": len(candidates),
+        "eligible": len(eligible),
+        "excluded_bot_authored": bot_count,
+        "excluded_vendor_promotion": vendor_count,
+        "manual_buyer_intent_review": sum(x["tier"] == "manual_buyer_intent_review"
+                                          for x in eligible),
+    }
+
+
 def run() -> int:
     findings: dict[str, dict] = {}
     errors: list[dict] = []
@@ -150,8 +173,7 @@ def run() -> int:
                     findings[candidate["url"]] = candidate
         except (HTTPError, URLError, TimeoutError, ValueError, TypeError) as exc:
             errors.append({"query": query, "error_type": type(exc).__name__})
-    ordered = sorted(findings.values(), key=lambda x: (x["tier"] != "manual_buyer_intent_review", -x["score"], x["url"]))
-    queue = ordered[:MAX_CANDIDATES]
+    queue, counts = select_review_queue(findings)
     now = dt.datetime.now(dt.timezone.utc).isoformat()
     report = {
         "schema_version": "agent-economy-public-demand-radar/2.0",
@@ -160,7 +182,7 @@ def run() -> int:
         "contact_policy": "No outbound messaging. Inspect terms, issue context, buyer authority, refusal history and channel policy before any response.",
         "searches": list(SEARCHES),
         "candidate_issues": queue,
-        "candidate_counts": {"total": len(ordered), "manual_buyer_intent_review": sum(x["tier"] == "manual_buyer_intent_review" for x in ordered)},
+        "candidate_counts": counts,
         "errors": errors,
     }
     out = Path(os.environ.get("OPPORTUNITY_OUT", "opportunity-report.json"))
@@ -180,7 +202,7 @@ def run() -> int:
         label = e["title"].replace("|", "/").replace("[", "(").replace("]", ")").replace("\n", " ")[:96]
         lines.append(f"| [{label}]({e['url']}) | {e['tier']} | {', '.join(e['signals'][:5])} |")
     Path("opportunity-review.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    print(f"Discovery: {len(ordered)} public issue candidates; {report['candidate_counts']['manual_buyer_intent_review']} warrant manual buyer-intent review; {len(errors)} errors.")
+    print(f"Discovery: {counts['total']} candidates, {counts['eligible']} eligible for review; {counts['manual_buyer_intent_review']} with unverified procurement wording; {len(errors)} errors.")
     return 0 if not errors else 1
 
 
