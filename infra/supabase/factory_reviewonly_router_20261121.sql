@@ -1,5 +1,6 @@
 -- Agent Economy OS 2047: REVIEW-ONLY executive control-plane source snapshot.
--- 2026-11-21: already applied to private Supabase executive_nexus.
+-- REVIEW-ONLY CORRECTION (not yet deployed): the previous version is in Supabase.
+-- Changing this file has no effect on the production cron or live function.
 -- NOT connected to GitHub or CI auto-deploy; independent review required.
 -- Only creates internal decision records and idempotent incident work orders.
 -- Never touches production service code, payments, customers or trading.
@@ -106,7 +107,9 @@ BEGIN
       AND (work_key LIKE 'AEOS2047:FACTORY:20261121:AEOS-W%'
            OR work_key LIKE 'AEOS2047:LIVE:INCIDENT:%')
       AND work_status IN ('QUEUED','IN_PROGRESS','NEEDS_APPROVAL','BLOCKED')
-   ORDER BY CASE work_status WHEN 'QUEUED' THEN 1 WHEN 'IN_PROGRESS' THEN 2
+   -- Before launching new work, reconcile any existing work in flight.
+   -- Keep SQL and Python executive schedulers in sync.
+   ORDER BY CASE work_status WHEN 'IN_PROGRESS' THEN 1 WHEN 'QUEUED' THEN 2
                 WHEN 'NEEDS_APPROVAL' THEN 3 ELSE 4 END,
             priority,work_key
    LIMIT 1;
