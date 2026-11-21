@@ -16,12 +16,13 @@
   "jobs": {
     "https://github.com/Maximilien-ai/clawmax/issues/416": {
       "action": "verify_external_issue_before_any_contact",
-      "effect": null,
-      "evidence_url": null,
+      "effect": "internal_private_report_not_invitation_or_authorized_sale",
+      "evidence_url": "https://github.com/Maximilien-ai/clawmax/issues/416",
       "hypothesis": "h1",
       "priority": 36,
       "queued_at": "2026-11-21T06:17:53.495491+00:00",
-      "status": "queued"
+      "status": "rejected",
+      "review_reason": "Issue explicitly requires private Management Feedback and describes internal handoff review; no public commercial invitation or buyer authority."
     }
   },
   "schema": "agent-economy-ceo-board-state/1"
