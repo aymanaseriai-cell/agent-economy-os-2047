@@ -154,7 +154,12 @@ function pointerGet(value,pointer) {
   }
   return {exists:true,value:current};
 }
-function sameScalar(a,b) {return scalar(a)&&scalar(b)&&Object.is(a,b);}
+function sameScalar(a,b) {
+  if (!scalar(a) || !scalar(b)) return false;
+  // Canonical JSON collapses -0 and 0; evaluations of an identical pinned
+  // contract hash must agree for both representations.
+  return typeof a==="number" && typeof b==="number" ? a===b : Object.is(a,b);
+}
 export async function evaluateContract(input) {
   check(isRecord(input) && isRecord(input.contract),"invalid_evaluation");
   const contract=normalizeContract(input.contract);
