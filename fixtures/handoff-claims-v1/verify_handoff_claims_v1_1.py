@@ -58,8 +58,10 @@ def classify(case: dict) -> tuple[dict[str, str], dict[str, str]]:
     saved_match = sha256_text(case["saved_bytes"]) == case["saved_digest"]
     current_match = sha256_text(case["current_bytes"]) == case["current_digest"]
     supplied_reference = case["anchor_digest"]
-    # Contradictions can disprove a historical claim, but a matching reference
-    # in this fixture does not authenticate external custody or timestamp.
+    # This verdict concerns the *composite saved claim* (bytes plus declared
+    # digest) against a supplied reference, not the raw bytes alone. Fail
+    # closed if the bytes/digest disagree OR the digest/reference disagree.
+    # Even when all three agree, external custody/time remain NOT_PROVEN.
     anchor = (
         "FAIL" if supplied_reference is not None
         and (not saved_match or supplied_reference != case["saved_digest"])

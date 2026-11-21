@@ -29,6 +29,16 @@ class HandoffBoundaryTests(unittest.TestCase):
         c = copy.deepcopy(BASE); c["saved_bytes"] = "Review is Friday"; c["saved_digest"] = sha256_text(c["saved_bytes"]); c["anchor_digest"] = BASE["saved_digest"]
         v, _ = classify(c)
         self.assertEqual(v["independent_anchor"], "FAIL")
+    def test_reference_matches_raw_bytes_but_not_declared_digest(self):
+        c = copy.deepcopy(BASE)
+        c["saved_bytes"] = "Review is Friday"
+        c["anchor_digest"] = sha256_text(c["saved_bytes"])
+        # The declared digest still denotes Tuesday.
+        # A raw byte/reference match cannot validate an inconsistent saved claim.
+        v, _ = classify(c)
+        self.assertEqual(v["saved_integrity"], "FAIL")
+        self.assertEqual(v["independent_anchor"], "FAIL")
+
     def test_matching_reference_does_not_prove_external_custody(self):
         c = copy.deepcopy(BASE); c["anchor_digest"] = c["saved_digest"]
         self.assertEqual(classify(c)[0]["independent_anchor"], "NOT_PROVEN")

@@ -5,7 +5,7 @@
   "semantics": {
     "saved_integrity": "Digest comparison only; PASS does not independently prove provenance",
     "current_freshness": "UNVERIFIED_SOURCE_FRESHNESS for every case: no trusted live source was queried; separately report current_snapshot_integrity in diagnostics. Different synthetic version labels are not freshness evidence.",
-    "independent_anchor": "FAIL when an optionally supplied independent-reference digest contradicts claimed stored bytes; otherwise NOT_PROVEN because origin, custody and immutability of an optional supplied reference are not authenticated by this fixture.",
+    "independent_anchor": "When an optional reference is supplied, FAIL if the stored bytes do not match the declared saved_digest OR if that declared saved_digest does not match the supplied reference; this fail-closed verdict checks consistency of the composite saved claim against the supplied reference. Otherwise NOT_PROVEN: the reference itself is not authenticated for origin, custody, immutability or time. Even a supplied reference matching raw bytes is not enough when the declared saved digest disagrees.",
     "alias_uniqueness": "POSIX lexical path normalization only; no symlink/hardlink/reparse-point checks"
   },
   "evidence_limit": "Synthetic cases only. PASS for byte consistency is conditional on the supplied digest. No external anchor, live freshness, independently established source history, real agent task, signature, contract, authorization, payment or customer is evidenced.",
@@ -212,6 +212,29 @@
         "current_freshness": "UNVERIFIED_SOURCE_FRESHNESS",
         "independent_anchor": "NOT_PROVEN",
         "alias_uniqueness": "FAIL"
+      },
+      "expected_diagnostics": {
+        "current_snapshot_integrity": "PASS"
+      }
+    },
+    {
+      "saved_bytes": "Review is Friday",
+      "saved_digest": "c73494e447a11103522565d5aa90a2d6ae9eeeb42cde93628f4771ee71bf932e",
+      "current_bytes": "Review is Thursday",
+      "current_digest": "88d22d4086bd19032301d060b95e92132a29daabe054b3ce7f99c582740fceed",
+      "historical_version": "synthetic-v1",
+      "current_version": "synthetic-v2",
+      "anchor_digest": "10a23c87553d04091e5fbd0b2fdce9eef92db89445925ea4cc44feb3d8067691",
+      "manifest_paths": [
+        "historical.json",
+        "current.json"
+      ],
+      "case_id": "reference_matches_bytes_but_not_declared_digest",
+      "expected": {
+        "saved_integrity": "FAIL",
+        "current_freshness": "UNVERIFIED_SOURCE_FRESHNESS",
+        "independent_anchor": "FAIL",
+        "alias_uniqueness": "PASS"
       },
       "expected_diagnostics": {
         "current_snapshot_integrity": "PASS"
