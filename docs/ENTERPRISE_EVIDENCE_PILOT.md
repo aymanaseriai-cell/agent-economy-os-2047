@@ -12,6 +12,12 @@
 
 The GitHub repository is not a confidential CRM. Do not post client identifiers, sensitive business details or private code. A future scoped paid pilot requires independent legal invoicing, identity, buyer acceptance and business terms. Do not count Issue Form submissions as contracts or verified paid customers.
 
+## Free, buyer-controlled acceptance gate (adoption wedge)
+
+The project now ships a reusable [GitHub Action and offline buyer-policy acceptance gate](../buyer-gate/README.md), plus an [agent-readable integration skill](../skills/agent-economy-buyer-acceptance/SKILL.md). A prospective buyer can pin exact technical expectations independently of the agent's output and run local CI checks. The gate rejects altered contract bytes without the independently held SHA-256, path traversal, symlinks, unsupported checks, false type matches and mismatched files. This gate is a free technical tool, **not** an assertion of verified buyer authorship, complete execution, legal acceptance, external provenance, real source freshness, paid subscriptions or sales.
+
+The commercial hypothesis is to first gain legitimate GitHub Action/skill adoption, then offer narrowly scoped enterprise integrations **only when there is a documented buyer need**. Open-source use does not obligate a buyer to pay or establish an enterprise customer. The existing USD $750 pilot is nonbinding and needs legal contracting/invoicing.
+
 ## Who this is for
 
 Technical leads, AI-agent platform maintainers, and operations teams building multi-agent delivery pipelines, code-generation agents, automated reporting, and evidence-backed task acceptance.

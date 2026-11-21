@@ -5,6 +5,14 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## Buyer-controlled AI agent acceptance gate — reusable GitHub Action
+
+A free technical integration available at the repository's existing root action **and** standalone `buyer-gate/` action. A buyer first specifies and separately pins a technical acceptance policy; the gate checks files produced by an AI agent, rejects policy substitution and mismatched output, and creates a machine-readable report. **A changed producer-controlled manifest is not independent approval**, and even a passing buyer policy check is not external provenance or proof of execution.
+
+**[Installation, CI integration and limits](buyer-gate/README.md)** · [Agent-readable integration skill](skills/agent-economy-buyer-acceptance/SKILL.md) · [18 adversarial checks](tests/test_buyer_gate.py) · [GitHub Actions CI](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/buyer-gate-ci.yml).
+
+Existing users of `action.yml` can continue providing only `manifest`, `root`, and `report`; buyer-controlled checks require both `policy` and **independently** pinned `policy-sha256`. No fees or private credentials are required.
+
 ## Free self-service evidence challenge (automatic, public, opt-in)
 
 **[Run the free synthetic Evidence Challenge](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=evidence-challenge.yml)** — select one of five real evidence-claim failure categories and explicitly opt into a public answer. GitHub Actions recomputes one synthetic case from the project's published evidence fixture, and replies automatically to your issue. This works without the owner's active ChatGPT session. It does not execute the requester's code, access private systems, ask for money, or echo the optional public context.

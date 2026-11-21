@@ -1,29 +1,47 @@
 name: "Agent Evidence Integrity Check"
-description: "Verify SHA-256 hashes for AI agent output files declared in a local JSON manifest"
+description: "Verify AI agent evidence: legacy hash manifest, or opt-in buyer-pinned acceptance policy"
 author: "Agent Economy OS 2047"
 branding:
   icon: "check-circle"
   color: "blue"
 inputs:
   manifest:
-    description: "Path to evidence manifest JSON"
-    required: true
+    description: "Legacy hash-manifest input, used when policy is empty"
+    required: false
     default: "evidence-manifest.json"
   root:
-    description: "Project root containing declared files"
+    description: "Root directory containing files to inspect"
     required: false
     default: "."
   report:
     description: "Output JSON report path"
     required: false
     default: "evidence-report.json"
+  policy:
+    description: "Optional buyer-approved policy JSON. Activates buyer acceptance gate"
+    required: false
+    default: ""
+  policy-sha256:
+    description: "Required with policy: separately pinned SHA256 of exact buyer policy bytes"
+    required: false
+    default: ""
 runs:
   using: "composite"
   steps:
-    - name: Verify declared files
+    - name: Verify legacy producer-declared hashes
+      if: ${{ inputs.policy == '' }}
       shell: bash
       env:
         EVIDENCE_MANIFEST: ${{ inputs.manifest }}
         EVIDENCE_ROOT: ${{ inputs.root }}
         EVIDENCE_REPORT: ${{ inputs.report }}
       run: python3 "$GITHUB_ACTION_PATH/verifier.py" "$EVIDENCE_MANIFEST" --root "$EVIDENCE_ROOT" --json-out "$EVIDENCE_REPORT"
+    - name: Verify buyer-pinned acceptance checks
+      if: ${{ inputs.policy != '' }}
+      shell: bash
+      env:
+        EVIDENCE_POLICY: ${{ inputs.policy }}
+        EVIDENCE_POLICY_SHA256: ${{ inputs.policy-sha256 }}
+        EVIDENCE_ROOT: ${{ inputs.root }}
+        EVIDENCE_REPORT: ${{ inputs.report }}
+      run: python3 "$GITHUB_ACTION_PATH/buyer-gate/check.py" "$EVIDENCE_POLICY" --policy-sha256 "$EVIDENCE_POLICY_SHA256" --root "$EVIDENCE_ROOT" --json-out "$EVIDENCE_REPORT"

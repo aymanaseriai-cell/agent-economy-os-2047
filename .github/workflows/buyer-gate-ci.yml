@@ -3,12 +3,15 @@ on:
   push:
     paths:
       - 'buyer-gate/**'
+      - 'action.yml'
+      - 'action.yml'
       - 'tests/test_buyer_gate.py'
       - 'examples/buyer-gate/**'
       - '.github/workflows/buyer-gate-ci.yml'
   pull_request:
     paths:
       - 'buyer-gate/**'
+      - 'action.yml'
       - 'tests/test_buyer_gate.py'
       - 'examples/buyer-gate/**'
       - '.github/workflows/buyer-gate-ci.yml'
@@ -32,17 +35,33 @@ jobs:
         id: sample-pin
         shell: bash
         run: echo "sha=$(sha256sum examples/buyer-gate/policy.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
-      - name: Smoke-test reusable action
+      - name: Smoke-test packaged subdirectory action
         uses: ./buyer-gate
         with:
           policy: examples/buyer-gate/policy.json
           policy-sha256: ${{ steps.sample-pin.outputs.sha }}
           root: examples/buyer-gate
           report: buyer-gate-example-report.json
+      - name: Smoke-test root action backward compatibility
+        uses: ./
+        with:
+          manifest: evidence-manifest.json
+          root: .
+          report: buyer-gate-legacy-report.json
+      - name: Smoke-test root action new policy mode
+        uses: ./
+        with:
+          policy: examples/buyer-gate/policy.json
+          policy-sha256: ${{ steps.sample-pin.outputs.sha }}
+          root: examples/buyer-gate
+          report: buyer-gate-root-report.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: buyer-gate-smoke-report
-          path: buyer-gate-example-report.json
+          path: |
+            buyer-gate-example-report.json
+            buyer-gate-legacy-report.json
+            buyer-gate-root-report.json
           if-no-files-found: ignore
           retention-days: 7
