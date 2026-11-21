@@ -1,0 +1,38 @@
+{
+  "schema_version": "agent-economy-enterprise-buyer-brief/1.0",
+  "last_checked_date": "2026-11-21",
+  "project": "Agent Economy OS 2047",
+  "seller_mode": "human-operated, AI-assisted, public beta",
+  "offer_name": "AI Agent Evidence Failure-Mode Audit",
+  "target_workflow": "One bounded AI-agent delivery pipeline using public or synthetic inputs",
+  "indicative_price": {
+    "currency": "USD",
+    "amount": 750,
+    "binding": false,
+    "payable_now": false,
+    "status": "hypothesis subject to scoped agreement and legally permitted invoicing"
+  },
+  "evidence": {
+    "fixture_commit": "d8fa41120ab33f844426051aab35894e34c26824",
+    "synthetic_cases_passed": 10,
+    "unit_tests_passed": 10,
+    "ci_run": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44867492898",
+    "independent_review_scope": "Previous nine-case revision reviewed; reviewer identified further discrepancy now covered by tenth scenario",
+    "independent_certification": false,
+    "real_buyer_acceptance_verified": false,
+    "realized_revenue_verified": false
+  },
+  "constraints": [
+    "no crypto payment solicitation",
+    "no customer secrets or private code in public forms",
+    "no legal certification",
+    "no production SLA or escrow",
+    "no guaranteed outcomes"
+  ],
+  "contact": {
+    "type": "public-github-service-request",
+    "url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
+    "requires_sanitized_details": true
+  },
+  "technical_proof": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/d8fa41120ab33f844426051aab35894e34c26824/fixtures/handoff-claims-v1/README.md"
+}

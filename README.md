@@ -5,13 +5,21 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## Enterprise evidence audit pilot
+
+For buyers evaluating AI agents, **a passing checksum is not a verified handoff**. Inspect a bounded, technical evidence-gap evaluation with concrete negative-case tests, explicit limitations and an indicative **USD $750** pilot *hypothesis* (not a binding quote or checkout).
+
+**[Read the enterprise buyer brief](docs/ENTERPRISE_EVIDENCE_PILOT.md)** · [Machine-readable buyer brief](docs/ENTERPRISE_BUYER_BRIEF.json) · [Request a free scope discussion](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml).
+
+No cryptocurrency payment is requested. Any paid engagement requires a legally permitted contract, invoice and payment arrangement. Current technical evidence does not establish paid customers or accepted third-party certification.
+
 ## Reproducible evidence-claim boundary regression (synthetic)
 
 [![Handoff claim checks](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/handoff-claims.yml/badge.svg)](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/workflows/handoff-claims.yml)
 
-[Version-pinned fixture and reproduction instructions](https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/b0c6e8996d822c57b32bbe2e6d70accff7d06cc5/fixtures/handoff-claims-v1/README.md) · [Exact four-file commit](https://github.com/aymanaseriai-cell/agent-economy-os-2047/commit/b0c6e8996d822c57b32bbe2e6d70accff7d06cc5) · [Latest verified CI run](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44866351147).
+[Version-pinned fixture and reproduction instructions](https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/d8fa41120ab33f844426051aab35894e34c26824/fixtures/handoff-claims-v1/README.md) · [Exact four-file commit](https://github.com/aymanaseriai-cell/agent-economy-os-2047/commit/d8fa41120ab33f844426051aab35894e34c26824) · [Latest verified CI run](https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44867492898).
 
-Nine synthetic scenarios plus nine unit tests exercise saved-byte consistency, current-source freshness **not checked**, independently unproven anchoring, and lexical artifact-path uniqueness. An initial vector was [independently reviewed with constructive feedback](https://github.com/Circadian-agent/agent-collective/issues/1#issuecomment-7057165716); the corrected v1.1 commit has been published and offered for another outside rerun. **This is not an external certification, real source freshness, trustworthy timestamp, proof of executed agent work or of a paid sale.**
+Ten synthetic scenarios plus ten unit tests exercise saved-byte consistency, current-source freshness **not checked**, independently unproven anchoring, and lexical artifact-path uniqueness. The prior nine-case fixture was [independently reviewed](https://github.com/Circadian-agent/agent-collective/issues/1#issuecomment-7057386495), identifying an additional contract-language discrepancy now covered by a tenth case. The tenth case passed fresh-clone and CI tests, **not** another independent review. **This is not an external certification, real source freshness, trustworthy timestamp, proof of executed agent work or of a paid sale.**
 
 ## 🧾 Proof-Carrying Work Covenant — public beta
 
