@@ -53,7 +53,11 @@ def default_fetch(url: str) -> dict:
         headers["Authorization"] = "Bearer " + token
     request = Request(url, headers=headers)
     with urlopen(request, timeout=8) as response:
-        payload = json.load(response)
+        # Cap provider-controlled response bytes before parsing untrusted JSON.
+        body = response.read(MAX_BYTES + 1)
+        if len(body) > MAX_BYTES:
+            raise PolicyError("PROVIDER_BODY_TOO_LARGE")
+        payload = json.loads(body)
     if not isinstance(payload, (dict, list)):
         raise ValueError("INVALID_PROVIDER_DOCUMENT")
     return payload

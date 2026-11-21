@@ -117,6 +117,16 @@ class WorkerDispatchTests(unittest.TestCase):
                 self.assertEqual(result["attempts"], 2)
                 self.assertEqual(result["verification"], "HEALTH_NOT_CONFIRMED")
 
+    def test_provider_json_body_size_is_bounded_before_parse(self):
+        import io
+        from unittest.mock import patch
+        from automation.worker_dispatcher import default_fetch, GITHUB_ISSUES_LIST, MAX_BYTES
+        with patch("automation.worker_dispatcher.urlopen", return_value=io.BytesIO(b'{"ok": true}')):
+            self.assertEqual(default_fetch(GITHUB_ISSUES_LIST), {"ok": True})
+        with patch("automation.worker_dispatcher.urlopen", return_value=io.BytesIO(b" " * (MAX_BYTES + 1))):
+            with self.assertRaisesRegex(PolicyError, "PROVIDER_BODY_TOO_LARGE"):
+                default_fetch(GITHUB_ISSUES_LIST)
+
     def test_cli_writes_true_receipt_and_rejects_duplicates(self):
         with tempfile.TemporaryDirectory() as d:
             base = Path(d); (base / "f").write_text("hello")
