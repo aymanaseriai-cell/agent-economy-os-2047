@@ -156,5 +156,39 @@ class EvidenceTests(unittest.TestCase):
                     self.assertEqual(report['checked'], 0)
                     self.assertIn('non-standard JSON constant', report['errors'][0])
 
+
+    def test_overflow_json_numbers_fail_closed(self):
+        # parse_constant misses finite-looking numeric tokens that overflow Python float.
+        for token in ('1e10000', '-1e10000', '9.99e9999'):
+            with self.subTest(token=token):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'numeric-overflow.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, token)
+                    )
+                    report = validate(m, root)
+                    self.assertFalse(report['passed'])
+                    self.assertEqual(report['checked'], 0)
+                    self.assertIn('non-finite JSON number', report['errors'][0])
+
+    def test_finite_json_numbers_still_pass(self):
+        for token in ('1.25', '-0.5', '1e3'):
+            with self.subTest(token=token):
+                with tempfile.TemporaryDirectory() as d:
+                    root = Path(d)
+                    (root / 'result.txt').write_text('hello')
+                    sha = hashlib.sha256(b'hello').hexdigest()
+                    m = root / 'finite-number.json'
+                    m.write_text(
+                        '{"artifacts":[{"path":"result.txt","sha256":"%s"}],'
+                        '"metadata":{"confidence":%s}}' % (sha, token)
+                    )
+                    report = validate(m, root)
+                    self.assertTrue(report['passed'])
+
 if __name__ == '__main__':
     unittest.main()
