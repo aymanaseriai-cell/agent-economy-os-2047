@@ -1,10 +1,13 @@
-name: Daily public opportunity radar (read-only)
+name: Public buyer intent radar (read-only)
 on:
   schedule:
-    - cron: '38 7 * * *'
+    - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
   contents: read
+concurrency:
+  group: public-demand-radar
+  cancel-in-progress: false
 jobs:
   public-issue-search:
     runs-on: ubuntu-latest
@@ -16,14 +19,18 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Find public candidate requests, without messaging anyone
-        run: python automation/opportunity_scan.py
+      - name: Test conservative buyer-intent filter
+        run: python3 -m unittest discover -s tests -p 'test_opportunity_scan.py' -v
+      - name: Discover public candidates, no messages and no payments
+        run: python3 automation/opportunity_scan.py
         env:
           OPPORTUNITY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: public-opportunity-candidates
-          path: opportunity-report.json
-          if-no-files-found: warn
+          path: |
+            opportunity-report.json
+            opportunity-review.md
+          if-no-files-found: ignore
           retention-days: 7

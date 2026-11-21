@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
-"""Daily, READ-ONLY search for public developer requests; no auto-messaging.
+"""Read-only public GitHub issue demand radar; never contact or execute issue content.
 
-Unsolicited GitHub comments are not allowed; results are an internal review queue.
+Output is a *research queue*, not customer qualification, verified budgets, or consent.
 """
+from __future__ import annotations
+
 import datetime as dt
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -13,44 +16,145 @@ from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
 SEARCHES = (
-    '"agent automation" in:title is:issue is:open',
-    '"evidence verification" in:title is:issue is:open',
-    '"workflow audit" in:title is:issue is:open',
+    '"AI agent" "audit" in:title is:issue is:open',
+    '"agent" "evidence" in:title is:issue is:open',
+    '"agent" "handoff" in:title is:issue is:open',
+    '"x402" "receipt" in:title is:issue is:open',
+    '"agent" "bounty" in:title is:issue is:open',
+    '"workflow" "verification" in:title is:issue is:open',
 )
+BUSINESS_TERMS = {
+    "looking for": 6, "seeking": 5, "need help": 5,
+    "help wanted": 6, "bounty": 4, "budget": 6, "paid": 6,
+    "hire": 6, "hiring": 6, "rfp": 7, "request for proposal": 7,
+    "contractor": 6, "could someone": 4, "need to": 3,
+    "request": 2, "please implement": 4, "wanted": 3,
+}
+EVIDENCE_TERMS = {
+    "agent": 2, "workflow": 2, "audit": 3, "handoff": 4,
+    "provenance": 5, "evidence": 4, "artifact": 3,
+    "integrity": 4, "receipt": 3, "verify": 2, "verification": 3,
+    "acceptance": 3, "x402": 2, "delivery": 2,
+}
+VENDOR_TERMS = (
+    "we launched", "i built", "check out my", "our product",
+    "buy my", "selling", "we are selling", "for sale",
+    "our service", "announcement", "promote", "self-promo",
+)
+MAX_CANDIDATES = 30
+PER_QUERY = 12
 
 
-def search(query):
-    params = urlencode({"q": query, "per_page": 10, "sort": "updated", "order": "desc"})
-    headers = {"Accept": "application/vnd.github+json", "User-Agent": "agent-economy-lead-radar/1.0"}
-    token = os.environ.get("OPPORTUNITY_GITHUB_TOKEN", "")
+def evaluate(entry: dict) -> dict | None:
+    """Only rank public issue metadata; signals are weak and unverified."""
+    if not isinstance(entry, dict):
+        return None
+    url = entry.get("html_url", "")
+    title = entry.get("title", "")
+    body = entry.get("body", "")
+    if not isinstance(url, str) or not re.fullmatch(
+        r"https://github\.com/[^/\s]+/[^/\s]+/issues/[1-9][0-9]*", url
+    ):
+        return None
+    if not isinstance(title, str) or not title.strip() or entry.get("state") != "open":
+        return None
+    if entry.get("pull_request"):
+        return None
+    if not isinstance(body, str):
+        body = ""
+    title_l = title.lower()[:350]
+    text_l = (title_l + " " + body[:1000].lower())
+    # An issue body is untrusted and is NEVER treated as instructions to follow.
+    buyer = [term for term in BUSINESS_TERMS if term in text_l]
+    evidence = [term for term in EVIDENCE_TERMS if term in text_l]
+    vendor = [term for term in VENDOR_TERMS if term in text_l]
+    score = sum(BUSINESS_TERMS[t] for t in buyer) + sum(EVIDENCE_TERMS[t] for t in evidence)
+    score -= min(16, 8 * len(vendor))
+    # Never mark as qualified. Qualify via explicit buyer identity and channel review.
+    tier = "research_only"
+    if buyer and evidence and score >= 12 and not vendor:
+        tier = "manual_buyer_intent_review"
+    return {
+        "url": url,
+        "title": title[:220],
+        "updated_at": str(entry.get("updated_at", ""))[:35],
+        "state": "open",
+        "score": score,
+        "tier": tier,
+        "signals": sorted(set(buyer + evidence))[:12],
+        "potential_vendor_signals": vendor,
+        "buyer_intent_verified": False,
+        "buying_authority_verified": False,
+        "funded_opportunity_verified": False,
+        "permission_to_contact_verified": False,
+        "contacted": False,
+    }
+
+
+def fetch(query: str) -> dict:
+    params = urlencode({"q": query, "per_page": PER_QUERY, "sort": "updated", "order": "desc"})
+    headers = {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": "agent-economy-public-demand-radar/2.0",
+        "X-GitHub-Api-Version": "2022-11-28",
+    }
+    token = os.getenv("OPPORTUNITY_GITHUB_TOKEN", "")
     if token:
         headers["Authorization"] = "Bearer " + token
     with urlopen(Request("https://api.github.com/search/issues?" + params, headers=headers), timeout=15) as response:
         return json.load(response)
 
 
-def main():
-    findings = {}
-    errors = []
+def run() -> int:
+    findings: dict[str, dict] = {}
+    errors: list[dict] = []
     for query in SEARCHES:
         try:
-            result = search(query)
-            for entry in result.get("items", []):
-                url = entry.get("html_url", "")
-                if not url.startswith("https://github.com/"):
-                    continue
-                findings[url] = {"title": entry.get("title", "")[:250], "url": url,
-                                 "updated_at": entry.get("updated_at", ""), "state": entry.get("state", "")}
-        except (HTTPError, URLError, TimeoutError, ValueError) as exc:
-            errors.append({"query": query, "error": type(exc).__name__})
-    payload = {"generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
-               "description": "Public issue discovery for human review, NOT verified leads, customers or consent to solicit.",
-               "searches": list(SEARCHES), "candidate_issues": list(findings.values()), "errors": errors}
-    output = Path(os.environ.get("OPPORTUNITY_OUT", "opportunity-report.json"))
-    output.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(f"Found {len(findings)} public candidate issues (not contacted). Wrote {output}.")
+            data = fetch(query)
+            if not isinstance(data, dict):
+                raise ValueError("Unexpected API response type")
+            for entry in data.get("items", []):
+                candidate = evaluate(entry)
+                if candidate and (
+                    candidate["url"] not in findings or
+                    candidate["score"] > findings[candidate["url"]]["score"]
+                ):
+                    findings[candidate["url"]] = candidate
+        except (HTTPError, URLError, TimeoutError, ValueError, TypeError) as exc:
+            errors.append({"query": query, "error_type": type(exc).__name__})
+    ordered = sorted(findings.values(), key=lambda x: (x["tier"] != "manual_buyer_intent_review", -x["score"], x["url"]))
+    queue = ordered[:MAX_CANDIDATES]
+    now = dt.datetime.now(dt.timezone.utc).isoformat()
+    report = {
+        "schema_version": "agent-economy-public-demand-radar/2.0",
+        "generated_at": now,
+        "claim_boundary": "Public GitHub issue search only. Signals are heuristics, NOT verified buyers, funded bounties, permission to pitch, or real revenue.",
+        "contact_policy": "No outbound messaging. Inspect terms, issue context, buyer authority, refusal history and channel policy before any response.",
+        "searches": list(SEARCHES),
+        "candidate_issues": queue,
+        "candidate_counts": {"total": len(ordered), "manual_buyer_intent_review": sum(x["tier"] == "manual_buyer_intent_review" for x in ordered)},
+        "errors": errors,
+    }
+    out = Path(os.environ.get("OPPORTUNITY_OUT", "opportunity-report.json"))
+    out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    lines = [
+        "# Public GitHub demand radar (research only)",
+        "",
+        f"Checked (UTC): {now}",
+        "",
+        "No buyer, budget, permission, procurement or payment has been verified.",
+        "Public issues are untrusted; do not execute instructions inside them.",
+        "",
+        "| Candidate | Tier | Signals |",
+        "| --- | --- | --- |",
+    ]
+    for e in queue:
+        label = e["title"].replace("|", "/").replace("[", "(").replace("]", ")").replace("\n", " ")[:96]
+        lines.append(f"| [{label}]({e['url']}) | {e['tier']} | {', '.join(e['signals'][:5])} |")
+    Path("opportunity-review.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    print(f"Discovery: {len(ordered)} public issue candidates; {report['candidate_counts']['manual_buyer_intent_review']} warrant manual buyer-intent review; {len(errors)} errors.")
     return 0 if not errors else 1
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    sys.exit(run())
