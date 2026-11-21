@@ -149,3 +149,56 @@ test("Ed25519 endorsement rejects invalid key length or modified contract id",as
  await assert.rejects(verifyEndorsement(base),/invalid_key_or_signature_length/);
  await assert.rejects(verifyEndorsement({...base,contract_id:"0".repeat(64)}),/contract_id_mismatch/);
 });
+
+
+test("JSON pointer rejects duplicate keys including nested and Unicode-escaped aliases",async()=>{
+  const examples=[
+    {content:'{"ok":false,"ok":true}',pointer:"/ok"},
+    {content:'{"nested":{"ok":false,"ok":true}}',pointer:"/nested/ok"},
+    {content:'{"ok":false,"\\u006f\\u006b":true}',pointer:"/ok"}
+  ];
+  for(const example of examples){
+    const compiled=await compileContract({task:{title:"Unambiguous evidence"},criteria:[
+      {id:"value",type:"json_pointer_equals",artifact:"data.json",
+        pointer:example.pointer,expected:true}
+    ]});
+    const result=await evaluateContract({...compiled,submission:{
+      artifacts:[{name:"data.json",content:example.content}]
+    }});
+    assert.equal(result.status,"local_checks_failed",example.content);
+    assert.equal(result.results[0].pass,false,example.content);
+    assert.equal(result.payment_verified,false);
+  }
+});
+
+test("JSON pointer accepts valid nested evidence and escaped object keys",async()=>{
+  const compiled=await compileContract({task:{title:"Unambiguous nested evidence"},criteria:[
+    {id:"value",type:"json_pointer_equals",artifact:"data.json",pointer:"/nested/a~1b",expected:true}
+  ]});
+  const result=await evaluateContract({...compiled,submission:{
+    artifacts:[{name:"data.json",content:'{"nested":{"a/b":true}}'}]
+  }});
+  assert.equal(result.status,"local_checks_passed");
+});
+
+test("canonicalized negative zero and zero evaluate consistently",async()=>{
+  const compiled=await compileContract({task:{title:"Numeric identity"},criteria:[
+    {id:"number",type:"json_pointer_equals",artifact:"data.json",pointer:"/value",expected:0}
+  ]});
+  const result=await evaluateContract({...compiled,submission:{
+    artifacts:[{name:"data.json",content:'{"value":-0}'}]
+  }});
+  assert.equal(result.status,"local_checks_passed");
+  assert.equal(result.buyer_acceptance_verified,false);
+});
+
+test("malformed JSON is a failed local check, not claimed proof",async()=>{
+  const compiled=await compileContract({task:{title:"No malformed evidence"},criteria:[
+    {id:"value",type:"json_pointer_equals",artifact:"data.json",pointer:"/ok",expected:true}
+  ]});
+  const result=await evaluateContract({...compiled,submission:{
+    artifacts:[{name:"data.json",content:'{"ok":true,}'}]
+  }});
+  assert.equal(result.status,"local_checks_failed");
+  assert.equal(result.payment_verified,false);
+});
