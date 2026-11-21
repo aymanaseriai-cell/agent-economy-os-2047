@@ -18,12 +18,16 @@ class FactorySqlContractTests(unittest.TestCase):
         cls.sql = SOURCE.read_text(encoding="utf-8")
 
     def test_sql_selects_in_progress_before_queued(self):
+        # Normalize whitespace first; no fragile multi-line escape patterns.
+        normalized = " ".join(self.sql.split())
         m = re.search(
-            r"ORDER BY CASE work_status WHEN 'IN_PROGRESS' THEN (\\d+) WHEN 'QUEUED' THEN (\\d+)\\s+WHEN 'NEEDS_APPROVAL' THEN (\\d+) ELSE (\\d+) END",
-            self.sql.replace("\\n", " ")
+            r"ORDER BY CASE work_status WHEN 'IN_PROGRESS' THEN ([0-9]+) "
+            r"WHEN 'QUEUED' THEN ([0-9]+) "
+            r"WHEN 'NEEDS_APPROVAL' THEN ([0-9]+) ELSE ([0-9]+) END",
+            normalized
         )
         self.assertIsNotNone(m, "SQL factory priority order drifted")
-        self.assertEqual(tuple(map(int, m.groups())), (1,2,3,4))
+        self.assertEqual(tuple(map(int, m.groups())), (1, 2, 3, 4))
 
     def test_python_reconciles_in_progress_even_if_queued_is_priority_one(self):
         plan=plan_dispatch([order("AEOS-W03","IN_PROGRESS",5),
