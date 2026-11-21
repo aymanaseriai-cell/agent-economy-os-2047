@@ -59,6 +59,34 @@ class RadarTests(unittest.TestCase):
         self.assertEqual(x["tier"], "research_only")
         self.assertFalse(x["procurement_phrase_present"])
 
+    def test_bot_account_type_without_username_suffix_not_a_buyer(self):
+        x = self.issue("Looking for paid AI agent evidence audit",
+                       "Budget for external reviewer")
+        x["user"] = {"login": "screwtape-operator", "type": "Bot"}
+        r = evaluate(x)
+        self.assertEqual(r["tier"], "research_only")
+        self.assertTrue(r["bot_authored"])
+        self.assertEqual(r["classification_reason"], "bot_authored")
+
+    def test_malformed_author_metadata_does_not_discard_search_batch(self):
+        x = self.issue("Looking for paid AI agent evidence audit",
+                       "Budget for external reviewer")
+        x["user"] = "unexpected API representation"
+        r = evaluate(x)
+        self.assertIsNotNone(r)
+        self.assertFalse(r["bot_authored"])
+        self.assertFalse(r["buyer_intent_verified"])
+
+    def test_vendor_buy_colon_cannot_qualify_as_human_buyer(self):
+        x = self.issue("Looking for paid agent evidence audit",
+                       "Seeking an external reviewer? Buy: POST /v1/packages/buy; "
+                       "pricing.json lists our paid service.")
+        x["user"] = {"login": "vendor", "type": "User"}
+        r = evaluate(x)
+        self.assertEqual(r["tier"], "research_only")
+        self.assertIn("buy:", r["potential_vendor_signals"])
+        self.assertEqual(r["classification_reason"], "vendor_promotion")
+
     def test_unsafe_url_rejected(self):
         x=self.issue("Need evidence audit");x["html_url"]="https://evil.test/request"
         self.assertIsNone(evaluate(x))
