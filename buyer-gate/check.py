@@ -33,6 +33,22 @@ def sha(b: bytes) -> str:
     return hashlib.sha256(b).hexdigest()
 
 
+def strict_json_loads(content: str):
+    """Reject ambiguous or non-standard JSON instead of trusting parser-specific behavior."""
+    def unique_keys(pairs):
+        out = {}
+        for key, value in pairs:
+            if key in out:
+                raise GateError("DUPLICATE_JSON_KEY")
+            out[key] = value
+        return out
+
+    def reject_nonfinite(token):
+        raise GateError("NONFINITE_JSON_NUMBER")
+
+    return json.loads(content, object_pairs_hook=unique_keys, parse_constant=reject_nonfinite)
+
+
 def protected_file(root: Path, relative: str) -> Path:
     if not isinstance(relative, str) or not SAFE_PATH.fullmatch(relative):
         raise GateError("INVALID_ARTIFACT_PATH")
@@ -93,14 +109,17 @@ def pointer_value(obj, pointer: str):
 def load_policy(policy_path: Path, expected_digest: str):
     if not isinstance(expected_digest, str) or not HEX.fullmatch(expected_digest):
         raise GateError("INVALID_POLICY_PIN")
-    content = policy_path.read_bytes()
+    with policy_path.open("rb") as handle:
+        content = handle.read(MAX_POLICY_BYTES + 1)
     if len(content) > MAX_POLICY_BYTES:
         raise GateError("POLICY_TOO_LARGE")
     actual = sha(content)
     if actual != expected_digest:
         raise GateError("POLICY_PIN_MISMATCH")
     try:
-        policy = json.loads(content.decode("utf-8"))
+        policy = strict_json_loads(content.decode("utf-8"))
+    except GateError:
+        raise
     except (ValueError, UnicodeError) as exc:
         raise GateError("INVALID_POLICY_JSON") from exc
     if not isinstance(policy, dict) or policy.get("schema") != SCHEMA:
@@ -117,7 +136,7 @@ def load_policy(policy_path: Path, expected_digest: str):
         if not isinstance(rid, str) or not ID.fullmatch(rid) or rid in seen:
             raise GateError("INVALID_OR_DUPLICATE_ID")
         seen.add(rid)
-        if kind not in ALLOWED:
+        if not isinstance(kind, str) or kind not in ALLOWED:
             raise GateError("UNSUPPORTED_REQUIREMENT")
         if not isinstance(requirement.get("path"), str):
             raise GateError("INVALID_ARTIFACT_PATH")
@@ -181,7 +200,7 @@ def check(policy_path: Path, root: Path, expected_policy_digest: str) -> dict:
                     text = contents.decode("utf-8")
                     verdict["result"] = "PASS" if r["needle"] in text else "FAIL"
                 elif r["type"] == "json_pointer_equals":
-                    value = pointer_value(json.loads(contents.decode("utf-8")), r["pointer"])
+                    value = pointer_value(strict_json_loads(contents.decode("utf-8")), r["pointer"])
                     verdict["result"] = (
                         "PASS" if type(value) is type(r["expected"]) and value == r["expected"] else "FAIL"
                     )
