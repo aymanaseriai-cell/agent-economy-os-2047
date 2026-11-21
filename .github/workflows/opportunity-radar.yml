@@ -1,36 +1,72 @@
-name: Public buyer intent radar (read-only)
+name: Public demand radar + persistent CEO research memory
 on:
   schedule:
     - cron: '17 * * * *'
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 concurrency:
   group: public-demand-radar
   cancel-in-progress: false
 jobs:
   public-issue-search:
     runs-on: ubuntu-latest
-    timeout-minutes: 4
+    timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout reviewed code (main)
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Test conservative buyer-intent filter
-        run: python3 -m unittest discover -s tests -p 'test_opportunity_scan.py' -v
-      - name: Discover public candidates, no messages and no payments
-        run: python3 automation/opportunity_scan.py
+      - name: Checkout isolated research memory branch
+        uses: actions/checkout@v4
+        with:
+          ref: ceo-state
+          path: runtime
+          persist-credentials: true
+      - name: Test conservative buyer-intent filter and CEO memory invariants
+        run: |
+          python3 -m unittest discover -s tests -p 'test_opportunity_scan.py' -v
+          python3 -m unittest discover -s tests -p 'test_ceo_memory.py' -v
+      - name: Discover public issue candidates (no messages, contracts or payments)
+        id: search
+        continue-on-error: true
         env:
           OPPORTUNITY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - uses: actions/upload-artifact@v4
+        run: python3 automation/opportunity_scan.py
+      - name: Reconcile bounded research memory and prepare next reviewed action
+        if: always()
+        run: |
+          if [ ! -s opportunity-report.json ]; then
+            echo "No research report produced. Do not overwrite prior memory." >&2
+            exit 1
+          fi
+          python3 automation/ceo_memory.py             --radar opportunity-report.json             --state runtime/ceo-runtime/state.json             --out ceo-decision.json
+      - name: Save memory ONLY when research changed (isolated branch)
+        if: success()
+        working-directory: runtime
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ceo-runtime/state.json
+          if git diff --cached --quiet; then
+            echo "No new external research state; no commit."
+          else
+            git commit -m "chore(ceo-memory): retain bounded public research state [skip ci]"
+            git push origin HEAD:refs/heads/ceo-state
+          fi
+      - name: Publish analysis artifact (not buyer verification)
+        uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: public-opportunity-candidates
+          name: ceo-public-demand-decision
           path: |
             opportunity-report.json
             opportunity-review.md
+            ceo-decision.json
           if-no-files-found: ignore
-          retention-days: 7
+          retention-days: 14
