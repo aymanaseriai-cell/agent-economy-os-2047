@@ -1,0 +1,38 @@
+name: PR114 release preflight - evidence only
+on:
+  pull_request:
+    paths:
+      - 'automation/release_gate_audit.py'
+      - 'tests/test_release_gate_audit.py'
+      - '.github/workflows/release-gate-audit.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+  issues: read
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test fail-closed release auditor
+        run: python3 -m unittest discover -s tests -p 'test_release_gate_audit.py' -v
+      - name: Collect exact-head provider-backed P0 blockers
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -m automation.release_gate_audit --out reports/release-preflight.json
+      - name: Archive truthful report (success does NOT approve deployment)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: blocked-release-preflight
+          path: reports/release-preflight.json
+          if-no-files-found: ignore
+          retention-days: 14
