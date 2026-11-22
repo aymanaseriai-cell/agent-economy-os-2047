@@ -13,6 +13,13 @@
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
+    "https://github.com/0xJ1nn/ezchain/issues/476": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/1StepMore/AutoMedia/issues/629": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -33,6 +40,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Bagelwaffles/aspect-ai-webview-app/issues/279": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
     },
     "https://github.com/Blummer92/agent-os/issues/4079": {
       "days_observed": 1,
@@ -252,9 +266,9 @@
       "tier": "research_only"
     },
     "https://github.com/SAFuDarren/Trellin/issues/111": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 15,
       "tier": "research_only"
     },
@@ -609,16 +623,16 @@
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2694": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 15,
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 15,
       "tier": "research_only"
     },
