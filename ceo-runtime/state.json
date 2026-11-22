@@ -97,6 +97,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/GoldRay19/Civic-Help-Setu/issues/1170": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/IAPro-Community/nexus/issues/110": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -116,6 +123,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/KaranDev316/AI-Enabled-B2B-E-Commerce-Platform-for-Industrial-Pattern-Manufacturing/issues/39": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix/issues/830": {
@@ -336,9 +350,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 14,
       "tier": "research_only"
     },
@@ -636,6 +650,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/thschue/goldie/issues/54": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/tire0011/A2A-hub/issues/9": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -683,6 +704,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/youthofdnation/AI-Lab/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 12,
       "tier": "research_only"
     }
   }
