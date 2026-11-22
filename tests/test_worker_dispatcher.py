@@ -18,7 +18,9 @@ class WorkerDispatchTests(unittest.TestCase):
         calls = []
         def fetch(url):
             calls.append(url)
-            return {"status": "completed", "conclusion": "success", "head_sha": SHA, "html_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44875982406"}
+            return {"status": "completed", "conclusion": "success", "head_sha": SHA, "html_url": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/actions/runs/44875982406",
+                    "path": ".github/workflows/ci.yml",
+                    "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
         result = dispatch(task(), Path("."), fetch)
         self.assertEqual(result["status"], "VERIFIED_READONLY")
         self.assertEqual(result["attempts"], 1)
@@ -29,7 +31,9 @@ class WorkerDispatchTests(unittest.TestCase):
         calls = []
         def fetch(url):
             calls.append(url)
-            return {"status": "completed", "conclusion": "success", "head_sha": SHA if len(calls) % 2 else "a"*40, "html_url": "https://github.com/..."}
+            return {"status": "completed", "conclusion": "success", "head_sha": SHA if len(calls) % 2 else "a"*40, "html_url": "https://github.com/...",
+                    "path": ".github/workflows/ci.yml",
+                    "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
         result = dispatch(task(), Path("."), fetch)
         self.assertEqual(result["status"], "BLOCKED")
         self.assertEqual(result["attempts"], 2)
@@ -37,10 +41,29 @@ class WorkerDispatchTests(unittest.TestCase):
 
     def test_failed_ci_not_success(self):
         def fetch(url):
-            return {"status": "completed", "conclusion": "failure", "head_sha": SHA, "html_url": "https://github.com/..."}
+            return {"status": "completed", "conclusion": "failure", "head_sha": SHA, "html_url": "https://github.com/...",
+                    "path": ".github/workflows/ci.yml",
+                    "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
         result = dispatch(task(), Path("."), fetch)
         self.assertEqual(result["verification"], "CI_NOT_PASSING_ON_EXPECTED_SHA")
         self.assertEqual(result["status"], "BLOCKED")
+
+    def test_other_workflow_or_other_repository_cannot_forge_ci_success(self):
+        base = {"status": "completed", "conclusion": "success", "head_sha": SHA,
+                "path": ".github/workflows/ci.yml",
+                "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
+        cases = [
+            {"path": ".github/workflows/worker-fleet-readonly.yml"},
+            {"repository": {"full_name": "untrusted/repository"}},
+            {"repository": None},
+            {"path": None},
+        ]
+        for mutation in cases:
+            with self.subTest(mutation=mutation):
+                doc = dict(base, **mutation)
+                result = dispatch(task(), Path("."), lambda url: doc)
+                self.assertEqual(result["status"], "BLOCKED")
+                self.assertEqual(result["verification"], "CI_NOT_PASSING_ON_EXPECTED_SHA")
 
     def test_external_issue_is_not_buyer_or_contact_permission(self):
         doc = {"number": 77, "state": "open", "user": {"login": "real-elsewhere"}, "title": "[Service request] Audit"}

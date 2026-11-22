@@ -19,6 +19,8 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 SCHEMA = "aeos2047-worker-dispatch/1"
 OWNER = "aymanaseriai-cell"
 REPO = "agent-economy-os-2047"
+CI_REPOSITORY = f"{OWNER}/{REPO}"
+CI_WORKFLOW_PATH = ".github/workflows/ci.yml"
 TASK_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{2,79}$")
 SHA = re.compile(r"^[a-f0-9]{40}$")
 GITHUB_RUN = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/actions/runs/([1-9][0-9]*)$")
@@ -144,8 +146,11 @@ def _local_digest(root: Path, path: str) -> dict:
 def _ci_snapshot(doc: dict, expected_sha: str) -> dict:
     if not isinstance(doc, dict):
         raise ValueError("INVALID_CI_RECEIPT")
+    repository = doc.get("repository")
+    repository_name = repository.get("full_name") if isinstance(repository, dict) else None
     return {"status": doc.get("status"), "conclusion": doc.get("conclusion"),
             "head_sha": doc.get("head_sha"), "html_url": doc.get("html_url"),
+            "workflow_path": doc.get("path"), "repository_full_name": repository_name,
             "matches_expected_sha": doc.get("head_sha") == expected_sha}
 
 
@@ -248,7 +253,10 @@ def independently_verify(task: dict, result: dict, root: Path, fetch=default_fet
     if actual != result:
         return False, "INDEPENDENT_RECHECK_MISMATCH"
     if task["kind"] == "github_ci_readonly" and not (
-        result["status"] == "completed" and result["conclusion"] == "success" and result["matches_expected_sha"]
+        result["status"] == "completed" and result["conclusion"] == "success"
+        and result["matches_expected_sha"]
+        and result["workflow_path"] == CI_WORKFLOW_PATH
+        and result["repository_full_name"] == CI_REPOSITORY
     ):
         return False, "CI_NOT_PASSING_ON_EXPECTED_SHA"
     if task["kind"] == "github_inbound_readonly":

@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib import Path
 from automation.worker_dispatcher import (default_fetch, GITHUB_ISSUES_LIST,
-    MAIN_BRANCH_URL, MAIN_CI_RUNS_URL, _open_inbound_snapshot)
+    MAIN_BRANCH_URL, MAIN_CI_RUNS_URL, CI_WORKFLOW_PATH, CI_REPOSITORY, _open_inbound_snapshot)
 from automation.worker_fleet import REGISTRY, make_task
 
 
@@ -21,12 +21,19 @@ def prepare_live_jobs(fetch=default_fetch):
     runs = fetch(MAIN_CI_RUNS_URL)
     if not isinstance(runs, dict) or not isinstance(runs.get("workflow_runs"), list):
         raise LivePlanError("MAIN_CI_UNAVAILABLE")
+    # Only the canonical CI workflow in this exact repository can prove CI.
+    # An older completed success must not hide a newer queued/failing run.
     matches = [x for x in runs["workflow_runs"][:20] if isinstance(x, dict)
-               and x.get("head_sha") == sha and x.get("status") == "completed"
+               and x.get("head_sha") == sha
+               and x.get("path") == CI_WORKFLOW_PATH
+               and isinstance(x.get("repository"), dict)
+               and x["repository"].get("full_name") == CI_REPOSITORY
                and type(x.get("id")) is int and x["id"] > 0]
     if not matches:
-        raise LivePlanError("NO_COMPLETED_CI_FOR_CURRENT_MAIN")
-    current_ci = matches[0]  # If failure, dispatcher must report failure, never a pass.
+        raise LivePlanError("NO_CURRENT_MAIN_CANONICAL_CI")
+    current_ci = max(matches, key=lambda x: x["id"])
+    if current_ci.get("status") != "completed":
+        raise LivePlanError("LATEST_CI_NOT_COMPLETED")
     candidates = _open_inbound_snapshot(fetch(GITHUB_ISSUES_LIST))
     issue = candidates["eligible_external_candidates"][0]["issue_number"] if candidates["eligible_external_candidates"] else 112
     ci = {"run_id": current_ci["id"], "expected_head_sha": sha}

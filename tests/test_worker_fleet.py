@@ -14,7 +14,9 @@ def fake_fetch(url):
         return {"ok": True, "service": "agent-work-covenant-2047",
                 "stateless": True, "no_paid_actions": True}
     if "/actions/runs/" in url:
-        return {"status": "completed", "conclusion": "success", "head_sha": SHA}
+        return {"status": "completed", "conclusion": "success", "head_sha": SHA,
+                "path": ".github/workflows/ci.yml",
+                "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
     if url.endswith("/issues/98"):
         return {"number": 98, "state": "open", "updated_at": "2026-11-21T14:00:00Z"}
     if url.endswith("/issues/112"):

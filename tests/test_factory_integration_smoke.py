@@ -20,7 +20,9 @@ def fetch(url):
     if "/issues?state=open" in url:
         return []
     if "/actions/runs/" in url:
-        return {"status": "completed", "conclusion": "success", "head_sha": SHA}
+        return {"status": "completed", "conclusion": "success", "head_sha": SHA,
+                "path": ".github/workflows/ci.yml",
+                "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
     if url.endswith("/health"):
         return {"ok": True, "service": "agent-work-covenant-2047",
                 "stateless": True, "no_paid_actions": True}
@@ -49,7 +51,9 @@ class FactoryIntegrationTests(unittest.TestCase):
     def test_broken_real_ci_fails_closed_instead_of_claiming_success(self):
         def failed_ci(url):
             if "/actions/runs/" in url:
-                return {"status": "completed", "conclusion": "failure", "head_sha": SHA}
+                return {"status": "completed", "conclusion": "failure", "head_sha": SHA,
+                        "path": ".github/workflows/ci.yml",
+                        "repository": {"full_name": "aymanaseriai-cell/agent-economy-os-2047"}}
             return fetch(url)
         report = run_factory_smoke(jobs(), Path("."), fetch=failed_ci)
         self.assertEqual(report["integration_status"], "DEGRADED")
