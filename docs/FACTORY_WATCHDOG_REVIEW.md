@@ -37,3 +37,7 @@ remains scheduled, but its first unattended success must be verified by
 Supabase source, inspect any overlapping jobs, verify the schema constraint
 migration, and test retry idempotency/rollback before applying the change.
 Neither successful unit tests nor a manual test constitutes auto-recovery.
+
+## Executable PostgreSQL review evidence (22 November 2026)
+
+The exact `factory_watchdog_verdict` SQL function is extracted from the review-only source, instantiated inside an ephemeral PostgreSQL 16 service, then checked against 16 SQL-level positive, negative, null-input, pause, drift, in-progress and duplicate-replay-safety cases. The test fails rather than claiming safety if PostgreSQL returns a verdict different from the expected policy. Source and runner: `.github/workflows/watchdog-verdict-postgres.yml`, `infra/supabase/tests/watchdog_verdict_postgres_review.py`. This runner **never connects to real Supabase**, deploys SQL, or edits pg_cron. Human review and release gate #98 remain mandatory for a live safety correction.

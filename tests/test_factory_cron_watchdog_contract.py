@@ -22,6 +22,13 @@ class FactoryCronWatchdogContractTests(unittest.TestCase):
         self.assertIn("THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'", self.sql)
         self.assertIn("'RUN_STATUS_UNCERTAIN_NO_REPLAY'", self.sql)
 
+    def test_missing_input_and_inconsistent_run_state_fail_closed(self):
+        self.assertIn("p_due IS NULL OR p_now IS NULL", self.sql)
+        self.assertIn("p_last_run IS NULL AND p_last_status IS NOT NULL", self.sql)
+        self.assertIn("infra/supabase/tests/watchdog_verdict_postgres_review.py",
+                      (Path(__file__).resolve().parents[1] /
+                       ".github/workflows/watchdog-verdict-postgres.yml").read_text(encoding="utf-8"))
+
     def test_early_observation_rechecks_only_preliminary_state(self):
         self.assertIn("ON CONFLICT(slot,jobid) DO UPDATE", self.sql)
         self.assertIn("IN ('WAIT_EXPECTED_RUN','WARMUP_NOT_DUE')", self.sql)

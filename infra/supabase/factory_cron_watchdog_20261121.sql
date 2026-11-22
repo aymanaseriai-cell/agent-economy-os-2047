@@ -46,7 +46,11 @@ AS $function$
  WHEN NOT coalesce(p_enabled,false) THEN 'PAUSED_NO_OVERRIDE'
  WHEN NOT coalesce(p_config_matches,false) THEN 'CONFIG_DRIFT_BLOCKED'
  WHEN p_first_seen IS NULL OR p_due<=p_first_seen THEN 'WARMUP_NOT_DUE'
+ WHEN p_due IS NULL OR p_now IS NULL THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
  WHEN p_due>p_now-interval '4 minutes' THEN 'WAIT_EXPECTED_RUN'
+ -- Inconsistent missing timestamps/status must never authorize a replay.
+ WHEN p_last_run IS NULL AND p_last_status IS NOT NULL
+   THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
  -- A still-running, incomplete, or unknown cron status must not be replayed.
  WHEN p_last_run IS NOT NULL AND (p_last_status IS NULL OR p_last_status NOT IN ('succeeded','failed'))
    THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
