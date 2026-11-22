@@ -33,3 +33,15 @@ jobs:
             reports/titan_quantum_ci_gate.json
           if-no-files-found: ignore
           retention-days: 14
+
+      - name: Build standalone marketplace ZIP (feature branch only)
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feat/portable-buyer-gate-marketplace-20261122' }}
+        run: python3 distribution/agensi/build_skill.py --out dist/agent-economy-buyer-acceptance-0.1.0.zip
+      - name: Upload standalone marketplace ZIP for review only
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/feat/portable-buyer-gate-marketplace-20261122' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: portable-buyer-acceptance-review-zip
+          path: dist/agent-economy-buyer-acceptance-0.1.0.zip
+          retention-days: 14
+          if-no-files-found: error
