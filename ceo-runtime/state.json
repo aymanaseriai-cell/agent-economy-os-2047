@@ -342,6 +342,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/benyingY/bpai/issues/2": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -378,10 +385,10 @@
       "tier": "research_only"
     },
     "https://github.com/bracha55555-hue/aimarket/issues/131": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 16,
+      "last_seen_day": "2026-11-22",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/celo-org/buy-skill/issues/76": {
@@ -725,6 +732,20 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/taralokha/lokha-mcp/issues/279": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/taralokha/lokha-mcp/issues/280": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/thschue/goldie/issues/54": {
