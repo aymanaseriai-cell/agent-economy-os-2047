@@ -272,6 +272,13 @@
       "score": 18,
       "tier": "research_only"
     },
+    "https://github.com/Plan2Space/agent-bar/issues/63": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/RahulModugula/gemini-hackathon/issues/24": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -350,6 +357,13 @@
       "tier": "research_only"
     },
     "https://github.com/ahed-jneed/ai-assurance/issues/352": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/ahed-jneed/ai-assurance/issues/356": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
@@ -494,6 +508,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/danbri/factoidal-core/issues/801": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 17,
       "tier": "research_only"
     },
     "https://github.com/dwebagents/AgentPipe/issues/1663": {
