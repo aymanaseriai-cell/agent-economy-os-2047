@@ -90,6 +90,13 @@
       "score": 15,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/GaelCT/FastASL/issues/23": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/IAPro-Community/nexus/issues/110": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -518,9 +525,9 @@
       "tier": "research_only"
     },
     "https://github.com/manishiitg/agentworks/issues/3140": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 14,
       "tier": "research_only"
     },
