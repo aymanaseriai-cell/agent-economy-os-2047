@@ -496,6 +496,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/leonidstern/labit/issues/426": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/les-cabochons/ajour-plugins/issues/77": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -676,6 +683,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/wfnuser/cowiki/issues/170": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/writfold-dev/writfold/issues/57": {
