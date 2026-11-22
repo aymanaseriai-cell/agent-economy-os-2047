@@ -24,12 +24,12 @@ def fake_fetch(url):
                 "title": "[Public opt-in offer] Starter", "user": {"login": "aymanaseriai-cell"}}
     if url.endswith("/issues/123"):
         return {"number": 123, "state": "open",
-                "title": "[Service request] public scope", "user": {"login": "real-user"}}
+                "title": "[Service request] public scope", "user": {"login": "real-user", "type": "User"}}
     if "issues?state=open" in url:
         return [
             {"number": 112, "state": "open", "title": "[Public opt-in offer] Starter", "user": {"login": "aymanaseriai-cell"}},
-            {"number": 123, "state": "open", "title": "[Service request] Help", "user": {"login": "real-user"}},
-            {"number": 124, "state": "open", "title": "[Service request] Fake", "user": {"login": "github-actions[bot]"}},
+            {"number": 123, "state": "open", "title": "[Service request] Help", "user": {"login": "real-user", "type": "User"}},
+            {"number": 124, "state": "open", "title": "[Service request] Fake", "user": {"login": "github-actions[bot]", "type": "Bot"}},
         ]
     raise ValueError("UNEXPECTED_PROVIDER_URL")
 

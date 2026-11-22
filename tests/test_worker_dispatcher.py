@@ -2,7 +2,10 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from automation.worker_dispatcher import dispatch, evaluate, PolicyError, main, safe_local_file
+from automation.worker_dispatcher import (
+    dispatch, evaluate, PolicyError, main, safe_local_file, _fetch_open_issues,
+    _open_inbound_snapshot, GITHUB_ISSUES_LIST, MAX_ISSUE_PAGES, default_fetch
+)
 
 SHA = "b56e5946b63d22eda34599ae119fc24fca3f9a1f"
 
@@ -66,7 +69,7 @@ class WorkerDispatchTests(unittest.TestCase):
                 self.assertEqual(result["verification"], "CI_NOT_PASSING_ON_EXPECTED_SHA")
 
     def test_external_issue_is_not_buyer_or_contact_permission(self):
-        doc = {"number": 77, "state": "open", "user": {"login": "real-elsewhere"}, "title": "[Service request] Audit"}
+        doc = {"number": 77, "state": "open", "user": {"login": "real-elsewhere", "type": "User"}, "title": "[Service request] Audit"}
         inbound = task("github_inbound_readonly", "CRO", {"issue_number": 77})
         result = dispatch(inbound, Path("."), lambda url: doc)
         self.assertEqual(result["status"], "VERIFIED_READONLY")
@@ -74,8 +77,58 @@ class WorkerDispatchTests(unittest.TestCase):
         self.assertFalse(result["evidence"]["verified_buyer"])
         self.assertFalse(result["evidence"]["contact_authorized"])
 
+
+    def test_discovers_real_opt_in_on_second_page(self):
+        page1 = [{"number": n, "state": "open", "title": "[Service request] Owner",
+                  "user": {"login": "aymanaseriai-cell", "type": "User"}}
+                 for n in range(1, 101)]
+        page2 = [{"number": 1234, "state": "open", "title": "[Service request] External",
+                  "user": {"login": "real-external", "type": "User"}}]
+        calls = []
+        def fetch(url):
+            calls.append(url)
+            return page1 if url == GITHUB_ISSUES_LIST else page2
+        r = dispatch(task("github_issues_readonly", "CRO", {}), Path("."), fetch)
+        self.assertEqual(r["status"], "VERIFIED_READONLY")
+        self.assertEqual(r["evidence"]["candidate_count"], 1)
+        self.assertEqual(r["evidence"]["eligible_external_candidates"][0]["issue_number"], 1234)
+        self.assertEqual(calls.count(GITHUB_ISSUES_LIST + "&page=2"), 2)
+        self.assertFalse(r["evidence"]["verified_paid_buyers"])
+
+    def test_bot_with_human_sounding_login_is_not_external_buyer(self):
+        bot = {"number": 70, "state": "open", "title": "[Service request] Bot",
+               "user": {"login": "helper-person", "type": "Bot"}}
+        self.assertEqual(_open_inbound_snapshot([bot])["candidate_count"], 0)
+        result = dispatch(task("github_inbound_readonly", "CRO", {"issue_number": 70}),
+                          Path("."), lambda url: bot)
+        self.assertFalse(result["evidence"]["outside_opt_in_candidate"])
+        missing_type = dict(bot, user={"login": "real-external"})
+        self.assertEqual(_open_inbound_snapshot([missing_type])["candidate_count"], 0)
+
+    def test_full_fifth_page_fails_closed(self):
+        called = []
+        def fetch(url):
+            called.append(url)
+            page = 1 if url == GITHUB_ISSUES_LIST else int(url.rsplit("=", 1)[1])
+            return [{"number": page * 1000 + i} for i in range(100)]
+        with self.assertRaisesRegex(PolicyError, "INBOUND_PAGINATION_INCOMPLETE"):
+            _fetch_open_issues(fetch)
+        self.assertEqual(len(called), MAX_ISSUE_PAGES)
+
+    def test_overlap_between_pages_fails_closed(self):
+        first = [{"number": i} for i in range(1, 101)]
+        with self.assertRaisesRegex(PolicyError, "UNSTABLE_ISSUE_PAGINATION"):
+            _fetch_open_issues(lambda url: first if url == GITHUB_ISSUES_LIST else [{"number": 1}])
+
+    def test_unapproved_sixth_page_rejected_without_network(self):
+        from unittest.mock import patch
+        with patch("automation.worker_dispatcher.build_opener") as opener:
+            with self.assertRaisesRegex(PolicyError, "URL_NOT_ALLOWLISTED"):
+                default_fetch(GITHUB_ISSUES_LIST + "&page=6")
+            opener.assert_not_called()
+
     def test_owner_issue_does_not_fake_external_adoption(self):
-        doc = {"number": 112, "state": "open", "user": {"login": "aymanaseriai-cell"}, "title": "[Service request] Audit"}
+        doc = {"number": 112, "state": "open", "user": {"login": "aymanaseriai-cell", "type": "User"}, "title": "[Service request] Audit"}
         result = dispatch(task("github_inbound_readonly", "CRO", {"issue_number": 112}), Path("."), lambda url: doc)
         self.assertFalse(result["evidence"]["outside_opt_in_candidate"])
 

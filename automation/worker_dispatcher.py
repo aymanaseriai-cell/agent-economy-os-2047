@@ -26,6 +26,11 @@ SHA = re.compile(r"^[a-f0-9]{40}$")
 GITHUB_RUN = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/actions/runs/([1-9][0-9]*)$")
 GITHUB_ISSUE = re.compile(rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/issues/([1-9][0-9]*)$")
 GITHUB_ISSUES_LIST = f"https://api.github.com/repos/{OWNER}/{REPO}/issues?state=open&per_page=100"
+GITHUB_ISSUES_PAGE = re.compile(
+    rf"^https://api\.github\.com/repos/{OWNER}/{REPO}/issues\?state=open&per_page=100&page=([2-5])$"
+)
+MAX_ISSUE_PAGES = 5
+MAX_INBOUND_ISSUES = 100 * MAX_ISSUE_PAGES
 HEALTH_URL = "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/health"
 MAIN_BRANCH_URL = f"https://api.github.com/repos/{OWNER}/{REPO}/branches/main"
 MAIN_CI_RUNS_URL = f"https://api.github.com/repos/{OWNER}/{REPO}/actions/workflows/ci.yml/runs?branch=main&per_page=20"
@@ -50,7 +55,9 @@ class _DenyRedirects(HTTPRedirectHandler):
 
 
 def default_fetch(url: str) -> dict:
-    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url in (GITHUB_ISSUES_LIST, HEALTH_URL, MAIN_BRANCH_URL, MAIN_CI_RUNS_URL)):
+    if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url)
+            or GITHUB_ISSUES_PAGE.fullmatch(url)
+            or url in (GITHUB_ISSUES_LIST, HEALTH_URL, MAIN_BRANCH_URL, MAIN_CI_RUNS_URL)):
         raise PolicyError("URL_NOT_ALLOWLISTED")
     headers = {
         "Accept": "application/vnd.github+json",
@@ -157,11 +164,14 @@ def _ci_snapshot(doc: dict, expected_sha: str) -> dict:
 def _inbound_snapshot(doc: dict, number: int) -> dict:
     if not isinstance(doc, dict) or doc.get("number") != number:
         raise ValueError("ISSUE_ID_MISMATCH")
-    actor = (doc.get("user") or {}).get("login", "")
+    user = doc.get("user")
+    actor = user.get("login", "") if isinstance(user, dict) else ""
+    actor_type = user.get("type") if isinstance(user, dict) else None
     title = doc.get("title", "")
     if not isinstance(title, str):
         title = ""
-    is_external = isinstance(actor, str) and bool(actor) and actor.lower() != OWNER and not actor.lower().endswith(("[bot]", "-bot"))
+    is_external = (actor_type == "User" and isinstance(actor, str) and bool(actor)
+                   and actor.lower() != OWNER and not actor.lower().endswith(("[bot]", "-bot")))
     eligible_form = title.startswith("[Service request]") or title.startswith("[Evidence challenge]")
     return {"issue_number": number, "state": doc.get("state"), "author": actor,
             "form_type": "service" if title.startswith("[Service request]") else ("challenge" if title.startswith("[Evidence challenge]") else "other"),
@@ -169,15 +179,40 @@ def _inbound_snapshot(doc: dict, number: int) -> dict:
             "verified_buyer": False, "contact_authorized": False, "payment_verified": False}
 
 
+def _fetch_open_issues(fetch=default_fetch) -> list:
+    """Bounded and complete opt-in read up to 500 issues; fail closed at cap."""
+    collected = []
+    seen = set()
+    for page_number in range(1, MAX_ISSUE_PAGES + 1):
+        url = (GITHUB_ISSUES_LIST if page_number == 1
+               else f"{GITHUB_ISSUES_LIST}&page={page_number}")
+        page = fetch(url)
+        if not isinstance(page, list) or len(page) > 100:
+            raise PolicyError("BAD_INBOUND_ISSUE_PAGE")
+        for doc in page:
+            if not isinstance(doc, dict) or type(doc.get("number")) is not int or doc["number"] < 1:
+                raise PolicyError("BAD_INBOUND_ISSUE_ROW")
+            if doc["number"] in seen:
+                raise PolicyError("UNSTABLE_ISSUE_PAGINATION")
+            seen.add(doc["number"])
+        collected.extend(page)
+        if len(page) < 100:
+            return collected
+    raise PolicyError("INBOUND_PAGINATION_INCOMPLETE")
+
+
 def _open_inbound_snapshot(docs) -> dict:
     """Bounded public request triage; never treats owner or bot posts as buyers."""
-    if not isinstance(docs, list) or len(docs) > 100:
+    if not isinstance(docs, list) or len(docs) > MAX_INBOUND_ISSUES:
         raise ValueError("BAD_ISSUE_LIST")
     candidates = []
     for doc in docs:
         if not isinstance(doc, dict) or doc.get("pull_request") or doc.get("state") != "open":
             continue
-        author = (doc.get("user") or {}).get("login", "")
+        user = doc.get("user")
+        if not isinstance(user, dict) or user.get("type") != "User":
+            continue
+        author = user.get("login", "")
         title = doc.get("title", "")
         if not isinstance(author, str) or not isinstance(title, str):
             continue
@@ -239,7 +274,7 @@ def perform(task: dict, root: Path, fetch=default_fetch) -> dict:
         url = f"https://api.github.com/repos/{OWNER}/{REPO}/issues/{p['issue_number']}"
         return _inbound_snapshot(fetch(url), p["issue_number"])
     if kind == "github_issues_readonly":
-        return _open_inbound_snapshot(fetch(GITHUB_ISSUES_LIST))
+        return _open_inbound_snapshot(_fetch_open_issues(fetch))
     if kind in ("github_issue_readonly", "review_gate_readonly"):
         return _release_gate_snapshot(fetch(f"https://api.github.com/repos/{OWNER}/{REPO}/issues/98"))
     if kind == "http_health_readonly":

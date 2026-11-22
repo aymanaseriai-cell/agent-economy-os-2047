@@ -18,7 +18,7 @@ def provider(url, external=True, matched=True, conclusion="success"):
                  "user": {"login": "aymanaseriai-cell"}}]
         if external:
             base.append({"number": 123, "state": "open", "title": "[Service request] Scope",
-                         "user": {"login": "nonowner-requester"}})
+                         "user": {"login": "nonowner-requester", "type": "User"}})
         return base
     raise ValueError("INVALID_URL")
 

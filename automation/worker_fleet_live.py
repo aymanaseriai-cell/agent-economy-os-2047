@@ -5,7 +5,8 @@ import json
 import sys
 from pathlib import Path
 from automation.worker_dispatcher import (default_fetch, GITHUB_ISSUES_LIST,
-    MAIN_BRANCH_URL, MAIN_CI_RUNS_URL, CI_WORKFLOW_PATH, CI_REPOSITORY, _open_inbound_snapshot)
+    MAIN_BRANCH_URL, MAIN_CI_RUNS_URL, CI_WORKFLOW_PATH, CI_REPOSITORY,
+    _open_inbound_snapshot, _fetch_open_issues)
 from automation.worker_fleet import REGISTRY, make_task
 
 
@@ -34,7 +35,7 @@ def prepare_live_jobs(fetch=default_fetch):
     current_ci = max(matches, key=lambda x: x["id"])
     if current_ci.get("status") != "completed":
         raise LivePlanError("LATEST_CI_NOT_COMPLETED")
-    candidates = _open_inbound_snapshot(fetch(GITHUB_ISSUES_LIST))
+    candidates = _open_inbound_snapshot(_fetch_open_issues(fetch))
     issue = candidates["eligible_external_candidates"][0]["issue_number"] if candidates["eligible_external_candidates"] else 112
     ci = {"run_id": current_ci["id"], "expected_head_sha": sha}
     entries = [
