@@ -108,7 +108,7 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
-      "score": 15,
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/Maximilien-ai/clawmax/issues/416": {
@@ -242,6 +242,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/ankhorage/devtools/issues/889": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
