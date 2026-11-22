@@ -118,6 +118,13 @@
       "score": 22,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/Monster-Orange/den/issues/631": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/Mossad-esc/stellar-footprint-engine/issues/112": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
