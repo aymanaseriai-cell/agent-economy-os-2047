@@ -279,6 +279,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/TrebuchetDynamics/kit/issues/118": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/TrentBest/TheSingularityWorkshop.ServerApp/issues/10": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -340,6 +347,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/arflexx/Airflex/issues/650": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/auscaster/frantic-board/issues/540": {
