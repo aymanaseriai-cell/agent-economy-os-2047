@@ -13,6 +13,13 @@
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
+    "https://github.com/1StepMore/AutoMedia/issues/629": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -102,6 +109,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/Luminous-Dynamics/mycelix/issues/830": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/MSKazemi/novafabric/issues/286": {
