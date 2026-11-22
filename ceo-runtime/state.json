@@ -90,6 +90,41 @@
       "score": 15,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11120": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11122": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11598": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/13379": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/8949": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/GaelCT/FastASL/issues/23": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -286,6 +321,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/auscaster/frantic-board/issues/540": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -427,9 +469,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/84": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 9,
       "tier": "research_only"
     },
@@ -455,9 +497,9 @@
       "tier": "research_only"
     },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
       "score": 12,
       "tier": "research_only"
     },
