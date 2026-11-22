@@ -14,7 +14,7 @@ import re
 import sys
 from pathlib import Path
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 SCHEMA = "aeos2047-worker-dispatch/1"
 OWNER = "aymanaseriai-cell"
@@ -40,6 +40,13 @@ class PolicyError(ValueError):
     """Task violates explicit worker authorization."""
 
 
+class _DenyRedirects(HTTPRedirectHandler):
+    """Never forward a provider request (or GitHub bearer token) to a redirect."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise PolicyError("PROVIDER_REDIRECT_NOT_ALLOWLISTED")
+
+
 def default_fetch(url: str) -> dict:
     if not (GITHUB_RUN.fullmatch(url) or GITHUB_ISSUE.fullmatch(url) or url in (GITHUB_ISSUES_LIST, HEALTH_URL, MAIN_BRANCH_URL, MAIN_CI_RUNS_URL)):
         raise PolicyError("URL_NOT_ALLOWLISTED")
@@ -52,7 +59,9 @@ def default_fetch(url: str) -> dict:
     if token and url.startswith("https://api.github.com/"):
         headers["Authorization"] = "Bearer " + token
     request = Request(url, headers=headers)
-    with urlopen(request, timeout=8) as response:
+    # urllib otherwise follows 301/302 redirects outside the URL allowlist.
+    # Deny redirects before a bearer token can be sent to a new destination.
+    with build_opener(_DenyRedirects()).open(request, timeout=8) as response:
         # Cap provider-controlled response bytes before parsing untrusted JSON.
         body = response.read(MAX_BYTES + 1)
         if len(body) > MAX_BYTES:

@@ -121,11 +121,29 @@ class WorkerDispatchTests(unittest.TestCase):
         import io
         from unittest.mock import patch
         from automation.worker_dispatcher import default_fetch, GITHUB_ISSUES_LIST, MAX_BYTES
-        with patch("automation.worker_dispatcher.urlopen", return_value=io.BytesIO(b'{"ok": true}')):
+        with patch("automation.worker_dispatcher.build_opener") as mocked:
+            mocked.return_value.open.return_value = io.BytesIO(b'{"ok": true}')
             self.assertEqual(default_fetch(GITHUB_ISSUES_LIST), {"ok": True})
-        with patch("automation.worker_dispatcher.urlopen", return_value=io.BytesIO(b" " * (MAX_BYTES + 1))):
+        with patch("automation.worker_dispatcher.build_opener") as mocked:
+            mocked.return_value.open.return_value = io.BytesIO(b" " * (MAX_BYTES + 1))
             with self.assertRaisesRegex(PolicyError, "PROVIDER_BODY_TOO_LARGE"):
                 default_fetch(GITHUB_ISSUES_LIST)
+
+    def test_provider_redirect_is_denied_before_token_leak(self):
+        from urllib.request import Request
+        from unittest.mock import patch
+        from automation.worker_dispatcher import _DenyRedirects, default_fetch, GITHUB_ISSUES_LIST
+        request = Request(GITHUB_ISSUES_LIST, headers={"Authorization": "Bearer fake-token"})
+        with self.assertRaisesRegex(PolicyError, "PROVIDER_REDIRECT_NOT_ALLOWLISTED"):
+            _DenyRedirects().redirect_request(
+                request, None, 302, "Found", {},
+                "https://not-an-approved-provider.example/capture"
+            )
+        with patch("automation.worker_dispatcher.build_opener") as mocked:
+            mocked.return_value.open.side_effect = PolicyError("PROVIDER_REDIRECT_NOT_ALLOWLISTED")
+            with self.assertRaisesRegex(PolicyError, "PROVIDER_REDIRECT_NOT_ALLOWLISTED"):
+                default_fetch(GITHUB_ISSUES_LIST)
+            self.assertIsInstance(mocked.call_args.args[0], _DenyRedirects)
 
     def test_cli_writes_true_receipt_and_rejects_duplicates(self):
         with tempfile.TemporaryDirectory() as d:
