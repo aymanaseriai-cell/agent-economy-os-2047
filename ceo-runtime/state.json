@@ -104,6 +104,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/MSKazemi/novafabric/issues/286": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/Maximilien-ai/clawmax/issues/416": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -461,6 +468,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/lyngon/devkit/issues/13": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/mabrig1/aivideo/issues/16": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -628,6 +642,13 @@
       "last_seen_day": "2026-11-21",
       "score": 22,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/yanaalvasiu/byte/issues/2": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 13,
+      "tier": "research_only"
     }
   }
 }
