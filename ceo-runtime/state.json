@@ -804,6 +804,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/w3c-cg/aikr/issues/40": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/wfnuser/cowiki/issues/170": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
