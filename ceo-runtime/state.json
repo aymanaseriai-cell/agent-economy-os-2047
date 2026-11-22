@@ -300,6 +300,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1298": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/aaf1007/grove-ade/issues/26": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -535,6 +542,13 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/invidias-codem/ai-saas/issues/524": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
       "score": 12,
       "tier": "research_only"
     },
