@@ -461,6 +461,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/holmgr/TheBlackLedger/issues/4": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/humanaios-ui/operations/issues/1057": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -492,6 +499,13 @@
     "https://github.com/kindrat86/agentmail/issues/40": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-22",
+      "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/ktogias/gnostoa/issues/512": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 13,
       "tier": "research_only"
