@@ -202,6 +202,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/MahyarJ/spacory/issues/140": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/Maximilien-ai/clawmax/issues/416": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -332,6 +339,20 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/ahed-jneed/ai-assurance/issues/345": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/ahed-jneed/ai-assurance/issues/352": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
       "score": 9,
       "tier": "research_only"
     },
@@ -692,6 +713,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/meirco199-prog/bikur/issues/294": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/nwverse/persona/issues/12697": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -704,6 +732,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/openclaw/openclaw/issues/191730": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-22",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
