@@ -31,11 +31,12 @@ def synthetic_reviewonly_orders() -> list[dict]:
 
 
 def run_factory_smoke(live_jobs: list, root: Path, fetch=None) -> dict:
-    plan = plan_dispatch(synthetic_reviewonly_orders())
+    orders = synthetic_reviewonly_orders()
+    plan = plan_dispatch(orders)
     if any(choice["disposition"] != "REVIEW_ONLY_ACTION_ELIGIBLE"
            for choice in plan["selected"]):
         raise PolicyError("FACTORY_SMOKE_ROLE_SELECTION_FAILED")
-    receipt = execute_reviewonly(plan, live_jobs, root, fetch=fetch)
+    receipt = execute_reviewonly(plan, live_jobs, root, fetch=fetch, source_orders=orders)
     results = receipt["receipts"]
     verified = receipt["technically_verified_readonly_count"]
     return {

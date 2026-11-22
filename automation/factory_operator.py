@@ -2,6 +2,7 @@
 """Executive-led, fail-closed specialist dispatch. Nonproduction review-only."""
 from __future__ import annotations
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -27,6 +28,7 @@ ALLOWED_ACTION = {
     "AEOS-W12": "RECONCILE_SETTLEMENT_VS_INQUIRY",
 }
 STATES = {"QUEUED", "IN_PROGRESS", "VERIFIED", "BLOCKED", "NEEDS_APPROVAL"}
+SAFE_ORDER_FIELDS = frozenset({"work_key", "owner_role", "action_code", "work_status", "priority", "proof_ref"})
 assert len(REGISTRY) == len(ALLOWED_ACTION) == 12
 
 def plan_dispatch(orders: list) -> dict:
@@ -38,6 +40,9 @@ def plan_dispatch(orders: list) -> dict:
     for order in orders:
         if not isinstance(order, dict):
             raise PolicyError("INVALID_WORK_ORDER")
+        # Prevent accidental export of customer information or credential-bearing rows.
+        if set(order) - SAFE_ORDER_FIELDS:
+            raise PolicyError("UNSAFE_WORK_ORDER_EXPORT_FIELDS")
         key = order.get("work_key")
         if not isinstance(key, str) or not key.startswith(PREFIX):
             raise PolicyError("UNTRUSTED_WORK_KEY")
@@ -93,13 +98,15 @@ def plan_dispatch(orders: list) -> dict:
                            "worker_id": worker_id, "work_key": key,
                            "priority": priority, "source_status": status,
                            "action_code": ALLOWED_ACTION[worker_id]})
+    digest = hashlib.sha256(json.dumps(orders, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
     return {"schema": SCHEMA, "configured_workers": 12, "executives": 4,
-            "orders_inspected": len(orders), "selected": selections,
+            "orders_inspected": len(orders), "source_orders_sha256": digest,
+            "selected": selections,
             "execution_status": "DECISION_ONLY_NOT_WORKER_EXECUTION",
             "production_release_authorized": False, "funds_moved": False,
             "customer_contact_authorized": False, "independent_llm_sessions": 0}
 
-def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> dict:
+def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, source_orders=None) -> dict:
     """Execute only selected review-only worker probes via existing allowlisted dispatcher."""
     if plan.get("schema") != SCHEMA or plan.get("production_release_authorized") is not False:
         raise PolicyError("INVALID_FACTORY_PLAN")
@@ -130,6 +137,13 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
         priority = choice.get("priority")
         if type(priority) is not int or not 1 <= priority <= 5:
             raise PolicyError("FORGED_PRIORITY")
+    # A caller may not mutate a manager decision after planning. Recompute the
+    # full plan from the exact bounded source snapshot before ANY dispatch.
+    # This binds execution to input consistency, not to independent DB identity.
+    if source_orders is None:
+        raise PolicyError("SOURCE_WORK_ORDERS_REQUIRED")
+    if plan != plan_dispatch(source_orders):
+        raise PolicyError("PLAN_SOURCE_SNAPSHOT_MISMATCH")
     # Recheck interrupted read-only probes. This is safe only because the
     # worker fleet has no write, payment, customer-contact or deploy capability.
     selected = [o["worker_id"] for o in choices
@@ -138,7 +152,8 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
     if not selected:
         return {"execution_status": "NO_ELIGIBLE_WORK_TO_EXECUTE",
                 "dispatched_count": 0, "technically_verified_readonly_count": 0,
-                "receipts": [], "production_changes": False}
+                "receipts": [], "production_changes": False,
+                "source_orders_sha256": plan["source_orders_sha256"]}
     if not isinstance(live_jobs, list):
         raise PolicyError("MISSING_LIVE_JOBS")
     available = {}
@@ -157,21 +172,36 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None) -> d
                 o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" for o in choices),
             "technically_verified_readonly_count": result["technically_verified_readonly_count"],
             "receipts": result["receipts"],
-            "production_changes": False, "independent_llm_sessions": 0}
+            "production_changes": False, "independent_llm_sessions": 0,
+            "source_orders_sha256": plan["source_orders_sha256"]}
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument("--orders", type=Path, required=True)
-    parser.add_argument("--jobs", type=Path)
+    jobs_group = parser.add_mutually_exclusive_group()
+    jobs_group.add_argument("--jobs", type=Path)
+    jobs_group.add_argument("--auto-live-jobs", action="store_true",
+                            help="Discover current public allowlisted read-only worker checks")
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--out", type=Path, required=True)
     a = parser.parse_args(argv)
     try:
         orders = json.loads(a.orders.read_text(encoding="utf-8"))
         plan = plan_dispatch(orders)
-        if a.jobs is not None:
+        if a.jobs is not None or a.auto_live_jobs:
+            if a.auto_live_jobs:
+                eligible = any(c["disposition"] in (
+                    "REVIEW_ONLY_ACTION_ELIGIBLE", "VERIFY_IN_PROGRESS_FIRST")
+                    for c in plan["selected"])
+                if eligible:
+                    from automation.worker_fleet_live import prepare_live_jobs
+                    live_jobs = prepare_live_jobs()["jobs"]
+                else:
+                    live_jobs = []  # No provider calls for blocked/approval-only queues.
+            else:
+                live_jobs = json.loads(a.jobs.read_text(encoding="utf-8"))
             plan["reviewonly_execution"] = execute_reviewonly(
-                plan, json.loads(a.jobs.read_text(encoding="utf-8")), a.root)
+                plan, live_jobs, a.root, source_orders=orders)
         a.out.parent.mkdir(parents=True, exist_ok=True)
         a.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print("EXECUTIVE_FACTORY: %d validated work orders; %d role decisions; no production actions"

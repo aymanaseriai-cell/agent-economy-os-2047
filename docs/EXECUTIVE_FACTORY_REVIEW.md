@@ -30,3 +30,11 @@ The operator is PR code, not a new default-branch scheduler, independent human r
 3. Determine how genuinely authorized executive sessions will retrieve private, non-sensitive work orders and submit actions with isolated role-scoped credentials, audit logs, retries and revocation.
 4. Add approval-gated release controls and rollback tests; close #98 only after all P0 prerequisites.
 5. Track actual unattended end-to-end work separately from successful read-only checks; never claim 100% autonomy from test volume.
+
+## Source-bound read-only execution (2026-11-22 review update)
+
+The executor now **requires the same limited, operator-exported source order rows** that generated the manager plan. It independently recalculates the entire plan, checks an auditable SHA-256 of the source snapshot and rejects any altered role, priority, status, or extra private fields before dispatch. This is a consistency check, **not proof of independent Supabase authentication or signed orders**. Keep source orders private and do not treat the digest as a signature.
+
+For a local private export, use `--auto-live-jobs` instead of manually curating an allowlisted GitHub worker-job file. Only if an eligible order exists does the tool read current public GitHub evidence and construct bounded read-only jobs. With all orders blocked, verified or awaiting approval, no provider execution occurs; the outcome reports zero rather than creating synthetic work.
+
+Do not enable this as a production scheduler before #98 and independently reviewed real work-order authentication, replay-resistant state transition control and rollback are complete.
