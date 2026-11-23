@@ -286,6 +286,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/NotSleeply/aiHelp/issues/4": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/OWASP/Agentic-Evidence/issues/15": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -1000,6 +1007,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/mctlhq/mctl-gitops/issues/2978": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/meirco199-prog/bikur/issues/294": {
       "days_observed": 2,
       "first_seen_day": "2026-11-22",
@@ -1019,6 +1033,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/oneshot-agent/sdk/issues/10": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/openai/codex/issues/63179": {
@@ -1110,6 +1131,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/tanaabased/openclaw-agent-system/issues/447": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/tanyapruck/orasqill/issues/23": {
