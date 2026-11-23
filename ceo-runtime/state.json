@@ -105,30 +105,30 @@
       "tier": "manual_buyer_intent_review"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11120": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 9,
       "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11122": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 9,
       "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11598": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 9,
       "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/13379": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
@@ -203,9 +203,9 @@
       "tier": "research_only"
     },
     "https://github.com/MahyarJ/spacory/issues/140": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 17,
       "tier": "research_only"
     },
@@ -238,9 +238,9 @@
       "tier": "research_only"
     },
     "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 14,
       "tier": "research_only"
     },
@@ -315,9 +315,9 @@
       "tier": "research_only"
     },
     "https://github.com/TychiWallet/agent-finance/issues/1": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 18,
       "tier": "research_only"
     },
@@ -399,9 +399,9 @@
       "tier": "research_only"
     },
     "https://github.com/arflexx/Airflex/issues/650": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 10,
       "tier": "research_only"
     },
@@ -490,9 +490,9 @@
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
@@ -504,16 +504,16 @@
       "tier": "research_only"
     },
     "https://github.com/corneym/Exam/issues/276": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
     "https://github.com/danbri/factoidal-core/issues/801": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 17,
       "tier": "research_only"
     },
@@ -538,6 +538,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/frankxai/starlight-intelligence/issues/12": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 20,
+      "tier": "research_only"
+    },
     "https://github.com/fyannk/pgToolBox/issues/135": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -546,23 +553,23 @@
       "tier": "research_only"
     },
     "https://github.com/google-agentic-commerce/a2a-x402/issues/198": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 10,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 13,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/83": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 13,
       "tier": "research_only"
     },
@@ -574,9 +581,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/85": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
@@ -588,9 +595,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/cloud/issues/39": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 19,
       "tier": "research_only"
     },
@@ -644,9 +651,9 @@
       "tier": "research_only"
     },
     "https://github.com/kindrat86/agentmail/issues/40": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 13,
       "tier": "research_only"
     },
@@ -728,16 +735,23 @@
       "tier": "research_only"
     },
     "https://github.com/matthewjameswatkins1978-cyber/pepin/issues/16": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 17,
       "tier": "research_only"
     },
     "https://github.com/meirco199-prog/bikur/issues/294": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/neilkpatel/whatagentsbuy/issues/16": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
       "score": 14,
       "tier": "research_only"
     },
@@ -749,16 +763,16 @@
       "tier": "research_only"
     },
     "https://github.com/openai/codex/issues/63179": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 10,
       "tier": "research_only"
     },
     "https://github.com/openclaw/openclaw/issues/191730": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
@@ -777,9 +791,9 @@
       "tier": "research_only"
     },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-23",
       "score": 12,
       "tier": "research_only"
     },
@@ -903,9 +917,9 @@
       "tier": "research_only"
     },
     "https://github.com/x402-foundation/x402/issues/2833": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 15,
       "tier": "research_only"
     },
