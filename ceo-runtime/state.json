@@ -532,9 +532,9 @@
       "tier": "research_only"
     },
     "https://github.com/champion5566/tw-stock-agent/issues/41": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 22,
       "tier": "research_only"
     },
@@ -581,6 +581,41 @@
       "tier": "research_only"
     },
     "https://github.com/compliance-framework/docs/issues/172": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/173": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/174": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/175": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/176": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/177": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
@@ -781,6 +816,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/lbacik/agent-operator-contract/issues/49": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/leonidstern/labit/issues/426": {
