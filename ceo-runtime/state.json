@@ -287,9 +287,9 @@
       "tier": "research_only"
     },
     "https://github.com/Pi-Defi-world/acbu-backend/issues/1380": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 18,
       "tier": "research_only"
     },
@@ -375,6 +375,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1300": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 21,
       "tier": "research_only"
     },
     "https://github.com/aaf1007/grove-ade/issues/26": {
@@ -541,6 +548,41 @@
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
       "days_observed": 3,
       "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/168": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/169": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/170": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/171": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/172": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
@@ -906,6 +948,13 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/reppiks490/builds/issues/1": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
       "score": 15,
       "tier": "research_only"
     },
