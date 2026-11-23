@@ -391,6 +391,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/Xander-Xai/Customer-Service-AI-Agent/issues/31": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 18,
+      "tier": "research_only"
+    },
     "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1298": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -529,6 +536,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/blur88/erp2/issues/2047": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/bracha55555-hue/aimarket/issues/131": {
@@ -846,6 +860,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/jateeter/localOpenClawStack/issues/84": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/jdueadev/verified-agent-containment/issues/44": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -902,6 +923,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/littlemex/distai-platform/issues/38": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/loftwah/app-composer/issues/597": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -952,16 +980,16 @@
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2694": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 15,
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 15,
       "tier": "research_only"
     },
