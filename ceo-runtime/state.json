@@ -251,6 +251,13 @@
       "score": 22,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/MokuTeam/herdr-agent-board/issues/634": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/Monster-Orange/den/issues/631": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -636,6 +643,20 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/compliance-framework/docs/issues/179": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/compliance-framework/docs/issues/180": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/continuedev/continue/issues/13498": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -741,6 +762,20 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/groktopus/proprio/issues/190": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/groktopus/proprio/issues/223": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 19,
+      "tier": "research_only"
+    },
     "https://github.com/hanzoai/agents/issues/82": {
       "days_observed": 3,
       "first_seen_day": "2026-11-21",
@@ -784,9 +819,9 @@
       "tier": "research_only"
     },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 12,
       "tier": "research_only"
     },
@@ -1075,6 +1110,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/tedeuxx/mhw/issues/579": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 17,
       "tier": "research_only"
     },
     "https://github.com/thschue/goldie/issues/54": {
