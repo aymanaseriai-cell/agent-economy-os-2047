@@ -14,8 +14,8 @@ import sys
 ROOT = Path(__file__).resolve().parents[3]
 SOURCE = ROOT / "infra/supabase/factory_watchdog_freeze_replay_20261123.sql"
 FUNCTION = re.compile(
-    r"(CREATE OR REPLACE FUNCTION executive_nexus\\.factory_watchdog_verdict\\("
-    r"[\\s\\S]*?\\$function\\$;)"
+    r"(CREATE OR REPLACE FUNCTION executive_nexus\.factory_watchdog_verdict\("
+    r"[\s\S]*?\$function\$;)"
 )
 
 
