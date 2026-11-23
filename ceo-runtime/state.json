@@ -146,6 +146,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/Flanxiyum001/Ryoko/issues/49": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 18,
+      "tier": "research_only"
+    },
     "https://github.com/GaelCT/FastASL/issues/23": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -193,6 +200,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/Khushialm/wavygo-saas-structure/issues/14": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix/issues/830": {
@@ -333,6 +347,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
       "score": 18,
+      "tier": "research_only"
+    },
+    "https://github.com/V1P3eR1/Core8-AI/issues/24": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/WHEELBACK/COMEBACKHERE-contracts/issues/873": {
@@ -511,9 +532,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 14,
       "tier": "research_only"
     },
@@ -545,6 +566,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/decentespresso/decaid/issues/1202": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/dwebagents/AgentPipe/issues/1663": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -558,6 +586,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/eltmon/overdeck/issues/5619": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 15,
+      "tier": "research_only"
     },
     "https://github.com/estyseesghosts/unowa/issues/28": {
       "days_observed": 1,
@@ -991,6 +1026,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/youling/TraceScalpel/issues/7": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 21,
       "tier": "research_only"
     },
     "https://github.com/youthofdnation/AI-Lab/issues/9": {
