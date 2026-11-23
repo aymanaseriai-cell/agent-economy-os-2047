@@ -1,0 +1,42 @@
+name: Agent Economy security scan - CodeQL Python (review only)
+
+# Static analysis only. No deploy, code mutation, spending or customer contact.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/codeql-pr-security.yml'
+      - 'automation/**'
+      - 'infra/supabase/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: aeos2047-codeql-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  python-sast:
+    # On forked pull requests the GITHUB_TOKEN cannot upload code-scanning
+    # results safely; never use pull_request_target to elevate its privileges.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize GitHub CodeQL for Python
+        uses: github/codeql-action/init@v4
+        with:
+          languages: python
+          queries: security-extended
+      - name: Analyze Python code and publish findings to GitHub code scanning
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:python'
