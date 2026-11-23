@@ -46,3 +46,5 @@ jobs:
           fi
       - name: Test actual SQL verdict in isolated PostgreSQL, no Supabase credentials
         run: python3 infra/supabase/tests/watchdog_verdict_postgres_review.py
+      - name: Verify emergency replay-freeze rollback in isolated PostgreSQL
+        run: python3 infra/supabase/tests/watchdog_freeze_postgres_review.py
