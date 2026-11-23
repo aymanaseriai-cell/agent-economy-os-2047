@@ -27,6 +27,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/45s/coinzilla/issues/1754": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -273,9 +280,9 @@
       "tier": "research_only"
     },
     "https://github.com/Plan2Space/agent-bar/issues/63": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 11,
       "tier": "research_only"
     },
@@ -299,6 +306,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/Tanu1007/StigmergyWorm/issues/2": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 22,
+      "tier": "research_only"
     },
     "https://github.com/TrebuchetDynamics/kit/issues/118": {
       "days_observed": 1,
@@ -882,9 +896,9 @@
       "tier": "research_only"
     },
     "https://github.com/tonydzi/awesome-verified-agents/issues/14": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 15,
       "tier": "research_only"
     },
