@@ -412,6 +412,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/ankhorage/rules-repository/issues/39": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/anonb3ll/ua-rust/issues/111": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -476,9 +483,9 @@
       "tier": "research_only"
     },
     "https://github.com/bracha55555-hue/aimarket/issues/131": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
       "score": 10,
       "tier": "research_only"
     },
@@ -552,11 +559,25 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/estyseesghosts/unowa/issues/28": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/faberline/sift/issues/330": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/fission-systems/Fission/issues/1083": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/frankxai/starlight-intelligence/issues/12": {
@@ -893,6 +914,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/taspinar/agent-codeyard/issues/408": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 16,
       "tier": "research_only"
     },
     "https://github.com/thschue/goldie/issues/54": {
