@@ -31,7 +31,7 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
-      "score": 16,
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
@@ -412,6 +412,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/anonb3ll/ua-rust/issues/111": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/arflexx/Airflex/issues/650": {
       "days_observed": 2,
       "first_seen_day": "2026-11-22",
@@ -725,6 +732,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/manaflow-ai/cmux/issues/51506": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/manishiitg/agentworks/issues/3140": {
