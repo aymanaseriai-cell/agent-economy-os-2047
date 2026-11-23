@@ -62,6 +62,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/ArcadeAI/safeword/issues/8234": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Bagelwaffles/aspect-ai-webview-app/issues/279": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -284,6 +291,20 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/Nmoreland51/Nmoreland51-Nmoreland51-cognitive-nexus-2.0/issues/3": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/Nmoreland51/Nmoreland51-Nmoreland51-cognitive-nexus-2.0/issues/6": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/NotSleeply/aiHelp/issues/4": {
@@ -846,6 +867,13 @@
       "score": 19,
       "tier": "research_only"
     },
+    "https://github.com/harmoniqs/amicode/issues/1309": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
       "days_observed": 3,
       "first_seen_day": "2026-11-21",
@@ -900,6 +928,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/jortega0033/paginated-word-processor/issues/39": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/kindrat86/agentmail/issues/40": {
@@ -1024,6 +1059,20 @@
     "https://github.com/meirco199-prog/bikur/issues/294": {
       "days_observed": 2,
       "first_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/morluto/rea/issues/14187": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/mouzzlii/Kreislauf/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 14,
       "tier": "research_only"
