@@ -41,6 +41,20 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/AimTune/ilmek/issues/34": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/AimTune/mekik/issues/56": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -706,11 +720,25 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/genfeedai/genfeed.ai/issues/5132": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/google-agentic-commerce/a2a-x402/issues/198": {
       "days_observed": 3,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/groktopus/proprio/issues/146": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
