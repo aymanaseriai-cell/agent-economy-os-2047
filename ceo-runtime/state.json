@@ -349,6 +349,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/Spellguard/spellguard/issues/8": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-23",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/Tanu1007/StigmergyWorm/issues/2": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -402,7 +409,7 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
-      "score": 18,
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1298": {
