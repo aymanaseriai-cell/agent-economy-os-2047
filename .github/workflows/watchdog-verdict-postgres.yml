@@ -4,6 +4,8 @@ on:
     paths:
       - 'infra/supabase/factory_cron_watchdog_20261121.sql'
       - 'infra/supabase/tests/watchdog_verdict_postgres_review.py'
+      - 'infra/supabase/factory_watchdog_freeze_replay_20261123.sql'
+      - 'infra/supabase/tests/watchdog_freeze_postgres_review.py'
       - '.github/workflows/watchdog-verdict-postgres.yml'
   workflow_dispatch:
 permissions:
