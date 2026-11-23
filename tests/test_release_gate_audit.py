@@ -70,6 +70,28 @@ class ReleasePreflightTests(unittest.TestCase):
         f[runs_url(HEAD)]["workflow_runs"].append(newer)
         self.assertFalse(run(f)["ci"][WORKFLOWS[0]]["passed"])
 
+    def test_codeql_scan_is_required_and_missing_fails_closed(self):
+        scan = ".github/workflows/codeql-pr-security.yml"
+        self.assertIn(scan, WORKFLOWS)
+        f = fixture()
+        f[runs_url(HEAD)]["workflow_runs"] = [
+            run for run in f[runs_url(HEAD)]["workflow_runs"] if run["path"] != scan
+        ]
+        result = run(f)
+        self.assertTrue(result["ci"][WORKFLOWS[0]]["passed"])
+        self.assertFalse(result["ci"][scan]["passed"])
+        self.assertIn("NO_CURRENT_CI:" + scan, result["blockers"])
+        self.assertFalse(result["production_authorized"])
+
+    def test_newest_codeql_failure_blocks_older_success(self):
+        scan = ".github/workflows/codeql-pr-security.yml"
+        f = fixture()
+        older = next(x for x in f[runs_url(HEAD)]["workflow_runs"] if x["path"] == scan)
+        newer = copy.deepcopy(older)
+        newer.update({"id": 9999, "status": "completed", "conclusion": "failure"})
+        f[runs_url(HEAD)]["workflow_runs"].append(newer)
+        self.assertFalse(run(f)["ci"][scan]["passed"])
+
     def test_truncated_reviews_fail_closed(self):
         f = fixture()
         f[REVIEWS_URL] *= 100

@@ -14,7 +14,8 @@ REVIEWS_URL = PR_URL + "/reviews?per_page=100"
 GATE_URL = BASE + "/issues/98"
 WORKFLOWS = (".github/workflows/ci.yml",
              ".github/workflows/worker-fleet-readonly.yml",
-             ".github/workflows/watchdog-verdict-postgres.yml")
+             ".github/workflows/watchdog-verdict-postgres.yml",
+             ".github/workflows/codeql-pr-security.yml")
 
 class ReviewError(ValueError):
     pass
