@@ -28,6 +28,60 @@ def extracted_function() -> str:
     return hits[0]
 
 
+def constraint_migration_sql() -> str:
+    """Rehearse the exact constraint DDL against the previous verdict domain.
+
+    Synthetic historical rows cover all previously allowed statuses; this is
+    not a copy of production data or a full production migration rehearsal.
+    """
+    raw = SOURCE.read_text(encoding="utf-8")
+    pattern = re.compile(
+        r"(ALTER TABLE executive_nexus\.factory_cron_watchdog_checks\s+"
+        r"DROP CONSTRAINT IF EXISTS factory_cron_watchdog_checks_verdict_check;\s*"
+        r"ALTER TABLE executive_nexus\.factory_cron_watchdog_checks\s+"
+        r"ADD CONSTRAINT factory_cron_watchdog_checks_verdict_check CHECK\(verdict IN \([\s\S]*?\)\);)"
+    )
+    hits = pattern.findall(raw)
+    if len(hits) != 1:
+        raise ValueError("EXACT_VERDICT_CONSTRAINT_MIGRATION_NOT_FOUND")
+    return """
+CREATE TABLE executive_nexus.factory_cron_watchdog_checks (
+    verdict text NOT NULL CONSTRAINT factory_cron_watchdog_checks_verdict_check
+    CHECK (verdict IN (
+      'EVALUATING','HEALTHY','PAUSED_NO_OVERRIDE','CONFIG_DRIFT_BLOCKED',
+      'WARMUP_NOT_DUE','WAIT_EXPECTED_RUN','READONLY_REPLAY_SUCCEEDED',
+      'READONLY_REPLAY_FAILED'))
+);
+INSERT INTO executive_nexus.factory_cron_watchdog_checks VALUES
+ ('EVALUATING'),('HEALTHY'),('PAUSED_NO_OVERRIDE'),('CONFIG_DRIFT_BLOCKED'),
+ ('WARMUP_NOT_DUE'),('WAIT_EXPECTED_RUN'),('READONLY_REPLAY_SUCCEEDED'),
+ ('READONLY_REPLAY_FAILED');
+""" + hits[0] + """
+DO $migration_test$
+BEGIN
+  IF (SELECT count(*) FROM executive_nexus.factory_cron_watchdog_checks) <> 8 THEN
+    RAISE EXCEPTION 'VERDICT_MIGRATION_HISTORICAL_ROWS_LOST';
+  END IF;
+  INSERT INTO executive_nexus.factory_cron_watchdog_checks
+    VALUES ('RUN_STATUS_UNCERTAIN_NO_REPLAY');
+  BEGIN
+    INSERT INTO executive_nexus.factory_cron_watchdog_checks VALUES ('REPLAY_ELIGIBLE');
+    RAISE EXCEPTION 'VERDICT_MIGRATION_ACCEPTED_INTERNAL_DECISION';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  BEGIN
+    INSERT INTO executive_nexus.factory_cron_watchdog_checks VALUES ('UNKNOWN');
+    RAISE EXCEPTION 'VERDICT_MIGRATION_ACCEPTED_UNKNOWN';
+  EXCEPTION WHEN check_violation THEN NULL;
+  END;
+  IF (SELECT count(*) FROM executive_nexus.factory_cron_watchdog_checks) <> 9 THEN
+    RAISE EXCEPTION 'VERDICT_MIGRATION_UNEXPECTED_ROW_COUNT';
+  END IF;
+  RAISE NOTICE 'PASS exact constraint migration: 8 historical statuses, new fail-closed status, two rejected invalid statuses';
+END $migration_test$;
+"""
+
+
 def test_sql() -> str:
     due = "v_due"
     first = "v_first"
@@ -65,6 +119,7 @@ def test_sql() -> str:
         )
     return (
         "BEGIN;\nCREATE SCHEMA executive_nexus;\n"
+        + constraint_migration_sql()
         + extracted_function()
         + "\nDO $tests$\nDECLARE\n"
         + "  v_due timestamptz := '2026-11-22 05:19:00+00';\n"
