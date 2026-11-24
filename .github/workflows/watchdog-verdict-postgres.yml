@@ -6,6 +6,7 @@ on:
       - 'infra/supabase/tests/watchdog_verdict_postgres_review.py'
       - 'infra/supabase/factory_watchdog_freeze_replay_20261123.sql'
       - 'infra/supabase/tests/watchdog_freeze_postgres_review.py'
+      - 'infra/supabase/tests/watchdog_migration_postgres_review.py'
       - '.github/workflows/watchdog-verdict-postgres.yml'
   workflow_dispatch:
 permissions:
@@ -16,7 +17,7 @@ jobs:
     timeout-minutes: 7
     services:
       postgres:
-        image: postgres:16-alpine
+        image: postgres:17-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: isolated_ci_only
@@ -50,3 +51,5 @@ jobs:
         run: python3 infra/supabase/tests/watchdog_verdict_postgres_review.py
       - name: Verify emergency replay-freeze rollback in isolated PostgreSQL
         run: python3 infra/supabase/tests/watchdog_freeze_postgres_review.py
+      - name: Rehearse legacy constraint migration and compensating rollback on PostgreSQL 17
+        run: python3 infra/supabase/tests/watchdog_migration_postgres_review.py
