@@ -237,6 +237,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/HospitiumRIS/HospitiumRIS/issues/147": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/IAPro-Community/nexus/issues/110": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -277,6 +284,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-24",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/Luminous-Dynamics/mycelix-health/issues/317": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 21,
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix/issues/830": {
@@ -531,6 +545,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/agentcommercekit/ack/issues/217": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/ahed-jneed/ai-assurance/issues/345": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -553,6 +574,13 @@
       "tier": "research_only"
     },
     "https://github.com/ai-timon/timon/issues/146": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/aibtcdev/agent-news/issues/917": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
@@ -676,6 +704,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/cascode-ai/analog-canvas/issues/2546": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/celo-org/buy-skill/issues/76": {
@@ -1287,6 +1322,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/opendefender/OpenRisk/issues/552": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -1411,6 +1453,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/ther12k/lugas/issues/462": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/thschue/goldie/issues/54": {
