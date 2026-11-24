@@ -97,7 +97,7 @@ DO $$DECLARE s text; v text; BEGIN
  FOREACH s IN ARRAY ARRAY['running','starting','failed','succeeded'] LOOP
  v:=executive_nexus.factory_watchdog_verdict(true,true,'2026-11-23 08:19+00','2026-11-22 08:00+00',
  '2026-11-23 08:20+00',s,'2026-11-23 08:26+00');
- IF v IS DISTINCT FROM CASE WHEN s='succeeded' THEN 'HEALTHY' ELSE 'RUN_STATUS_UNCERTAIN_NO_REPLAY' END
+ IF v IS DISTINCT FROM (CASE WHEN s='succeeded' THEN 'HEALTHY' ELSE 'RUN_STATUS_UNCERTAIN_NO_REPLAY' END)
  THEN RAISE EXCEPTION 'freeze mismatch % %',s,v; END IF;
  END LOOP;
  IF EXISTS(SELECT * FROM original_rows EXCEPT SELECT * FROM executive_nexus.factory_cron_watchdog_checks)
