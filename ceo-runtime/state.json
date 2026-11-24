@@ -370,6 +370,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/Norn-cloud/norn/issues/1418": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/NotSleeply/aiHelp/issues/4": {
       "days_observed": 2,
       "first_seen_day": "2026-11-23",
@@ -627,6 +634,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/anotherhale/str-ready-room/issues/15": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/arflexx/Airflex/issues/650": {
@@ -1196,6 +1210,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/lumbinitechnologies/skillarc/issues/108": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/lyngon/devkit/issues/13": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -1231,17 +1252,24 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/manvirt97/trading-platform/issues/53": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/marius-patrik/DarkFactory/issues/2694": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
@@ -1334,6 +1362,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-24",
       "score": 16,
+      "tier": "research_only"
+    },
+    "https://github.com/phuc-minu/Khondi/issues/25": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/ppenumatsa1/agent-blueprints/issues/25": {
