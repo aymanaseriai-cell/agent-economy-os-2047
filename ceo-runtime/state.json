@@ -587,6 +587,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/agentnameservice/ans/issues/96": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/ahed-jneed/ai-assurance/issues/345": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -1064,9 +1071,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/86": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-24",
       "score": 9,
       "tier": "research_only"
     },
@@ -1075,6 +1082,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/hanzoai/cloud/issues/36": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/cloud/issues/39": {
