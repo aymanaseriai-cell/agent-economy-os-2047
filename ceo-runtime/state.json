@@ -55,6 +55,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/AndreLiar/Portfolio/issues/20": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Andy963/ads/issues/676": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -123,6 +130,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/Comfy-Org/ComfyUI_frontend/issues/24212": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/CtrlCarlitos/agent-guardrails/issues/96": {
@@ -991,6 +1005,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/hubisan/agent-setup/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/humanaios-ui/operations/issues/1057": {
