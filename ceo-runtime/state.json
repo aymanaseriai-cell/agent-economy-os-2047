@@ -97,6 +97,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/CSOAI-ORG/councilof-ai/issues/4828": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/ChaBo-Project/ChaBo-Orchestrator/issues/96": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -375,6 +382,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/Scottcjn/rustchain-bounties/issues/17184": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/Significant-Gravitas/AutoGPT/issues/17176": {
@@ -1033,6 +1047,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/loftwah/app-composer/issues/1207": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/597": {
