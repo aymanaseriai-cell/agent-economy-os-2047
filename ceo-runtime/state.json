@@ -69,6 +69,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/Arx-Game/arxii/issues/5310": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/Bagelwaffles/aspect-ai-webview-app/issues/279": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -131,6 +138,13 @@
       "last_seen_day": "2026-11-21",
       "score": 15,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/EF-CHAIN/SendAm/issues/981": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
+      "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/11120": {
       "days_observed": 2,
@@ -545,6 +559,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/b-mendoza/agent-skills/issues/59": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/benyingY/bpai/issues/2": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -797,6 +818,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/fission-systems/Fission/issues/1204": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/frankxai/starlight-intelligence/issues/12": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -844,6 +872,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 19,
+      "tier": "research_only"
+    },
+    "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
@@ -1271,6 +1306,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/undercroftlabs/timespan/issues/100": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/voku/agent-decision/issues/4": {
