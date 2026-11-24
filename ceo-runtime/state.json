@@ -510,6 +510,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/accesslayerorg/accesslayer-server/issues/1324": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/ahed-jneed/ai-assurance/issues/345": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -847,9 +854,9 @@
       "tier": "research_only"
     },
     "https://github.com/fission-systems/Fission/issues/1083": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
@@ -1411,6 +1418,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/vaggelismpomponis/supplyguard_ai/issues/65": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/vixttha/Version-Issues-Hub/issues/10": {
