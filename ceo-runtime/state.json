@@ -419,6 +419,13 @@
       "score": 13,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/PIsberg/speckit-agents/issues/492": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/Pi-Defi-world/acbu-backend/issues/1340": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -601,6 +608,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/ahed-jneed/ai-assurance/issues/360": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/ai-timon/timon/issues/146": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -672,9 +686,9 @@
       "tier": "research_only"
     },
     "https://github.com/auscaster/frantic-board/issues/540": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-24",
       "score": 9,
       "tier": "research_only"
     },
