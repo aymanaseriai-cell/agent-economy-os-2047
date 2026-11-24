@@ -931,9 +931,9 @@
       "tier": "research_only"
     },
     "https://github.com/genfeedai/genfeed.ai/issues/5132": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 16,
       "tier": "research_only"
     },
@@ -1029,9 +1029,9 @@
       "tier": "research_only"
     },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 12,
       "tier": "research_only"
     },
@@ -1383,6 +1383,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/realkarych/kora/issues/1840": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/reppiks490/builds/issues/1": {
