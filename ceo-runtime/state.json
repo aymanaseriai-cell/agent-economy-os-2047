@@ -34,6 +34,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/529-studio/projectKV/issues/552": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -762,6 +769,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/christian-draeger/woge/issues/272": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 19,
+      "tier": "research_only"
+    },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
@@ -879,6 +893,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/drevendev/Devostasis/issues/128": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/dwebagents/AgentPipe/issues/1663": {
@@ -1522,6 +1543,13 @@
       "days_observed": 3,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-23",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/uksus148/trego./issues/97": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
