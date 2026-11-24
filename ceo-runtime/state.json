@@ -482,6 +482,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/ai-timon/timon/issues/146": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/aj4359/TA-GuruLabs-AIDES-Brain/issues/107": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -616,9 +623,9 @@
       "tier": "research_only"
     },
     "https://github.com/champion5566/tw-stock-agent/issues/41": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 22,
       "tier": "research_only"
     },
@@ -1127,9 +1134,9 @@
       "tier": "research_only"
     },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-24",
       "score": 16,
       "tier": "research_only"
     },
