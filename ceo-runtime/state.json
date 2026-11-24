@@ -55,6 +55,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/Andy963/ads/issues/676": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -74,6 +81,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/Ayush441-python/AUREN/issues/288": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/Bagelwaffles/aspect-ai-webview-app/issues/279": {
@@ -930,6 +944,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/hanzoai/agents/issues/89": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/hanzoai/cloud/issues/39": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
@@ -1021,6 +1042,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/kub0san/shenanigans-core/issues/51": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/lbacik/agent-operator-contract/issues/49": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1043,9 +1071,9 @@
       "tier": "research_only"
     },
     "https://github.com/littlemex/distai-platform/issues/38": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 17,
       "tier": "research_only"
     },
@@ -1140,6 +1168,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/mojtaba-arvin/android-sim-call-recorder/issues/14": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/morluto/rea/issues/14187": {
       "days_observed": 2,
       "first_seen_day": "2026-11-23",
@@ -1204,9 +1239,9 @@
       "tier": "research_only"
     },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 12,
       "tier": "research_only"
     },
