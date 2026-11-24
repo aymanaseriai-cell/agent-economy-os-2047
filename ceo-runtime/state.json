@@ -398,6 +398,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/Savitura/crowdpay/issues/1317": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Scottcjn/rustchain-bounties/issues/17184": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -679,9 +686,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
     },
@@ -986,11 +993,25 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/interplanetarysister/InterplanetaryFund/issues/5": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/invidias-codem/ai-saas/issues/524": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/jarno-niemela/Wardenlens/issues/107": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/jateeter/localOpenClawStack/issues/84": {
@@ -1077,6 +1098,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/loftwah/app-composer/issues/1043": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 19,
+      "tier": "research_only"
+    },
     "https://github.com/loftwah/app-composer/issues/1207": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -1092,10 +1120,17 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/658": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
+      "last_seen_day": "2026-11-24",
+      "score": 18,
+      "tier": "research_only"
+    },
+    "https://github.com/loveoverflowcom/vink/issues/503": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/lyngon/devkit/issues/13": {
@@ -1270,6 +1305,13 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/raphael-hund/t3code/issues/7": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
