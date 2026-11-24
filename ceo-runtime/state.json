@@ -62,6 +62,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/Aloews/Sherlock/issues/18": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/AndreLiar/Portfolio/issues/20": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -130,6 +137,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/CallHarborMCP/callharbor/issues/82": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/ChaBo-Project/ChaBo-Orchestrator/issues/96": {
@@ -1452,6 +1466,13 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
+      "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/rimanfatykhov-arch/bms24/issues/84": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
