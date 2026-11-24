@@ -36,6 +36,8 @@ def test_sql() -> str:
     cases = [
         ("healthy-exact", "TRUE", "TRUE", due, first, due, "'succeeded'", now, "HEALTHY"),
         ("healthy-later", "TRUE", "TRUE", due, first, "v_due + interval '2 minutes'", "'succeeded'", now, "HEALTHY"),
+        ("future-success", "TRUE", "TRUE", due, first, "v_now + interval '1 second'", "'succeeded'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
+        ("future-failure", "TRUE", "TRUE", due, first, "v_now + interval '1 second'", "'failed'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("failed-replay-eligible", "TRUE", "TRUE", due, first, due, "'failed'", now, "REPLAY_ELIGIBLE"),
         ("never-ran-eligible", "TRUE", "TRUE", due, first, no_time, "NULL", now, "REPLAY_ELIGIBLE"),
         ("old-success-not-current", "TRUE", "TRUE", due, first, "v_due - interval '15 minutes'", "'succeeded'", now, "REPLAY_ELIGIBLE"),
@@ -85,7 +87,7 @@ def main() -> int:
         print(result.stderr[-5000:], file=sys.stderr)
         return result.returncode
     print(result.stderr.strip())
-    print("POSTGRES_WATCHDOG_VERDICT: 16/16 exact-source adversarial cases passed")
+    print("POSTGRES_WATCHDOG_VERDICT: 18/18 exact-source adversarial cases passed")
     return 0
 
 
