@@ -1336,6 +1336,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/vixttha/Version-Issues-Hub/issues/10": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/voku/agent-decision/issues/4": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
