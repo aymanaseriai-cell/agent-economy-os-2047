@@ -224,9 +224,9 @@
       "tier": "research_only"
     },
     "https://github.com/Khushialm/wavygo-saas-structure/issues/14": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -245,9 +245,9 @@
       "tier": "research_only"
     },
     "https://github.com/MahyarJ/spacory/issues/140": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 17,
       "tier": "research_only"
     },
@@ -287,30 +287,30 @@
       "tier": "research_only"
     },
     "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/Nmoreland51/Nmoreland51-Nmoreland51-cognitive-nexus-2.0/issues/3": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 12,
       "tier": "research_only"
     },
     "https://github.com/Nmoreland51/Nmoreland51-Nmoreland51-cognitive-nexus-2.0/issues/6": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 12,
       "tier": "research_only"
     },
     "https://github.com/NotSleeply/aiHelp/issues/4": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 16,
       "tier": "research_only"
     },
@@ -336,9 +336,9 @@
       "tier": "research_only"
     },
     "https://github.com/Pi-Defi-world/acbu-backend/issues/1380": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 18,
       "tier": "research_only"
     },
@@ -399,9 +399,9 @@
       "tier": "research_only"
     },
     "https://github.com/TychiWallet/agent-finance/issues/1": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 18,
       "tier": "research_only"
     },
@@ -427,9 +427,9 @@
       "tier": "research_only"
     },
     "https://github.com/Xander-Xai/Customer-Service-AI-Agent/issues/31": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -445,6 +445,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 21,
+      "tier": "research_only"
+    },
+    "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1332": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/aaf1007/grove-ade/issues/26": {
@@ -594,6 +601,13 @@
       "score": 24,
       "tier": "manual_buyer_intent_review"
     },
+    "https://github.com/cfg-is/cfgms/issues/6489": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-24",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/cgfixit/LanCartographer/issues/22": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -616,9 +630,9 @@
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -693,9 +707,9 @@
       "tier": "research_only"
     },
     "https://github.com/compliance-framework/docs/issues/179": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -714,9 +728,9 @@
       "tier": "research_only"
     },
     "https://github.com/corneym/Exam/issues/276": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -798,9 +812,9 @@
       "tier": "research_only"
     },
     "https://github.com/google-agentic-commerce/a2a-x402/issues/198": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 10,
       "tier": "research_only"
     },
@@ -826,16 +840,16 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 13,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/83": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 13,
       "tier": "research_only"
     },
@@ -847,9 +861,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/85": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 11,
       "tier": "research_only"
     },
@@ -861,16 +875,16 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/cloud/issues/39": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 19,
       "tier": "research_only"
     },
     "https://github.com/harmoniqs/amicode/issues/1309": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
@@ -931,16 +945,16 @@
       "tier": "research_only"
     },
     "https://github.com/jortega0033/paginated-word-processor/issues/39": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/kindrat86/agentmail/issues/40": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 13,
       "tier": "research_only"
     },
@@ -1064,16 +1078,16 @@
       "tier": "research_only"
     },
     "https://github.com/morluto/rea/issues/14187": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/mouzzlii/Kreislauf/issues/9": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
     },
@@ -1092,9 +1106,9 @@
       "tier": "research_only"
     },
     "https://github.com/oneshot-agent/sdk/issues/10": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 10,
       "tier": "research_only"
     },
@@ -1190,9 +1204,9 @@
       "tier": "research_only"
     },
     "https://github.com/tanaabased/openclaw-agent-system/issues/447": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
@@ -1281,9 +1295,9 @@
       "tier": "research_only"
     },
     "https://github.com/x402-foundation/x402/issues/2833": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-24",
       "score": 15,
       "tier": "research_only"
     },
