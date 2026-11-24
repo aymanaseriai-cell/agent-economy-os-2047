@@ -102,6 +102,8 @@ def test_sql() -> str:
         ("timestamp-missing-status", "TRUE", "TRUE", due, first, due, "NULL", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("null-due", "TRUE", "TRUE", no_time, first, due, "'succeeded'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("null-clock", "TRUE", "TRUE", due, first, due, "'succeeded'", no_time, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
+        ("null-clock-during-warmup", "TRUE", "TRUE", due, "v_due + interval '1 minute'", no_time, "NULL", no_time, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
+        ("null-due-and-first-seen", "TRUE", "TRUE", no_time, no_time, no_time, "NULL", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("human-paused", "FALSE", "TRUE", due, first, due, "'running'", now, "PAUSED_NO_OVERRIDE"),
         ("config-drift", "TRUE", "FALSE", due, first, due, "'succeeded'", now, "CONFIG_DRIFT_BLOCKED"),
         ("first-run-warmup", "TRUE", "TRUE", due, "v_due + interval '1 minute'", no_time, "NULL", now, "WARMUP_NOT_DUE"),
@@ -142,7 +144,7 @@ def main() -> int:
         print(result.stderr[-5000:], file=sys.stderr)
         return result.returncode
     print(result.stderr.strip())
-    print("POSTGRES_WATCHDOG_VERDICT: 18/18 exact-source adversarial cases passed")
+    print("POSTGRES_WATCHDOG_VERDICT: 20/20 exact-source adversarial cases passed")
     return 0
 
 

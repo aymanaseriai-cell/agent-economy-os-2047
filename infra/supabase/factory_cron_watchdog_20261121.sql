@@ -45,8 +45,8 @@ AS $function$
  SELECT CASE
  WHEN NOT coalesce(p_enabled,false) THEN 'PAUSED_NO_OVERRIDE'
  WHEN NOT coalesce(p_config_matches,false) THEN 'CONFIG_DRIFT_BLOCKED'
- WHEN p_first_seen IS NULL OR p_due<=p_first_seen THEN 'WARMUP_NOT_DUE'
  WHEN p_due IS NULL OR p_now IS NULL THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
+ WHEN p_first_seen IS NULL OR p_due<=p_first_seen THEN 'WARMUP_NOT_DUE'
  WHEN p_due>p_now-interval '4 minutes' THEN 'WAIT_EXPECTED_RUN'
  -- Inconsistent missing timestamps/status must never authorize a replay.
  WHEN p_last_run IS NULL AND p_last_status IS NOT NULL
