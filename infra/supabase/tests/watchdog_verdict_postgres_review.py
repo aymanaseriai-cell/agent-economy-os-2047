@@ -36,11 +36,11 @@ def test_sql() -> str:
     cases = [
         ("healthy-exact", "TRUE", "TRUE", due, first, due, "'succeeded'", now, "HEALTHY"),
         ("healthy-later", "TRUE", "TRUE", due, first, "v_due + interval '2 minutes'", "'succeeded'", now, "HEALTHY"),
-        ("future-success", "TRUE", "TRUE", due, first, "v_now + interval '1 second'", "'succeeded'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
-        ("future-failure", "TRUE", "TRUE", due, first, "v_now + interval '1 second'", "'failed'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("failed-replay-eligible", "TRUE", "TRUE", due, first, due, "'failed'", now, "REPLAY_ELIGIBLE"),
         ("never-ran-eligible", "TRUE", "TRUE", due, first, no_time, "NULL", now, "REPLAY_ELIGIBLE"),
         ("old-success-not-current", "TRUE", "TRUE", due, first, "v_due - interval '15 minutes'", "'succeeded'", now, "REPLAY_ELIGIBLE"),
+        ("future-success-untrusted", "TRUE", "TRUE", due, first, "v_now + interval '1 minute'", "'succeeded'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
+        ("future-failure-untrusted", "TRUE", "TRUE", due, first, "v_now + interval '1 minute'", "'failed'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("running-after-due", "TRUE", "TRUE", due, first, due, "'running'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("running-before-due", "TRUE", "TRUE", due, first, "v_due - interval '1 minute'", "'running'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),
         ("queued-missing-time", "TRUE", "TRUE", due, first, no_time, "'queued'", now, "RUN_STATUS_UNCERTAIN_NO_REPLAY"),

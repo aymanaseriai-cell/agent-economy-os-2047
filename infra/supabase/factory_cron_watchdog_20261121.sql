@@ -54,7 +54,7 @@ AS $function$
  -- A still-running, incomplete, or unknown cron status must not be replayed.
  WHEN p_last_run IS NOT NULL AND (p_last_status IS NULL OR p_last_status NOT IN ('succeeded','failed'))
    THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
- -- Future-dated run evidence is inconsistent, even when status is terminal.
+ -- Impossible future timestamps cannot establish health or authorize replay.
  WHEN p_last_run IS NOT NULL AND p_last_run > p_now
    THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'
  WHEN p_last_run>=p_due AND p_last_status='succeeded' THEN 'HEALTHY'

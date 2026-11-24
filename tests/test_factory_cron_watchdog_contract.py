@@ -29,6 +29,14 @@ class FactoryCronWatchdogContractTests(unittest.TestCase):
                       (Path(__file__).resolve().parents[1] /
                        ".github/workflows/watchdog-verdict-postgres.yml").read_text(encoding="utf-8"))
 
+    def test_future_terminal_timestamp_is_never_trusted(self):
+        guard = "WHEN p_last_run IS NOT NULL AND p_last_run > p_now"
+        healthy = "WHEN p_last_run>=p_due AND p_last_status='succeeded'"
+        self.assertIn(guard, self.sql)
+        self.assertLess(self.sql.index(guard), self.sql.index(healthy))
+        self.assertIn("THEN 'RUN_STATUS_UNCERTAIN_NO_REPLAY'",
+                      self.sql[self.sql.index(guard):self.sql.index(healthy)])
+
     def test_early_observation_rechecks_only_preliminary_state(self):
         self.assertIn("ON CONFLICT(slot,jobid) DO UPDATE", self.sql)
         self.assertIn("IN ('WAIT_EXPECTED_RUN','WARMUP_NOT_DUE')", self.sql)
