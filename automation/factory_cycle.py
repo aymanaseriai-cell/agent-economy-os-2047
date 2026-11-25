@@ -136,6 +136,94 @@ def atomic_json(path: Path, value: dict):
             temp.unlink(missing_ok=True)
 
 
+def recovery_orders(orders: list, journal: dict) -> tuple[list, dict]:
+    """Read historical local progress, not authority or fresh provider evidence.
+
+    Only the same validated snapshot can be resumed. Historical receipts are
+    never copied into the new execution result; retry all uncertain work.
+    """
+    digest = plan_dispatch(orders)["source_orders_sha256"]
+    if (not isinstance(journal, dict)
+            or journal.get("schema") != "aeos2047-review-cycle-journal/1"
+            or journal.get("state") not in ("IN_PROGRESS", "FAILED_INCOMPLETE")
+            or journal.get("production_release_authorized") is not False
+            or type(journal.get("business_deliveries_verified")) is not int
+            or journal["business_deliveries_verified"] != 0
+            or journal.get("verified_revenue_usd") is not None
+            or journal.get("recovery") is not None):
+        raise PolicyError("INVALID_OR_ALREADY_RESUMED_JOURNAL")
+    run_id = journal.get("run_id")
+    if (not isinstance(run_id, str) or len(run_id) != 32
+            or any(c not in "0123456789abcdef" for c in run_id)):
+        raise PolicyError("INVALID_RECOVERY_RUN_ID")
+    progress = journal.get("progress")
+    if not isinstance(progress, dict) or progress.get("source_orders_sha256") != digest:
+        raise PolicyError("RECOVERY_SNAPSHOT_MISMATCH")
+    decisions, receipts = progress.get("decisions"), progress.get("receipts")
+    if (not isinstance(decisions, list) or not isinstance(receipts, list)
+            or len(decisions) > len(orders) or len(receipts) > len(decisions)):
+        raise PolicyError("INVALID_RECOVERY_PROGRESS")
+    remaining = list(orders)
+    seen = {}
+    rounds = 0
+    offset = 0
+    # Reconstruct the exact ordered prefix of completed manager rounds.
+    while offset < len(decisions):
+        picked = [c for c in plan_dispatch(remaining)["selected"] if c["worker_id"] is not None]
+        chunk = decisions[offset:offset + len(picked)]
+        if not picked or len(chunk) != len(picked):
+            raise PolicyError("RECOVERY_PARTIAL_ROUND")
+        for choice, record in zip(picked, chunk):
+            if not isinstance(record, dict):
+                raise PolicyError("INVALID_RECOVERY_DECISION")
+            outcome = record.get("cycle_result")
+            if {k: v for k, v in record.items() if k != "cycle_result"} != choice:
+                raise PolicyError("RECOVERY_DECISION_MISMATCH")
+            allowed = (("TECHNICAL_READONLY_VERIFIED", "PROBE_FAILED_OR_UNCERTAIN",
+                        "BLOCKED_MISSING_JOB_EVIDENCE")
+                       if choice["disposition"] in ("REVIEW_ONLY_ACTION_ELIGIBLE",
+                                                    "VERIFY_IN_PROGRESS_FIRST")
+                       else (choice["disposition"],))
+            if outcome not in allowed:
+                raise PolicyError("INVALID_RECOVERY_OUTCOME")
+            seen[choice["worker_id"]] = outcome
+        remaining = [o for o in remaining if o["work_key"] not in {c["work_key"] for c in picked}]
+        offset += len(picked)
+        rounds += 1
+    if (type(progress.get("rounds_completed")) is not int
+            or progress["rounds_completed"] != rounds
+            or type(progress.get("orders_remaining")) is not int
+            or progress["orders_remaining"] != len(remaining)):
+        raise PolicyError("RECOVERY_PROGRESS_COUNTS_MISMATCH")
+    historical = set()
+    received = set()
+    expected = {w for w, outcome in seen.items()
+                if outcome in ("TECHNICAL_READONLY_VERIFIED", "PROBE_FAILED_OR_UNCERTAIN")}
+    for receipt in receipts:
+        if not isinstance(receipt, dict):
+            raise PolicyError("INVALID_RECOVERY_RECEIPT")
+        worker = receipt.get("worker_id")
+        if (not isinstance(worker, str) or worker not in expected or worker in received
+                or receipt.get("production_change") is not False
+                or receipt.get("customer_acquired") is not False
+                or receipt.get("revenue_verified_usd") is not None
+                or receipt.get("owner_role") != REGISTRY[worker].owner_role):
+            raise PolicyError("INVALID_RECOVERY_RECEIPT")
+        verified = receipt.get("technical_status") == "VERIFIED_READONLY"
+        if verified != (seen[worker] == "TECHNICAL_READONLY_VERIFIED"):
+            raise PolicyError("RECOVERY_RECEIPT_STATUS_MISMATCH")
+        received.add(worker)
+        if verified:
+            historical.add(worker)
+    if received != expected:
+        raise PolicyError("RECOVERY_RECEIPT_SET_MISMATCH")
+    return ([o for o in orders if o["work_key"][len(PREFIX):] not in historical],
+            {"previous_run_id": run_id, "original_orders_sha256": digest,
+             "historical_worker_ids_not_reverified": sorted(historical),
+             "historical_receipts_counted_as_new": 0,
+             "journal_is_independent_authorization": False})
+
+
 def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--orders", type=Path, required=True)
@@ -146,13 +234,21 @@ def main(argv=None):
     p.add_argument("--out", type=Path, required=True)
     p.add_argument("--checkpoint", type=Path,
                    help="New private path for partial receipts; never reused as authorization")
+    p.add_argument("--resume-from", type=Path, help="Private incomplete journal; requires a new checkpoint")
     args = p.parse_args(argv)
     journal = None
     try:
-        paths = [x.resolve() for x in (args.orders, args.jobs, args.out, args.checkpoint)
+        paths = [x.resolve() for x in (args.orders, args.jobs, args.out, args.checkpoint, args.resume_from)
                  if x is not None]
         if len(paths) != len(set(paths)):
             raise PolicyError("CYCLE_PATH_COLLISION")
+        recovery = None
+        orders = json.loads(args.orders.read_text(encoding="utf-8"))
+        if args.resume_from is not None:
+            if args.checkpoint is None or args.out.exists():
+                raise PolicyError("RECOVERY_REQUIRES_NEW_OUTPUT_AND_CHECKPOINT")
+            orders, recovery = recovery_orders(
+                orders, json.loads(args.resume_from.read_text(encoding="utf-8")))
         if args.checkpoint is not None:
             args.checkpoint.parent.mkdir(parents=True, exist_ok=True)
             # Exclusive creation prevents two invocations sharing a journal.
@@ -163,17 +259,19 @@ def main(argv=None):
                        "production_release_authorized": False,
                        "business_deliveries_verified": 0,
                        "verified_revenue_usd": None,
-                       "progress": None}
+                       "progress": None, "recovery": recovery}
             atomic_json(args.checkpoint, journal)
         def checkpoint(progress):
             if journal is not None:
                 journal["progress"] = progress
                 atomic_json(args.checkpoint, journal)
-        orders = json.loads(args.orders.read_text(encoding="utf-8"))
         if args.auto_live_jobs:
             result = run_live_review_cycle(orders, args.root, checkpoint=checkpoint)
         else:
             result = run_review_cycle(orders, json.loads(args.jobs.read_text(encoding="utf-8")), args.root, checkpoint=checkpoint)
+        if recovery is not None:
+            result["recovery"] = recovery
+            result["full_original_snapshot_freshly_verified"] = False
         if journal is not None:
             result["run_id"] = journal["run_id"]
         atomic_json(args.out, result)

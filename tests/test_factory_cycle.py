@@ -179,3 +179,65 @@ class FactoryCycleTests(unittest.TestCase):
             self.assertEqual(b["state"], "FINAL_REPORT_WRITTEN")
             self.assertEqual(b["progress"]["receipts"], [])
             self.assertFalse(a["persistent_scheduler_installed"])
+
+    def test_recovery_skips_historical_verified_without_counting_new_receipt(self):
+        from automation import factory_cycle
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            orders = [item("AEOS-W09"), item("AEOS-W10", priority=3)]
+            for w in ("AEOS-W09", "AEOS-W10"):
+                p = root / REGISTRY[w].default_payload["path"]
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("fixture")
+            jobs = [{"worker_id": w} for w in ("AEOS-W09", "AEOS-W10")]
+            inp, j, first, checkpoint, second, next_checkpoint = [
+                root / n for n in ("orders.json","jobs.json","first.json",
+                                   "checkpoint.json","second.json","next.json")]
+            inp.write_text(json.dumps(orders))
+            j.write_text(json.dumps(jobs))
+            original = factory_cycle.execute_reviewonly
+            calls = []
+            def fail_second(*args, **kwargs):
+                calls.append(1)
+                if len(calls) == 2:
+                    raise OSError("interrupted")
+                return original(*args, **kwargs)
+            base = ["--orders", str(inp), "--jobs", str(j), "--root", str(root)]
+            with patch("automation.factory_cycle.execute_reviewonly", side_effect=fail_second):
+                self.assertEqual(factory_cycle.main(base + ["--out", str(first),
+                                 "--checkpoint", str(checkpoint)]), 2)
+            before = checkpoint.read_bytes()
+            rc = factory_cycle.main(base + ["--out", str(second), "--checkpoint",
+                                    str(next_checkpoint), "--resume-from", str(checkpoint)])
+            self.assertEqual(rc, 0)
+            report = json.loads(second.read_text())
+            self.assertEqual(report["recovery"]["historical_worker_ids_not_reverified"], ["AEOS-W09"])
+            self.assertEqual([r["worker_id"] for r in report["receipts"]], ["AEOS-W10"])
+            self.assertEqual(report["technically_verified_readonly_count"], 1)
+            self.assertFalse(report["full_original_snapshot_freshly_verified"])
+            self.assertFalse(report["production_release_authorized"])
+            self.assertEqual(checkpoint.read_bytes(), before)
+            self.assertEqual(report["business_deliveries_verified"], 0)
+            changed = [item("AEOS-W09", priority=1), item("AEOS-W10", priority=3)]
+            with self.assertRaisesRegex(PolicyError, "RECOVERY_SNAPSHOT_MISMATCH"):
+                factory_cycle.recovery_orders(changed, json.loads(before))
+            tampered = json.loads(before)
+            tampered["progress"]["decisions"][0]["action_code"] = "TRANSFER_FUNDS"
+            with self.assertRaisesRegex(PolicyError, "RECOVERY_DECISION_MISMATCH"):
+                factory_cycle.recovery_orders(orders, tampered)
+            tampered = json.loads(before)
+            tampered["progress"]["receipts"] = []
+            with self.assertRaisesRegex(PolicyError, "RECOVERY_RECEIPT_SET_MISMATCH"):
+                factory_cycle.recovery_orders(orders, tampered)
+
+    def test_recovery_never_accepts_completed_journal_or_missing_progress(self):
+        from automation.factory_cycle import recovery_orders
+        j = {"schema": "aeos2047-review-cycle-journal/1", "state": "FINAL_REPORT_WRITTEN",
+             "run_id": "a"*32, "production_release_authorized": False,
+             "business_deliveries_verified": 0, "verified_revenue_usd": None}
+        with self.assertRaisesRegex(PolicyError, "INVALID_OR_ALREADY_RESUMED_JOURNAL"):
+            recovery_orders([], j)
+        j["state"] = "IN_PROGRESS"
+        with self.assertRaisesRegex(PolicyError, "RECOVERY_SNAPSHOT_MISMATCH"):
+            recovery_orders([], j)
