@@ -14,52 +14,6 @@ def item(w, status="QUEUED", priority=2, **updates):
     return row
 
 class FactoryOperatorTests(unittest.TestCase):
-
-    def test_cycle_drains_later_workers_after_missing_evidence(self):
-        from automation.factory_operator import run_review_cycle
-        orders = [item("AEOS-W04","IN_PROGRESS",5), item("AEOS-W03",priority=1),
-                  item("AEOS-W09",priority=1), item("AEOS-W10",priority=2),
-                  item("AEOS-W06","NEEDS_APPROVAL"), item("AEOS-W12","BLOCKED")]
-        with tempfile.TemporaryDirectory() as d:
-            root = Path(d)
-            for w in ("AEOS-W03","AEOS-W09","AEOS-W10"):
-                p = root / REGISTRY[w].default_payload["path"]
-                p.parent.mkdir(parents=True, exist_ok=True)
-                p.write_text("fixture", encoding="utf-8")
-            jobs = [{"worker_id":w} for w in ("AEOS-W03","AEOS-W09","AEOS-W10")]
-            before = json.dumps(orders,sort_keys=True)
-            result = run_review_cycle(orders,jobs,root)
-            self.assertEqual(json.dumps(orders,sort_keys=True),before)
-        results = {x["worker_id"]:x["cycle_result"] for x in result["decisions"]}
-        self.assertEqual(results["AEOS-W04"],"BLOCKED_MISSING_JOB_EVIDENCE")
-        self.assertEqual(results["AEOS-W03"],"TECHNICAL_READONLY_VERIFIED")
-        self.assertEqual(results["AEOS-W06"],"ESCALATE_INDEPENDENT_APPROVAL")
-        self.assertEqual(results["AEOS-W12"],"WAIT_EXTERNAL_EVIDENCE")
-        self.assertEqual(result["technically_verified_readonly_count"],3)
-        self.assertEqual(result["dispatched_count"],3)
-        self.assertEqual(result["business_deliveries_verified"],0)
-        self.assertFalse(result["production_release_authorized"])
-        self.assertIsNone(result["verified_revenue_usd"])
-
-    def test_cycle_does_not_repeat_verified_or_duplicate_workers(self):
-        from automation.factory_operator import run_review_cycle
-        orders = [item("AEOS-W03","VERIFIED",proof_ref="https://github.com/one")]
-        result = run_review_cycle(orders,[{"worker_id":"AEOS-W03"}],Path("."))
-        self.assertEqual(result["dispatched_count"],0)
-        self.assertEqual(result["previously_verified_not_reexecuted"],1)
-        with self.assertRaisesRegex(PolicyError,"DUPLICATE_LIVE_JOB"):
-            run_review_cycle(orders,[{"worker_id":"AEOS-W03"}]*2,Path("."))
-
-    def test_cycle_rejects_scope_escalation_before_dispatch(self):
-        from automation.factory_operator import run_review_cycle
-        from unittest.mock import patch
-        with patch("automation.factory_operator.run_fleet") as fleet:
-            with self.assertRaises(PolicyError):
-                run_review_cycle([item("AEOS-W03")],
-                                 [{"worker_id":"AEOS-W03","payload":{"path":"secret.txt"}}],
-                                 Path("."))
-            fleet.assert_not_called()
-
     def test_four_executives_select_from_role_owned_queue(self):
         p=plan_dispatch([item("AEOS-W01"), item("AEOS-W02",priority=1),
                          item("AEOS-W06","NEEDS_APPROVAL",1),
@@ -262,6 +216,46 @@ class FactoryOperatorTests(unittest.TestCase):
         p["selected"][1]["work_key"]=PREFIX+"AEOS-W04"
         with self.assertRaisesRegex(PolicyError,"FORGED_ACTION_SELECTION"):
             execute_reviewonly(p,[{"worker_id":"AEOS-W03","payload":{"path":"verifier.py"}}],Path("."),source_orders=orders)
+
+    def test_degraded_fleet_preserves_receipts_and_fails_cli(self):
+        from unittest.mock import patch
+        from automation import factory_operator
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            orders = [item("AEOS-W03"), item("AEOS-W09")]
+            jobs = [
+                {"worker_id": "AEOS-W03", "payload": {"path": "verifier.py"}},
+                {"worker_id": "AEOS-W09", "payload": {"path": "docs/ENTERPRISE_EVIDENCE_PILOT.md"}},
+            ]
+            receipts = [{"worker_id": "AEOS-W03", "technical_status": "VERIFIED_READONLY"},
+                        {"worker_id": "AEOS-W09", "technical_status": "BLOCKED"}]
+            (root / "orders.json").write_text(json.dumps(orders), encoding="utf-8")
+            (root / "jobs.json").write_text(json.dumps(jobs), encoding="utf-8")
+            with patch("automation.factory_operator.run_fleet", return_value={
+                "dispatched_count": 2, "technically_verified_readonly_count": 1,
+                "receipts": receipts,
+            }):
+                code = factory_operator.main(["--orders", str(root / "orders.json"),
+                    "--jobs", str(root / "jobs.json"), "--root", str(root),
+                    "--out", str(root / "report.json")])
+            self.assertEqual(code, 2)
+            report = json.loads((root / "report.json").read_text())["reviewonly_execution"]
+            self.assertEqual(report["execution_status"], "REVIEW_ONLY_PROBES_DEGRADED")
+            self.assertEqual(report["unverified_readonly_count"], 1)
+            self.assertEqual(report["receipts"], receipts)
+            self.assertFalse(report["production_changes"])
+
+    def test_inconsistent_fleet_counts_fail_closed(self):
+        from unittest.mock import patch
+        orders = [item("AEOS-W03")]
+        jobs = [{"worker_id": "AEOS-W03", "payload": {"path": "verifier.py"}}]
+        for dispatched, verified in [(0, 0), (1, 2), (1, -1)]:
+            with self.subTest(dispatched=dispatched, verified=verified):
+                with patch("automation.factory_operator.run_fleet", return_value={
+                    "dispatched_count": dispatched, "technically_verified_readonly_count": verified,
+                    "receipts": [],
+                }), self.assertRaisesRegex(PolicyError, "INCONSISTENT_FLEET_COUNTS"):
+                    execute_reviewonly(plan_dispatch(orders), jobs, Path("."), source_orders=orders)
 
 if __name__=="__main__":
     unittest.main()

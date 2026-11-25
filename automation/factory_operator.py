@@ -7,7 +7,7 @@ import json
 import sys
 from pathlib import Path
 
-from automation.worker_fleet import REGISTRY, run_fleet, make_task
+from automation.worker_fleet import REGISTRY, run_fleet
 from automation.worker_dispatcher import PolicyError
 
 SCHEMA = "aeos2047-executive-factory/1"
@@ -166,79 +166,20 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
     if not set(selected).issubset(available):
         raise PolicyError("MISSING_EXACT_SELECTED_JOB")
     result = run_fleet([available[w] for w in selected], root, fetch=fetch, max_concurrent=4)
-    return {"execution_status": "REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY",
-            "dispatched_count": result["dispatched_count"],
+    dispatched = result["dispatched_count"]
+    verified = result["technically_verified_readonly_count"]
+    if dispatched != len(selected) or not 0 <= verified <= dispatched:
+        raise PolicyError("INCONSISTENT_FLEET_COUNTS")
+    return {"execution_status": ("REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY"
+                                 if verified == dispatched else "REVIEW_ONLY_PROBES_DEGRADED"),
+            "dispatched_count": dispatched,
+            "unverified_readonly_count": dispatched - verified,
             "rechecked_in_progress_count": sum(
                 o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" for o in choices),
             "technically_verified_readonly_count": result["technically_verified_readonly_count"],
             "receipts": result["receipts"],
             "production_changes": False, "independent_llm_sessions": 0,
             "source_orders_sha256": plan["source_orders_sha256"]}
-
-
-def run_review_cycle(orders: list, live_jobs: list, root: Path, fetch=None) -> dict:
-    """Consider each worker once per bounded review-only snapshot.
-
-    Preserve executive ordering, isolate missing job evidence, and never
-    mutate the production queue or promote technical probes to delivery.
-    """
-    initial = plan_dispatch(orders)
-    if not isinstance(live_jobs, list) or len(live_jobs) > len(REGISTRY):
-        raise PolicyError("INVALID_CYCLE_JOBS")
-    available = {}
-    for job in live_jobs:
-        worker, _ = make_task(job)
-        if worker.worker_id in available:
-            raise PolicyError("DUPLICATE_LIVE_JOB")
-        available[worker.worker_id] = job
-    remaining = list(orders)
-    receipts, decisions = [], []
-    rounds = 0
-    eligible = {"REVIEW_ONLY_ACTION_ELIGIBLE", "VERIFY_IN_PROGRESS_FIRST"}
-    while remaining:
-        plan = plan_dispatch(remaining)
-        picked = [c for c in plan["selected"] if c["worker_id"] is not None]
-        if not picked:
-            break
-        rounds += 1
-        if rounds > len(REGISTRY):
-            raise PolicyError("CYCLE_ROUND_CAP")
-        ready_ids = {c["worker_id"] for c in picked
-                     if c["disposition"] in eligible and c["worker_id"] in available}
-        ready_orders = [o for o in remaining if o["work_key"][len(PREFIX):] in ready_ids]
-        batch = execute_reviewonly(plan_dispatch(ready_orders), list(available.values()),
-                                   root, fetch=fetch, source_orders=ready_orders)
-        by_worker = {x["worker_id"]: x for x in batch["receipts"]}
-        if set(by_worker) != ready_ids or len(by_worker) != len(batch["receipts"]):
-            raise PolicyError("CYCLE_RECEIPT_SET_MISMATCH")
-        receipts.extend(batch["receipts"])
-        for choice in picked:
-            worker_id = choice["worker_id"]
-            receipt = by_worker.get(worker_id)
-            if receipt is not None:
-                result = ("TECHNICAL_READONLY_VERIFIED" if receipt["technical_status"] == "VERIFIED_READONLY"
-                          else "PROBE_FAILED_OR_UNCERTAIN")
-            elif choice["disposition"] in eligible:
-                result = "BLOCKED_MISSING_JOB_EVIDENCE"
-            else:
-                result = choice["disposition"]
-            decisions.append({**choice, "cycle_result": result})
-        considered = {c["work_key"] for c in picked}
-        remaining = [o for o in remaining if o["work_key"] not in considered]
-    return {
-        "schema": "aeos2047-bounded-review-cycle/1",
-        "source_orders_sha256": initial["source_orders_sha256"],
-        "rounds": rounds, "orders_inspected": len(orders),
-        "configured_workers": len(REGISTRY), "executives": len(ROLES),
-        "decisions": decisions, "receipts": receipts,
-        "previously_verified_not_reexecuted": len(remaining),
-        "dispatched_count": len(receipts),
-        "technically_verified_readonly_count": sum(
-            r["technical_status"] == "VERIFIED_READONLY" for r in receipts),
-        "production_changes": False, "production_release_authorized": False,
-        "business_deliveries_verified": 0, "verified_revenue_usd": None,
-        "persistent_scheduler_installed": False,
-    }
 
 def main(argv=None):
     parser = argparse.ArgumentParser()
@@ -247,16 +188,12 @@ def main(argv=None):
     jobs_group.add_argument("--jobs", type=Path)
     jobs_group.add_argument("--auto-live-jobs", action="store_true",
                             help="Discover current public allowlisted read-only worker checks")
-    parser.add_argument("--drain-review-queue", action="store_true",
-                        help="Consider every eligible worker once in a bounded review cycle")
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--out", type=Path, required=True)
     a = parser.parse_args(argv)
     try:
         orders = json.loads(a.orders.read_text(encoding="utf-8"))
         plan = plan_dispatch(orders)
-        if a.drain_review_queue and a.jobs is None and not a.auto_live_jobs:
-            raise PolicyError("CYCLE_REQUIRES_JOB_SOURCE")
         if a.jobs is not None or a.auto_live_jobs:
             if a.auto_live_jobs:
                 eligible = any(c["disposition"] in (
@@ -269,15 +206,16 @@ def main(argv=None):
                     live_jobs = []  # No provider calls for blocked/approval-only queues.
             else:
                 live_jobs = json.loads(a.jobs.read_text(encoding="utf-8"))
-            if a.drain_review_queue:
-                plan["review_cycle"] = run_review_cycle(orders, live_jobs, a.root)
-            else:
-                plan["reviewonly_execution"] = execute_reviewonly(
-                    plan, live_jobs, a.root, source_orders=orders)
+            plan["reviewonly_execution"] = execute_reviewonly(
+                plan, live_jobs, a.root, source_orders=orders)
         a.out.parent.mkdir(parents=True, exist_ok=True)
         a.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print("EXECUTIVE_FACTORY: %d validated work orders; %d role decisions; no production actions"
               % (len(orders), len(plan["selected"])))
+        execution = plan.get("reviewonly_execution", {})
+        if execution.get("execution_status") == "REVIEW_ONLY_PROBES_DEGRADED":
+            print("FACTORY_DEGRADED: worker verification incomplete; see receipts", file=sys.stderr)
+            return 2
         return 0
     except (PolicyError, ValueError, TypeError, KeyError, OSError) as exc:
         print("FACTORY_FAIL_CLOSED: %s: %s" % (type(exc).__name__, exc), file=sys.stderr)
