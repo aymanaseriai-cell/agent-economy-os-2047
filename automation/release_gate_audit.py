@@ -45,6 +45,29 @@ def fetch(url):
         raise ReviewError("RESPONSE_LIMIT")
     return json.loads(body)
 
+def ci_snapshot(run_response, sha):
+    if not isinstance(run_response, dict) or not isinstance(run_response.get("workflow_runs"), list) or len(run_response["workflow_runs"]) >= 100:
+        raise ReviewError("WORKFLOW_LIST_UNVERIFIED_OR_TRUNCATED")
+    total = run_response.get("total_count")
+    if total is not None and (type(total) is not int or total != len(run_response["workflow_runs"])):
+        raise ReviewError("WORKFLOW_LIST_UNVERIFIED_OR_TRUNCATED")
+    ci = {}
+    for path in WORKFLOWS:
+        matches = [run for run in run_response["workflow_runs"] if isinstance(run, dict)
+                   and run.get("head_sha") == sha and run.get("path") == path
+                   and run.get("event") == "pull_request"
+                   and isinstance(run.get("repository"), dict)
+                   and run["repository"].get("full_name") == OWNER + "/" + REPO
+                   and type(run.get("id")) is int and run["id"] > 0]
+        newest = max(matches, key=lambda run: (run["id"], run.get("run_attempt")
+                     if type(run.get("run_attempt")) is int else 0)) if matches else None
+        passed = bool(newest and newest.get("status") == "completed" and newest.get("conclusion") == "success")
+        ci[path] = {"passed": passed, "run_id": newest["id"] if newest else None,
+                    "run_attempt": newest.get("run_attempt") if newest else None,
+                    "status": newest.get("status") if newest else None,
+                    "conclusion": newest.get("conclusion") if newest else None}
+    return ci
+
 def audit(get=fetch):
     pr = get(PR_URL)
     if not isinstance(pr, dict) or pr.get("number") != 114 or not isinstance(pr.get("head"), dict):
@@ -99,19 +122,9 @@ def audit(get=fetch):
                         and review.get("author_association") in ("MEMBER", "COLLABORATOR", "OWNER"))
     if objections:
         blocked.append("UNRESOLVED_INDEPENDENT_CHANGE_REQUEST")
-    ci = {}
-    for path in WORKFLOWS:
-        matches = [run for run in run_response["workflow_runs"] if isinstance(run, dict)
-                   and run.get("head_sha") == sha and run.get("path") == path
-                   and run.get("event") == "pull_request"
-                   and isinstance(run.get("repository"), dict)
-                   and run["repository"].get("full_name") == OWNER + "/" + REPO
-                   and type(run.get("id")) is int and run["id"] > 0]
-        newest = max(matches, key=lambda run: (run["id"], run.get("run_attempt")
-                     if type(run.get("run_attempt")) is int else 0)) if matches else None
-        passed = bool(newest and newest.get("status") == "completed" and newest.get("conclusion") == "success")
-        ci[path] = {"passed": passed, "run_id": newest["id"] if newest else None}
-        if not passed:
+    ci = ci_snapshot(run_response, sha)
+    for path, check in ci.items():
+        if not check["passed"]:
             blocked.append("NO_CURRENT_CI:" + path)
     after = get(PR_URL)
     if not isinstance(after, dict) or not isinstance(after.get("head"), dict) or after["head"].get("sha") != sha:
@@ -126,6 +139,15 @@ def audit(get=fetch):
         blocked.append("GATE_CHANGED_DURING_AUDIT")
     if gate_after.get("state") != "closed":
         blocked.append("P0_GATE_98_OPEN")
+    # A rerun may start while this audit reads PR/gate state. Recheck the
+    # exact head and never present the earlier CI snapshot as current.
+    ci_after = ci_snapshot(get(url), sha)
+    if ci_after != ci:
+        blocked.append("CI_CHANGED_DURING_AUDIT")
+        ci = ci_after
+        for path, check in ci.items():
+            if not check["passed"]:
+                blocked.append("NO_CURRENT_CI:" + path)
     blocked.extend(("SOURCE_PARITY_REVIEW_REQUIRED", "ROLLBACK_REVIEW_REQUIRED"))
     return {"schema": "aeos2047-preflight/1", "head_sha": sha, "pr": 114,
             "independent_reviewers": approvals, "unresolved_change_request_reviewers": objections, "ci": ci, "blockers": sorted(set(blocked)),

@@ -152,6 +152,29 @@ class ReleasePreflightTests(unittest.TestCase):
         f[runs_url(HEAD)]["workflow_runs"].append(newer)
         self.assertFalse(run(f)["ci"][WORKFLOWS[0]]["passed"])
 
+    def test_ci_rerun_during_audit_invalidates_initial_success(self):
+        f = fixture()
+        calls = []
+        def get(url):
+            row = copy.deepcopy(f[url])
+            if url == runs_url(HEAD):
+                calls.append(1)
+                if len(calls) == 2:
+                    row["workflow_runs"][0].update({
+                        "run_attempt": 2, "status": "in_progress", "conclusion": None})
+            return row
+        result = audit(get)
+        self.assertIn("CI_CHANGED_DURING_AUDIT", result["blockers"])
+        self.assertIn("NO_CURRENT_CI:" + WORKFLOWS[0], result["blockers"])
+        self.assertFalse(result["ci"][WORKFLOWS[0]]["passed"])
+        self.assertFalse(result["production_authorized"])
+
+    def test_workflow_total_count_mismatch_fails_closed(self):
+        f = fixture()
+        f[runs_url(HEAD)]["total_count"] = 1000
+        with self.assertRaisesRegex(ReviewError, "TRUNCATED"):
+            run(f)
+
     def test_gate_reopened_during_audit_is_blocker(self):
         f = fixture()
         calls = []
