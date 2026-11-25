@@ -216,6 +216,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/Dimkox/Getzilla/issues/152": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/DonCervantes/x402-Handle/issues/168": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -797,6 +804,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/astrgd27/CardGameCreator/issues/9": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/auditstream/auditstream-js/issues/88": {
       "days_observed": 1,
       "first_seen_day": "2026-11-25",
@@ -1355,6 +1369,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-24",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/kleros/kleros-skills/issues/10": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/ktogias/gnostoa/issues/512": {
