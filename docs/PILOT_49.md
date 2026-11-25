@@ -15,6 +15,8 @@ A developer or AI-agent team wants to see whether a buyer-controlled acceptance 
 
 ## Reproducible no-cost example
 
+[Try the free synthetic browser demonstration](starter-demo.html) for a narrow policy-pin and output-status example. It is a separate illustrative subset, not the complete Python verifier or an independent buyer trust root.
+
 The open-source evidence primitive already lives in `buyer-gate/check.py`. Run this demonstration from the repository root, using only public synthetic artifacts:
 
 ```bash
