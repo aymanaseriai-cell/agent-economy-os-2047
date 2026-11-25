@@ -8,11 +8,75 @@ authenticity, model quality, or real-world truth.
 import argparse
 import hashlib
 import json
+import os
 import re
+import stat
 import sys
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 
 SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
+
+
+
+def _reject_duplicate_json_keys(pairs):
+    """Reject ambiguous JSON objects instead of silently taking the last key."""
+    out = {}
+    for key, value in pairs:
+        if key in out:
+            raise ValueError(f"duplicate JSON key: {key!r}")
+        out[key] = value
+    return out
+
+
+def _components(relative: str) -> tuple[str, ...]:
+    """Reject ambiguous or platform-specific paths before touching the filesystem."""
+    if (not relative or relative.strip() != relative or "\\" in relative
+            or "\x00" in relative or Path(relative).is_absolute()
+            or PureWindowsPath(relative).is_absolute()
+            or PureWindowsPath(relative).drive):
+        raise ValueError("path escapes project root or is not a portable relative path")
+    parts = tuple(relative.split("/"))
+    if any(part in ("", ".", "..") for part in parts):
+        raise ValueError("path escapes project root or contains ambiguous segments")
+    return parts
+
+
+def _open_regular(root: Path, parts: tuple[str, ...]):
+    """Use dirfd/no-follow on POSIX to reject symlink traversal and non-regular files."""
+    if os.name == "posix" and hasattr(os, "O_NOFOLLOW"):
+        flags = os.O_RDONLY | os.O_NOFOLLOW | getattr(os, "O_CLOEXEC", 0)
+        directory_flags = flags | os.O_DIRECTORY
+        directory_fd = os.open(root, directory_flags)
+        try:
+            for part in parts[:-1]:
+                next_fd = os.open(part, directory_flags, dir_fd=directory_fd)
+                os.close(directory_fd)
+                directory_fd = next_fd
+            file_fd = os.open(parts[-1], flags | getattr(os, "O_NONBLOCK", 0), dir_fd=directory_fd)
+            try:
+                item_stat = os.fstat(file_fd)
+                if not stat.S_ISREG(item_stat.st_mode):
+                    raise ValueError("artifact is not a regular file")
+                return os.fdopen(file_fd, "rb"), item_stat
+            except BaseException:
+                os.close(file_fd)
+                raise
+        finally:
+            os.close(directory_fd)
+    # Windows fallback: refuse symlinks and verify resolved containment.
+    path = root
+    for part in parts:
+        path = path / part
+        if path.is_symlink():
+            raise ValueError("symlink artifacts are not accepted")
+    if not path.resolve().is_relative_to(root):
+        raise ValueError("path escapes project root")
+    handle = path.open("rb")
+    item_stat = os.fstat(handle.fileno())
+    if not stat.S_ISREG(item_stat.st_mode):
+        handle.close()
+        raise ValueError("artifact is not a regular file")
+    return handle, item_stat
 
 
 def validate(manifest_path: Path, root: Path) -> dict:
@@ -20,14 +84,16 @@ def validate(manifest_path: Path, root: Path) -> dict:
     errors = []
     results = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
+    except (OSError, UnicodeError, ValueError, RecursionError) as exc:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": [f"Could not read manifest: {exc}"]}
 
     records = manifest.get("artifacts") if isinstance(manifest, dict) else None
     if not isinstance(records, list) or not records:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": ["Manifest must contain a non-empty 'artifacts' array"]}
 
+    seen_paths = set()
+    seen_files = set()
     for idx, record in enumerate(records):
         label = f"artifacts[{idx}]"
         if not isinstance(record, dict):
@@ -38,23 +104,29 @@ def validate(manifest_path: Path, root: Path) -> dict:
         if not isinstance(relative, str) or not relative.strip() or not isinstance(expected, str) or not SHA256.fullmatch(expected):
             errors.append(f"{label}: expected non-empty path and 64-character sha256")
             continue
-        path = (root / relative).resolve()
         try:
-            path.relative_to(root)
-        except ValueError:
-            errors.append(f"{label}: path escapes project root")
+            parts = _components(relative)
+        except ValueError as exc:
+            errors.append(f"{label}: {exc}")
             continue
-        if not path.is_file():
-            errors.append(f"{label}: file not found: {relative}")
+        if parts in seen_paths:
+            errors.append(f"{label}: duplicate artifact path: {relative}")
             continue
+        seen_paths.add(parts)
         try:
-            digest = hashlib.sha256()
-            with path.open("rb") as handle:
+            handle, file_stat = _open_regular(root, parts)
+            with handle:
+                inode = (file_stat.st_dev, file_stat.st_ino)
+                if inode in seen_files:
+                    errors.append(f"{label}: duplicate underlying file: {relative}")
+                    continue
+                seen_files.add(inode)
+                digest = hashlib.sha256()
                 while chunk := handle.read(1024 * 1024):
                     digest.update(chunk)
-            actual = digest.hexdigest()
-        except OSError as exc:
-            errors.append(f"{label}: cannot read file: {exc}")
+                actual = digest.hexdigest()
+        except (OSError, ValueError) as exc:
+            errors.append(f"{label}: cannot read regular artifact {relative}: {exc}")
             continue
         matched = actual.lower() == expected.lower()
         results.append({"path": relative, "sha256": actual, "matched": matched})

@@ -3,6 +3,9 @@
 import argparse
 import hashlib
 import json
+import os
+import stat
+import tempfile
 import re
 import secrets
 import sqlite3
@@ -19,19 +22,40 @@ DDL = """CREATE TABLE IF NOT EXISTS evidence_challenges(
     manifest_sha256 TEXT NOT NULL, expires_at INTEGER NOT NULL, used_at INTEGER)"""
 
 
-def _db(path):
+CLAIMS_DDL = """CREATE TABLE IF NOT EXISTS evidence_claims(
+    nonce TEXT PRIMARY KEY, request_id TEXT NOT NULL, audience TEXT NOT NULL,
+    fingerprint TEXT NOT NULL, claimed_at INTEGER NOT NULL,
+    UNIQUE(request_id,audience,fingerprint))"""
+
+
+def _db(path, *, existing=False):
     if not Path(path).parent.is_dir():
         raise ValueError("db_parent_missing")
-    conn = sqlite3.connect(str(path), timeout=5, isolation_level=None)
-    conn.execute(DDL)
-    return conn
+    target = Path(path).resolve().as_uri() + "?mode=rw" if existing else str(path)
+    conn = sqlite3.connect(target, uri=existing, timeout=5, isolation_level=None)
+    try:
+        conn.execute(DDL)
+        conn.execute(CLAIMS_DDL)
+        return conn
+    except BaseException:
+        conn.close()
+        raise
+
+
+def _manifest_bytes(path):
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0) | getattr(os, "O_BINARY", 0)
+    fd = os.open(path, flags)
+    with os.fdopen(fd, "rb") as handle:
+        if not stat.S_ISREG(os.fstat(handle.fileno()).st_mode):
+            raise ValueError("manifest_not_regular")
+        raw = handle.read(131073)
+    if len(raw) > 131072:
+        raise ValueError("manifest_too_large")
+    return raw
 
 
 def manifest_hash(path):
-    path = Path(path)
-    if path.stat().st_size > 131072:
-        raise ValueError("manifest_too_large")
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    return hashlib.sha256(_manifest_bytes(path)).hexdigest()
 
 
 def issue(db, request_id, audience, expected_hash, ttl=300, *, now=None):
@@ -56,13 +80,10 @@ def issue(db, request_id, audience, expected_hash, ttl=300, *, now=None):
             "expires_at": stamp + ttl, "signed": False}
 
 
-def _preflight(path, root):
+def _preflight(raw, root):
     if root.is_symlink() or not root.is_dir():
         return "unsafe_root"
     try:
-        raw = path.read_bytes()
-        if len(raw) > 131072:
-            return "manifest_too_large"
         data = json.loads(raw)
     except (ValueError, OSError, UnicodeError):
         return "invalid_manifest"
@@ -93,6 +114,13 @@ def _preflight(path, root):
 
 
 def verify(db, nonce, request_id, audience, manifest, root, *, now=None):
+    try:
+        return _verify(db, nonce, request_id, audience, manifest, root, now=now)
+    except (OSError, sqlite3.Error, ValueError, RecursionError):
+        return {"schema": DOMAIN, "passed": False, "status": "verification_unavailable"}
+
+
+def _verify(db, nonce, request_id, audience, manifest, root, *, now=None):
     stamp = int(time.time()) if now is None else int(now)
     fail = lambda state: {"schema": DOMAIN, "passed": False, "status": state}
     if not isinstance(nonce, str) or not NONCE.fullmatch(nonce):
@@ -102,7 +130,9 @@ def verify(db, nonce, request_id, audience, manifest, root, *, now=None):
     if not isinstance(audience, str) or not ID.fullmatch(audience):
         return fail("invalid_audience")
     manifest, root = Path(manifest), Path(root)
-    conn = _db(db)
+    if not Path(db).is_file():
+        return fail("challenge_unknown")
+    conn = _db(db, existing=True)
     try:
         record = conn.execute(
             "SELECT request_id,audience,manifest_sha256,expires_at,used_at "
@@ -119,14 +149,19 @@ def verify(db, nonce, request_id, audience, manifest, root, *, now=None):
     if req != request_id or target != audience:
         return fail("binding_mismatch")
     try:
-        if manifest_hash(manifest) != expected:
+        raw = _manifest_bytes(manifest)
+        if hashlib.sha256(raw).hexdigest() != expected:
             return fail("manifest_mismatch")
     except (OSError, ValueError):
         return fail("manifest_unreadable")
-    problem = _preflight(manifest, root)
+    problem = _preflight(raw, root)
     if problem:
         return fail(problem)
-    report = validate(manifest, root)
+    # Validate exactly the bytes checked against the independently pinned digest.
+    with tempfile.TemporaryDirectory(prefix="aeos-manifest-") as temp:
+        snapshot = Path(temp) / "manifest.json"
+        snapshot.write_bytes(raw)
+        report = validate(snapshot, root)
     if not report["passed"]:
         return fail("artifact_integrity_failed")
     hashes = {x["path"]: x["sha256"] for x in report["artifacts"]}
@@ -136,13 +171,24 @@ def verify(db, nonce, request_id, audience, manifest, root, *, now=None):
         sort_keys=True, separators=(",", ":"), ensure_ascii=False
     ).encode("utf-8")
     receipt = hashlib.sha256(statement).hexdigest()
-    conn = _db(db)
+    fingerprint = hashlib.sha256(json.dumps(hashes, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
+    conn = _db(db, existing=True)
     try:
         conn.execute("BEGIN IMMEDIATE")
+        # An older used nonce without a claim has unknown replay history. Do not silently reset it.
+        if conn.execute("SELECT 1 FROM evidence_challenges c LEFT JOIN evidence_claims p ON p.nonce=c.nonce WHERE c.used_at IS NOT NULL AND p.nonce IS NULL LIMIT 1").fetchone():
+            conn.rollback()
+            return fail("legacy_claim_history_unverified")
+        stamp = int(time.time()) if now is None else stamp
+        try:
+            conn.execute("INSERT INTO evidence_claims VALUES (?,?,?,?,?)", (nonce, req, target, fingerprint, stamp))
+        except sqlite3.IntegrityError:
+            conn.rollback()
+            return fail("evidence_reused_or_replay")
         changed = conn.execute(
             "UPDATE evidence_challenges SET used_at=? "
-            "WHERE nonce=? AND used_at IS NULL AND expires_at>?",
-            (stamp, nonce, stamp)).rowcount
+            "WHERE nonce=? AND used_at IS NULL AND expires_at>? AND request_id=? AND audience=? AND manifest_sha256=?",
+            (stamp, nonce, stamp, req, target, expected)).rowcount
         if changed != 1:
             conn.rollback()
             return fail("replay_or_expired")

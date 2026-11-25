@@ -2,6 +2,9 @@
 import hashlib
 import json
 import tempfile
+import sqlite3
+from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import patch
 import unittest
 from pathlib import Path
 from agent_evidence_gate import issue, verify, manifest_hash
@@ -89,6 +92,63 @@ class TestEvidenceGate(unittest.TestCase):
             issue(self.db, "bad id", "agent", "0" * 64)
         with self.assertRaises(ValueError):
             issue(self.db, "good", "agent", "0" * 64, ttl=0)
+
+
+    def test_reissued_nonce_same_scoped_evidence_rejected(self):
+        first, second = self.create(), self.create()
+        self.assertTrue(self.check(first)["passed"])
+        self.assertEqual(self.check(second)["status"], "evidence_reused_or_replay")
+
+    def test_same_bytes_different_scope_allowed(self):
+        self.assertTrue(self.check(self.create())["passed"])
+        n = issue(self.db, "task-Z", "agent-B", manifest_hash(self.manifest), now=100)["nonce"]
+        self.assertTrue(self.check(n, request="task-Z")["passed"])
+
+    def test_eight_concurrent_attempts_single_acceptance(self):
+        n = self.create()
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            results = list(pool.map(lambda _: self.check(n), range(8)))
+        self.assertEqual(sum(x["passed"] for x in results), 1)
+
+    def test_expiry_rechecked_at_atomic_claim(self):
+        n = self.create()
+        with patch("agent_evidence_gate.time.time", side_effect=[101, 160]):
+            out = verify(self.db, n, "task-A", "agent-B", self.manifest, self.root)
+        self.assertFalse(out["passed"])
+        self.assertEqual(out["status"], "replay_or_expired")
+        with sqlite3.connect(self.db) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM evidence_claims").fetchone()[0], 0)
+
+    def test_validation_uses_pinned_snapshot(self):
+        from verifier import validate as actual
+        n = self.create()
+        pinned = self.manifest.read_bytes()
+        def mutate_then_validate(path, root):
+            self.manifest.write_text("{}")
+            self.assertEqual(path.read_bytes(), pinned)
+            return actual(path, root)
+        with patch("agent_evidence_gate.validate", side_effect=mutate_then_validate):
+            self.assertTrue(self.check(n)["passed"])
+
+    def test_legacy_consumption_unknown_fails_closed(self):
+        first, second = self.create(), self.create()
+        with sqlite3.connect(self.db) as db:
+            db.execute("UPDATE evidence_challenges SET used_at=101 WHERE nonce=?", (first,))
+        self.assertEqual(self.check(second)["status"], "legacy_claim_history_unverified")
+
+    def test_failed_consumption_rolls_back_claim(self):
+        n = self.create()
+        with sqlite3.connect(self.db) as db:
+            db.execute("CREATE TRIGGER fail_update BEFORE UPDATE OF used_at ON evidence_challenges BEGIN SELECT RAISE(ABORT,'fixture'); END")
+        self.assertFalse(self.check(n)["passed"])
+        with sqlite3.connect(self.db) as db:
+            self.assertEqual(db.execute("SELECT count(*) FROM evidence_claims").fetchone()[0], 0)
+            db.execute("DROP TRIGGER fail_update")
+        self.assertTrue(self.check(n)["passed"])
+
+    def test_unknown_nonce_does_not_create_database(self):
+        self.assertEqual(self.check("0" * 48)["status"], "challenge_unknown")
+        self.assertFalse(self.db.exists())
 
 
 if __name__ == "__main__":
