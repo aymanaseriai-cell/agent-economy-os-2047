@@ -76,17 +76,53 @@ def run_review_cycle(orders: list, live_jobs: list, root: Path, fetch=None) -> d
     }
 
 
+def run_live_review_cycle(orders: list, root: Path, fetch=None) -> dict:
+    """Discover only eligible jobs; isolate provider failures before bounded dispatch."""
+    from automation.worker_fleet_live import prepare_live_jobs
+    from automation.worker_dispatcher import default_fetch
+
+    # Validate the entire snapshot before any provider access.
+    plan_dispatch(orders)
+    provider = default_fetch if fetch is None else fetch
+    jobs, unavailable = [], []
+    for order in orders:
+        if order["work_status"] not in ("QUEUED", "IN_PROGRESS"):
+            continue
+        worker_id = order["work_key"][len(PREFIX):]
+        try:
+            discovered = prepare_live_jobs(provider, selected_workers=[worker_id])
+        except (ValueError, OSError, TypeError, KeyError):
+            unavailable.append(worker_id)
+            continue
+        batch = discovered["jobs"]
+        if not isinstance(batch, list) or len(batch) != 1:
+            raise PolicyError("CYCLE_DISCOVERY_WORKER_MISMATCH")
+        worker, _ = make_task(batch[0])
+        if worker.worker_id != worker_id:
+            raise PolicyError("CYCLE_DISCOVERY_WORKER_MISMATCH")
+        jobs.extend(batch)
+    result = run_review_cycle(orders, jobs, root, fetch=provider)
+    result["discovery_blocked_worker_ids"] = sorted(unavailable)
+    result["job_source"] = "SELECTED_ALLOWLISTED_PROVIDER_DISCOVERY"
+    return result
+
+
 def main(argv=None):
     p = argparse.ArgumentParser()
     p.add_argument("--orders", type=Path, required=True)
-    p.add_argument("--jobs", type=Path, required=True)
+    jobs_group = p.add_mutually_exclusive_group(required=True)
+    jobs_group.add_argument("--jobs", type=Path)
+    jobs_group.add_argument("--auto-live-jobs", action="store_true")
     p.add_argument("--root", type=Path, default=Path("."))
     p.add_argument("--out", type=Path, required=True)
     args = p.parse_args(argv)
     temp = None
     try:
-        result = run_review_cycle(json.loads(args.orders.read_text(encoding="utf-8")),
-                                  json.loads(args.jobs.read_text(encoding="utf-8")), args.root)
+        orders = json.loads(args.orders.read_text(encoding="utf-8"))
+        if args.auto_live_jobs:
+            result = run_live_review_cycle(orders, args.root)
+        else:
+            result = run_review_cycle(orders, json.loads(args.jobs.read_text(encoding="utf-8")), args.root)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=args.out.parent,
                                          delete=False) as handle:

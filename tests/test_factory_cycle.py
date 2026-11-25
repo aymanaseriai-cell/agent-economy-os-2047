@@ -59,4 +59,61 @@ class FactoryCycleTests(unittest.TestCase):
                                  Path("."))
             fleet.assert_not_called()
 
+    def test_auto_discovery_isolates_provider_failure_and_skips_blocked(self):
+        from automation.factory_cycle import run_live_review_cycle
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "verifier.py").write_text("fixture", encoding="utf-8")
+            (root / "docs").mkdir()
+            (root / "docs" / "ENTERPRISE_EVIDENCE_PILOT.md").write_text("fixture", encoding="utf-8")
+            orders = [item("AEOS-W04", "IN_PROGRESS"), item("AEOS-W03"),
+                      item("AEOS-W09"), item("AEOS-W06", "NEEDS_APPROVAL")]
+            calls = []
+            def discover(fetch, *, selected_workers):
+                w = selected_workers[0]
+                calls.append(w)
+                if w == "AEOS-W04":
+                    raise OSError("CI unavailable")
+                return {"jobs": [{"worker_id": w}]}
+            with patch("automation.worker_fleet_live.prepare_live_jobs", side_effect=discover):
+                result = run_live_review_cycle(orders, root)
+            self.assertEqual(calls, ["AEOS-W04", "AEOS-W03", "AEOS-W09"])
+            self.assertEqual(result["cycle_status"], "DEGRADED")
+            self.assertEqual(result["discovery_blocked_worker_ids"], ["AEOS-W04"])
+            self.assertEqual(result["technically_verified_readonly_count"], 2)
+            self.assertEqual(result["business_deliveries_verified"], 0)
+            self.assertFalse(result["production_release_authorized"])
 
+    def test_auto_discovery_rejects_foreign_worker_before_execution(self):
+        from automation.factory_cycle import run_live_review_cycle
+        from unittest.mock import patch
+        with (patch("automation.worker_fleet_live.prepare_live_jobs",
+                    return_value={"jobs": [{"worker_id": "AEOS-W09"}]}),
+              patch("automation.factory_cycle.run_review_cycle") as run):
+            with self.assertRaisesRegex(PolicyError, "CYCLE_DISCOVERY_WORKER_MISMATCH"):
+                run_live_review_cycle([item("AEOS-W03")], Path("."))
+            run.assert_not_called()
+
+    def test_auto_discovery_validates_all_orders_first(self):
+        from automation.factory_cycle import run_live_review_cycle
+        from unittest.mock import patch
+        with patch("automation.worker_fleet_live.prepare_live_jobs") as discover:
+            with self.assertRaises(PolicyError):
+                run_live_review_cycle([item("AEOS-W03"), item("AEOS-W09", owner_role="CTO")], Path("."))
+            discover.assert_not_called()
+
+    def test_auto_discovery_cli_records_degraded_report(self):
+        from automation.factory_cycle import main
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            inp, out = root / "orders.json", root / "result.json"
+            inp.write_text(json.dumps([item("AEOS-W04")]), encoding="utf-8")
+            with patch("automation.worker_fleet_live.prepare_live_jobs", side_effect=OSError("offline")):
+                code = main(["--orders", str(inp), "--auto-live-jobs", "--root", str(root), "--out", str(out)])
+            self.assertEqual(code, 2)
+            result = json.loads(out.read_text())
+            self.assertEqual(result["discovery_blocked_worker_ids"], ["AEOS-W04"])
+            self.assertEqual(result["dispatched_count"], 0)
+            self.assertFalse(result["persistent_scheduler_installed"])
