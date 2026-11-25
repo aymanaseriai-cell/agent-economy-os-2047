@@ -133,7 +133,9 @@ class AgentServiceCatalogTests(unittest.TestCase):
         self.assertIn('href="./agent-services.json"', website)
         self.assertIn('href="./llms.txt"', website)
         self.assertIn("docs/agent-services.json", readme)
-        self.assertIn("owner authorizes", website)
+        self.assertIn("Commercial purchasing is on hold", website)
+        self.assertIn("do not initiate payment", website)
+        self.assertIn("non-binding scope inquiry", website)
 
 if __name__ == "__main__":
     unittest.main()
