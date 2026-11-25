@@ -1,0 +1,108 @@
+name: Twelve-worker fleet — provider-backed read-only execution
+on:
+  pull_request:
+    paths:
+      - 'automation/worker_dispatcher.py'
+      - 'automation/worker_fleet.py'
+      - 'automation/worker_fleet_live.py'
+      - 'tests/test_worker_fleet*.py'
+      - 'tests/test_worker_dispatcher.py'
+      - 'automation/factory_operator.py'
+      - 'automation/factory_cycle.py'
+      - 'tests/test_factory_cycle.py'
+      - 'tests/test_factory_operator.py'
+      - 'automation/factory_integration_smoke.py'
+      - 'tests/test_factory_integration_smoke.py'
+      - '.github/workflows/worker-fleet-readonly.yml'
+  workflow_dispatch:
+  schedule:
+    - cron: '11 6 * * *'
+permissions:
+  contents: read
+  actions: read
+  issues: read
+concurrency:
+  group: twelve-workers-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  provider-backed-smoke:
+    # Fail closed: a schedule requires explicit release enablement, never merely a merge.
+    if: ${{ github.event_name != 'schedule' || (github.ref == 'refs/heads/main' && vars.AEOS_WORKER_FLEET_RELEASE_APPROVED == 'true') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Require reviewed gate #98 before any scheduled execution
+        if: ${{ github.event_name == 'schedule' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          from automation.worker_dispatcher import default_fetch
+          gate = default_fetch('https://api.github.com/repos/aymanaseriai-cell/agent-economy-os-2047/issues/98')
+          if gate.get('state') != 'closed':
+              raise SystemExit('RELEASE_GATE_98_STILL_OPEN')
+          print('Gate #98 closed, and release-enable repository variable is true')
+          PY
+      - name: Validate bounded worker capabilities
+        run: |
+          python3 -m unittest discover -s tests -p 'test_worker_dispatcher.py' -v
+          python3 -m unittest discover -s tests -p 'test_worker_fleet.py' -v
+          python3 -m unittest discover -s tests -p 'test_worker_fleet_live.py' -v
+          python3 -m unittest discover -s tests -p 'test_factory_operator.py' -v
+          python3 -m unittest discover -s tests -p 'test_factory_cycle.py' -v
+          python3 -m unittest discover -s tests -p 'test_factory_integration_smoke.py' -v
+      - name: Discover current main SHA, provider CI and consent-first public intake
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python3 -m automation.worker_fleet_live --out /tmp/aeos2047-worker-jobs.json
+      - name: Execute all 12 read-only workers in batches of four
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.worker_fleet \
+            --jobs /tmp/aeos2047-worker-jobs.json \
+            --max-concurrent 4 \
+            --root . \
+            --out reports/worker-fleet-live.json
+      - name: Verify CEO-to-workers factory integration against real read-only providers
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.factory_integration_smoke \
+            --jobs /tmp/aeos2047-worker-jobs.json \
+            --root . \
+            --out reports/factory-reviewonly-integration.json
+      - name: Validate central multi-round factory engine
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.factory_integration_smoke \
+            --central-cycle \
+            --jobs /tmp/aeos2047-worker-jobs.json \
+            --root . \
+            --out reports/factory-central-cycle.json
+      - name: Validate bounded automatic recovery after injected interruption
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.factory_integration_smoke --recovery-cycle --jobs /tmp/aeos2047-worker-jobs.json --root . --out reports/factory-recovery-cycle.json
+      - name: Store truthful receipts, including blocked results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: twelve-worker-fleet-evidence
+          path: |
+            reports/worker-fleet-live.json
+            reports/factory-reviewonly-integration.json
+            reports/factory-central-cycle.json
+            reports/factory-recovery-cycle.json
+          if-no-files-found: ignore
+          retention-days: 7

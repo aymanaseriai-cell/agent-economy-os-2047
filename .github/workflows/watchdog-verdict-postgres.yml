@@ -1,0 +1,59 @@
+name: Watchdog verdict - isolated PostgreSQL adversarial review
+on:
+  pull_request:
+    paths:
+      - 'infra/supabase/factory_cron_watchdog_20261121.sql'
+      - 'infra/supabase/tests/watchdog_verdict_postgres_review.py'
+      - 'infra/supabase/factory_watchdog_freeze_replay_20261123.sql'
+      - 'infra/supabase/tests/watchdog_freeze_postgres_review.py'
+      - 'infra/supabase/tests/watchdog_migration_postgres_review.py'
+      - 'infra/supabase/factory_autonomy_evidence_20261121.sql'
+      - 'infra/supabase/tests/autonomy_window_postgres_review.py'
+      - '.github/workflows/watchdog-verdict-postgres.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  exact-source-postgres:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: isolated_ci_only
+          POSTGRES_DB: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d postgres"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 15
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGDATABASE: postgres
+      PGPASSWORD: isolated_ci_only
+      PGSSLMODE: disable
+    steps:
+      - name: Read review branch source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Ensure local PostgreSQL client available
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq postgresql-client
+          fi
+      - name: Test actual SQL verdict in isolated PostgreSQL, no Supabase credentials
+        run: python3 infra/supabase/tests/watchdog_verdict_postgres_review.py
+      - name: Verify emergency replay-freeze rollback in isolated PostgreSQL
+        run: python3 infra/supabase/tests/watchdog_freeze_postgres_review.py
+      - name: Rehearse legacy constraint migration and compensating rollback on PostgreSQL 17
+        run: python3 infra/supabase/tests/watchdog_migration_postgres_review.py
+      - name: Verify bounded autonomy evidence window in isolated PostgreSQL
+        run: python3 infra/supabase/tests/autonomy_window_postgres_review.py

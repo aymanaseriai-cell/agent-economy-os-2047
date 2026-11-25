@@ -1,0 +1,96 @@
+name: Agent Economy security scan - CodeQL Python (review only)
+
+# Static analysis only. No deploy, code mutation, spending or customer contact.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/codeql-pr-security.yml'
+      - 'automation/**'
+      - 'infra/supabase/**'
+      - 'tests/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+concurrency:
+  group: aeos2047-codeql-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  python-sast:
+    # On forked pull requests the GITHUB_TOKEN cannot upload code-scanning
+    # results safely; never use pull_request_target to elevate its privileges.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout source without persisted credentials
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Initialize GitHub CodeQL for Python
+        uses: github/codeql-action/init@v4
+        with:
+          languages: python
+          queries: security-extended
+      - name: Analyze Python code and generate SARIF
+        id: codeql_analyze
+        uses: github/codeql-action/analyze@v4
+        with:
+          category: '/language:python'
+          output: ${{ runner.temp }}/aeos-codeql-results
+          upload: failure-only
+      - name: Publish SARIF and wait for processing
+        id: codeql_upload
+        if: ${{ !cancelled() && steps.codeql_analyze.outcome == 'success' }}
+        # A failed publication fails the job. Retry via a new job attempt,
+        # never a second upload of the same tool/category inside one job.
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ runner.temp }}/aeos-codeql-results/python.sarif
+          category: '/language:python'
+          wait-for-processing: true
+      - name: Record bounded security scan diagnostics
+        if: ${{ !cancelled() && (steps.codeql_analyze.outcome == 'success' || steps.codeql_analyze.outcome == 'failure') }}
+        shell: bash
+        env:
+          SARIF_PATH: ${{ runner.temp }}/aeos-codeql-results/python.sarif
+          ANALYZE_OUTCOME: ${{ steps.codeql_analyze.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.codeql_upload.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["SARIF_PATH"])
+          outcome = os.environ["ANALYZE_OUTCOME"]
+          state = "missing"
+          count = None
+          try:
+              if path.is_file():
+                  if path.stat().st_size > 50 * 1024 * 1024:
+                      state = "size_limit"
+                  else:
+                      data = json.loads(path.read_text(encoding="utf-8"))
+                      runs = data["runs"]
+                      if not isinstance(runs, list) or not runs:
+                          raise ValueError("invalid runs")
+                      results = [run.get("results", []) for run in runs]
+                      if any(not isinstance(items, list) for items in results):
+                          raise ValueError("invalid results")
+                      count = sum(map(len, results))
+                      state = "present"
+          except (OSError, ValueError, KeyError, TypeError, AttributeError):
+              state = "unreadable"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"### CodeQL diagnostic (not release approval)\n")
+              summary.write(f"- Analyze outcome: {outcome}\n")
+              summary.write(f"- Upload outcome: {os.environ.get('UPLOAD_OUTCOME', 'unknown')}\n")
+              summary.write(f"- SARIF state: {state}\n")
+              summary.write(f"- Reported result count: {count if count is not None else 'unknown'}\n")
+              summary.write("- Raw findings are not exported here. Failed analysis/upload remains a failed job.\n")
+          PY
