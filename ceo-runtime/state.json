@@ -35,10 +35,17 @@
       "tier": "research_only"
     },
     "https://github.com/529-studio/projectKV/issues/552": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/8ft0-ai/promptbook/issues/112": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
@@ -105,16 +112,16 @@
       "tier": "research_only"
     },
     "https://github.com/AxalNetwork/StudioOS/issues/8509": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 16,
       "tier": "research_only"
     },
     "https://github.com/Ayush441-python/AUREN/issues/288": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 9,
       "tier": "research_only"
     },
@@ -147,9 +154,9 @@
       "tier": "research_only"
     },
     "https://github.com/CallHarborMCP/callharbor/issues/82": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 10,
       "tier": "research_only"
     },
@@ -406,9 +413,9 @@
       "tier": "research_only"
     },
     "https://github.com/Norn-cloud/norn/issues/1418": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 13,
       "tier": "research_only"
     },
@@ -476,16 +483,16 @@
       "tier": "research_only"
     },
     "https://github.com/Savitura/crowdpay/issues/1317": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
     "https://github.com/Scottcjn/rustchain-bounties/issues/17184": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 14,
       "tier": "research_only"
     },
@@ -525,9 +532,9 @@
       "tier": "research_only"
     },
     "https://github.com/TychiWallet/agent-finance/issues/1": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 18,
       "tier": "research_only"
     },
@@ -595,16 +602,16 @@
       "tier": "research_only"
     },
     "https://github.com/agentcommercekit/ack/issues/217": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
     },
     "https://github.com/agentnameservice/ans/issues/96": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 14,
       "tier": "research_only"
     },
@@ -644,9 +651,9 @@
       "tier": "research_only"
     },
     "https://github.com/aibtcdev/agent-news/issues/917": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 15,
       "tier": "research_only"
     },
@@ -693,9 +700,9 @@
       "tier": "research_only"
     },
     "https://github.com/anotherhale/str-ready-room/issues/15": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 13,
       "tier": "research_only"
     },
@@ -826,9 +833,9 @@
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -924,9 +931,9 @@
       "tier": "research_only"
     },
     "https://github.com/corneym/Exam/issues/276": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -944,10 +951,17 @@
       "score": 15,
       "tier": "research_only"
     },
-    "https://github.com/drevendev/Devostasis/issues/128": {
+    "https://github.com/domesticmouse/EnvelopeFollower/issues/34": {
       "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/drevendev/Devostasis/issues/128": {
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -1022,9 +1036,9 @@
       "tier": "research_only"
     },
     "https://github.com/google-agentic-commerce/a2a-x402/issues/198": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 10,
       "tier": "research_only"
     },
@@ -1050,9 +1064,9 @@
       "tier": "research_only"
     },
     "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -1092,9 +1106,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/89": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -1106,9 +1120,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/cloud/issues/39": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 19,
       "tier": "research_only"
     },
@@ -1245,6 +1259,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/levifig/loaf/issues/453": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/littlemex/distai-platform/issues/38": {
       "days_observed": 2,
       "first_seen_day": "2026-11-23",
@@ -1372,9 +1393,9 @@
       "tier": "research_only"
     },
     "https://github.com/mickdarling/hailing-station/issues/1354": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 10,
       "tier": "research_only"
     },
@@ -1414,9 +1435,9 @@
       "tier": "research_only"
     },
     "https://github.com/oneshot-agent/sdk/issues/10": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 10,
       "tier": "research_only"
     },
@@ -1463,9 +1484,9 @@
       "tier": "research_only"
     },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
     },
@@ -1673,9 +1694,9 @@
       "tier": "research_only"
     },
     "https://github.com/x402-foundation/x402/issues/2833": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 15,
       "tier": "research_only"
     },
