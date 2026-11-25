@@ -109,8 +109,35 @@ END$$;
 ROLLBACK;
 """
 
+# Force a transaction failure after the entire exact migration has executed.
+# The outer fixture transaction remains isolated; the savepoint must restore
+# the legacy constraint, absent replacement functions and original rows.
+ATOMIC_FAILURE = r"""
+\set ON_ERROR_STOP off
+SELECT 1/0;
+\set ON_ERROR_STOP on
+ROLLBACK TO SAVEPOINT atomic_watchdog_migration;
+DO $$BEGIN
+ IF EXISTS (SELECT * FROM original_rows EXCEPT SELECT * FROM executive_nexus.factory_cron_watchdog_checks)
+ OR (SELECT count(*) FROM executive_nexus.factory_cron_watchdog_checks) <> 8
+ THEN RAISE EXCEPTION 'failed migration changed historical rows'; END IF;
+ IF to_regprocedure('executive_nexus.run_factory_cron_watchdog()') IS NOT NULL
+ OR to_regprocedure('executive_nexus.factory_watchdog_verdict(boolean,boolean,timestamptz,timestamptz,timestamptz,text,timestamptz)') IS NOT NULL
+ THEN RAISE EXCEPTION 'failed migration left replacement functions'; END IF;
+ BEGIN
+ INSERT INTO executive_nexus.factory_cron_watchdog_checks(slot,jobid,jobname,expected_run_at,verdict)
+ VALUES ('2026-11-23 08:00+00',99,'fixture','2026-11-23 08:19+00','RUN_STATUS_UNCERTAIN_NO_REPLAY');
+ RAISE EXCEPTION 'failed migration left expanded constraint';
+ EXCEPTION WHEN check_violation THEN NULL; END;
+ RAISE NOTICE 'PASS atomic failure restores legacy schema and history';
+END$$;
+RELEASE SAVEPOINT atomic_watchdog_migration;
+"""
+
 def test_sql() -> str:
-    return SETUP + MIGRATION.read_text() + AFTER + FREEZE.read_text() + ROLLBACK_CHECK
+    migration = MIGRATION.read_text()
+    return (SETUP + "\nSAVEPOINT atomic_watchdog_migration;\n" + migration
+            + ATOMIC_FAILURE + migration + AFTER + FREEZE.read_text() + ROLLBACK_CHECK)
 
 def main() -> int:
     # Fail closed: this script is intentionally limited to the isolated CI service.
@@ -121,7 +148,10 @@ def main() -> int:
     print(r.stderr)
     if r.returncode:
         return r.returncode
-    print("POSTGRES_WATCHDOG_MIGRATION: full source, legacy constraint, preserved history, repeat routing, compensating freeze PASS")
+    if ("division by zero" not in r.stderr
+            or "PASS atomic failure restores legacy schema and history" not in r.stderr):
+        raise RuntimeError("ATOMIC_FAILURE_REHEARSAL_EVIDENCE_MISSING")
+    print("POSTGRES_WATCHDOG_MIGRATION: atomic failure rollback, full source, legacy constraint, preserved history, repeat routing, compensating freeze PASS")
     return 0
 
 if __name__ == "__main__":
