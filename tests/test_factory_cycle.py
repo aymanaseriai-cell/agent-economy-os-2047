@@ -117,3 +117,65 @@ class FactoryCycleTests(unittest.TestCase):
             self.assertEqual(result["discovery_blocked_worker_ids"], ["AEOS-W04"])
             self.assertEqual(result["dispatched_count"], 0)
             self.assertFalse(result["persistent_scheduler_installed"])
+
+    def test_checkpoint_retains_first_round_when_later_round_fails(self):
+        from automation import factory_cycle
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "docs").mkdir()
+            for filename in ("docs/ENTERPRISE_EVIDENCE_PILOT.md", "buyer-gate/README.md"):
+                p = root / filename
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("fixture", encoding="utf-8")
+            inp, jobs, out, journal = [root / n for n in ("orders.json","jobs.json","out.json","journal.json")]
+            inp.write_text(json.dumps([item("AEOS-W09"), item("AEOS-W10", priority=3)]))
+            jobs.write_text(json.dumps([{"worker_id": "AEOS-W09"}, {"worker_id": "AEOS-W10"}]))
+            original = factory_cycle.execute_reviewonly
+            calls = []
+            def interrupt(*args, **kwargs):
+                calls.append(1)
+                if len(calls) == 2:
+                    raise OSError("interrupted")
+                return original(*args, **kwargs)
+            with patch("automation.factory_cycle.execute_reviewonly", side_effect=interrupt):
+                rc = factory_cycle.main(["--orders",str(inp),"--jobs",str(jobs),
+                    "--out",str(out),"--root",str(root),"--checkpoint",str(journal)])
+            self.assertEqual(rc, 2)
+            self.assertFalse(out.exists())
+            record = json.loads(journal.read_text())
+            self.assertEqual(record["state"], "FAILED_INCOMPLETE")
+            self.assertEqual(record["progress"]["rounds_completed"], 1)
+            self.assertEqual(len(record["progress"]["receipts"]), 1)
+            self.assertFalse(record["production_release_authorized"])
+
+    def test_checkpoint_cannot_overwrite_inputs_or_previous_journal(self):
+        from automation.factory_cycle import main
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            inp, jobs, out, journal = [root / n for n in ("orders.json","jobs.json","out.json","journal.json")]
+            inp.write_text("[]")
+            jobs.write_text("[]")
+            journal.write_text("previous evidence")
+            args = ["--orders",str(inp),"--jobs",str(jobs),"--out",str(out)]
+            self.assertEqual(main(args+["--checkpoint",str(inp)]), 2)
+            self.assertEqual(inp.read_text(), "[]")
+            self.assertEqual(main(args+["--checkpoint",str(journal)]), 2)
+            self.assertEqual(journal.read_text(), "previous evidence")
+            self.assertFalse(out.exists())
+
+    def test_completed_journal_binds_final_report_to_run(self):
+        from automation.factory_cycle import main
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            inp, jobs, out, journal = [root / n for n in ("orders.json","jobs.json","out.json","journal.json")]
+            inp.write_text("[]")
+            jobs.write_text("[]")
+            rc = main(["--orders",str(inp),"--jobs",str(jobs),"--out",str(out),
+                       "--checkpoint",str(journal)])
+            self.assertEqual(rc, 0)
+            a, b = json.loads(out.read_text()), json.loads(journal.read_text())
+            self.assertEqual(a["run_id"], b["run_id"])
+            self.assertEqual(b["state"], "FINAL_REPORT_WRITTEN")
+            self.assertEqual(b["progress"]["receipts"], [])
+            self.assertFalse(a["persistent_scheduler_installed"])
