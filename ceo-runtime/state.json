@@ -1266,6 +1266,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/kwakhyun/uptime402-agentic-commerce/issues/1": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/lbacik/agent-operator-contract/issues/49": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1488,6 +1495,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/openegiz-io/openegiz/issues/44": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
