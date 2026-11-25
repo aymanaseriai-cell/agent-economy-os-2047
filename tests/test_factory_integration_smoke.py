@@ -64,6 +64,26 @@ class FactoryIntegrationTests(unittest.TestCase):
         with self.assertRaisesRegex(PolicyError, "MISSING_EXACT_SELECTED_JOB"):
             run_factory_smoke(jobs()[:-1], Path("."), fetch=fetch)
 
+    def test_central_cycle_runs_all_roles_over_two_rounds(self):
+        from automation.factory_integration_smoke import run_central_smoke
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            (root / "verifier.py").write_text("fixture")
+            (root / "docs").mkdir()
+            (root / "docs" / "ENTERPRISE_EVIDENCE_PILOT.md").write_text("fixture")
+            assignments = jobs() + [{"worker_id": "AEOS-W03"}, {"worker_id": "AEOS-W09"}]
+            report = run_central_smoke(assignments, root, fetch=fetch)
+            self.assertEqual(report["integration_status"], "PASSED")
+            self.assertEqual(report["rounds"], 2)
+            self.assertEqual(report["technically_verified_readonly_count"], 6)
+            self.assertEqual(report["business_deliveries_verified"], 0)
+            self.assertFalse(report["production_release_authorized"])
+            self.assertFalse(report["persistent_scheduler_installed"])
+            missing = run_central_smoke(assignments[:-1], root, fetch=fetch)
+            self.assertEqual(missing["integration_status"], "DEGRADED")
+            self.assertEqual(missing["technically_verified_readonly_count"], 5)
+
 
 if __name__ == "__main__":
     unittest.main()

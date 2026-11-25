@@ -8,6 +8,8 @@ on:
       - 'tests/test_worker_fleet*.py'
       - 'tests/test_worker_dispatcher.py'
       - 'automation/factory_operator.py'
+      - 'automation/factory_cycle.py'
+      - 'tests/test_factory_cycle.py'
       - 'tests/test_factory_operator.py'
       - 'automation/factory_integration_smoke.py'
       - 'tests/test_factory_integration_smoke.py'
@@ -53,6 +55,7 @@ jobs:
           python3 -m unittest discover -s tests -p 'test_worker_fleet.py' -v
           python3 -m unittest discover -s tests -p 'test_worker_fleet_live.py' -v
           python3 -m unittest discover -s tests -p 'test_factory_operator.py' -v
+          python3 -m unittest discover -s tests -p 'test_factory_cycle.py' -v
           python3 -m unittest discover -s tests -p 'test_factory_integration_smoke.py' -v
       - name: Discover current main SHA, provider CI and consent-first public intake
         env:
@@ -75,6 +78,16 @@ jobs:
             --jobs /tmp/aeos2047-worker-jobs.json \
             --root . \
             --out reports/factory-reviewonly-integration.json
+      - name: Validate central multi-round factory engine
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.factory_integration_smoke \
+            --central-cycle \
+            --jobs /tmp/aeos2047-worker-jobs.json \
+            --root . \
+            --out reports/factory-central-cycle.json
       - name: Store truthful receipts, including blocked results
         if: always()
         uses: actions/upload-artifact@v4
@@ -83,5 +96,6 @@ jobs:
           path: |
             reports/worker-fleet-live.json
             reports/factory-reviewonly-integration.json
+            reports/factory-central-cycle.json
           if-no-files-found: ignore
           retention-days: 7

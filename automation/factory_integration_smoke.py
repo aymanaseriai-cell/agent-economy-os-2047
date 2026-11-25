@@ -15,6 +15,7 @@ from pathlib import Path
 from automation.factory_operator import ALLOWED_ACTION, PREFIX, execute_reviewonly, plan_dispatch
 from automation.worker_dispatcher import PolicyError
 from automation.worker_fleet import REGISTRY
+from automation.factory_cycle import run_review_cycle, atomic_json
 
 SMOKE_WORKERS = ("AEOS-W01", "AEOS-W04", "AEOS-W07", "AEOS-W11")
 assert {REGISTRY[worker].owner_role for worker in SMOKE_WORKERS} == {"CEO", "CTO", "CRO", "COO_CFO"}
@@ -59,14 +60,49 @@ def run_factory_smoke(live_jobs: list, root: Path, fetch=None) -> dict:
     }
 
 
+def run_central_smoke(live_jobs: list, root: Path, fetch=None) -> dict:
+    """Exercise the real central multi-round engine without private orders or writes."""
+    workers = SMOKE_WORKERS + ("AEOS-W03", "AEOS-W09")
+    orders = [
+        {"work_key": PREFIX + w, "owner_role": REGISTRY[w].owner_role,
+         "action_code": ALLOWED_ACTION[w], "work_status": "QUEUED",
+         "priority": 1 if w in SMOKE_WORKERS else 2, "proof_ref": None}
+        for w in workers
+    ]
+    report = run_review_cycle(orders, live_jobs, root, fetch=fetch)
+    received = {x["worker_id"] for x in report["receipts"]}
+    passed = (report["cycle_status"] == "REVIEW_COMPLETE"
+              and report["rounds"] == 2
+              and received == set(workers)
+              and report["dispatched_count"] == len(workers)
+              and report["technically_verified_readonly_count"] == len(workers))
+    report.update({
+        "source_orders": "SYNTHETIC_CI_FIXTURE_NOT_SUPABASE_QUEUE",
+        "integration_status": "PASSED" if passed else "DEGRADED",
+        "expected_worker_ids": list(workers),
+        "independent_llm_sessions": 0,
+        "autonomous_code_repair_verified": False,
+        "customer_contact": False,
+    })
+    return report
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--jobs", type=Path, required=True)
     parser.add_argument("--root", type=Path, default=Path("."))
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--central-cycle", action="store_true")
     args = parser.parse_args(argv)
     try:
         jobs = json.loads(args.jobs.read_text(encoding="utf-8"))
+        if args.central_cycle:
+            report = run_central_smoke(jobs, args.root)
+            atomic_json(args.out, report)
+            print("CENTRAL_FACTORY_CYCLE: %s; %d rounds; %d verified checks"
+                  % (report["integration_status"], report["rounds"],
+                     report["technically_verified_readonly_count"]))
+            return 0 if report["integration_status"] == "PASSED" else 2
         report = run_factory_smoke(jobs, args.root)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n", encoding="utf-8")
