@@ -36,18 +36,41 @@ jobs:
         with:
           languages: python
           queries: security-extended
-      - name: Analyze Python code and publish findings to GitHub code scanning
+      - name: Analyze Python code and generate SARIF
         id: codeql_analyze
         uses: github/codeql-action/analyze@v4
         with:
           category: '/language:python'
           output: ${{ runner.temp }}/aeos-codeql-results
+          upload: failure-only
+      - name: Publish SARIF and wait for processing
+        id: codeql_upload
+        if: ${{ !cancelled() && steps.codeql_analyze.outcome == 'success' }}
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ runner.temp }}/aeos-codeql-results/python.sarif
+          category: '/language:python'
+          wait-for-processing: true
+      - name: Retry failed SARIF publication once
+        id: codeql_retry
+        if: ${{ !cancelled() && steps.codeql_analyze.outcome == 'success' && steps.codeql_upload.outcome == 'failure' }}
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ runner.temp }}/aeos-codeql-results/python.sarif
+          category: '/language:python'
+          wait-for-processing: true
+      - name: Fail closed unless SARIF publication was confirmed
+        if: ${{ !cancelled() && steps.codeql_analyze.outcome == 'success' && steps.codeql_upload.outcome != 'success' && steps.codeql_retry.outcome != 'success' }}
+        run: exit 1
       - name: Record bounded security scan diagnostics
         if: ${{ !cancelled() && (steps.codeql_analyze.outcome == 'success' || steps.codeql_analyze.outcome == 'failure') }}
         shell: bash
         env:
           SARIF_PATH: ${{ runner.temp }}/aeos-codeql-results/python.sarif
           ANALYZE_OUTCOME: ${{ steps.codeql_analyze.outcome }}
+          UPLOAD_OUTCOME: ${{ steps.codeql_upload.outcome }}
+          RETRY_OUTCOME: ${{ steps.codeql_retry.outcome }}
         run: |
           python3 - <<'PY'
           import json
@@ -77,6 +100,8 @@ jobs:
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
               summary.write(f"### CodeQL diagnostic (not release approval)\n")
               summary.write(f"- Analyze outcome: {outcome}\n")
+              summary.write(f"- Upload outcome: {os.environ.get('UPLOAD_OUTCOME', 'unknown')}\n")
+              summary.write(f"- Retry outcome: {os.environ.get('RETRY_OUTCOME', 'unknown')}\n")
               summary.write(f"- SARIF state: {state}\n")
               summary.write(f"- Reported result count: {count if count is not None else 'unknown'}\n")
               summary.write("- Raw findings are not exported here. Failed analysis/upload remains a failed job.\n")
