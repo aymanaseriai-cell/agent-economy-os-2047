@@ -8,7 +8,8 @@ REPOSITORY = OWNER + "/" + REPO
 def fixture():
     return {
         PR_URL: {"number": 114, "state": "open", "draft": False, "merged": False,
-                 "head": {"sha": HEAD, "repo": {"full_name": REPOSITORY}}, "base": {"ref": "main"}},
+                 "head": {"sha": HEAD, "repo": {"full_name": REPOSITORY}}, "base": {"ref": "main"},
+                 "user": {"login": OWNER}},
         GATE_URL: {"number": 98, "state": "closed"},
         REVIEWS_URL: [{"id": 100, "submitted_at": "2026-11-22T05:00:00Z",
                        "user": {"login": "independent", "type": "User"},
@@ -103,6 +104,46 @@ class ReleasePreflightTests(unittest.TestCase):
         f[PR_URL]["head"]["sha"] = "../anything"
         with self.assertRaisesRegex(ReviewError, "INVALID_HEAD_SHA"):
             run(f)
+
+    def test_comment_does_not_erase_independent_objection(self):
+        f = fixture()
+        for state, number in (("CHANGES_REQUESTED", 101), ("COMMENTED", 102)):
+            row = copy.deepcopy(f[REVIEWS_URL][0])
+            row.update({"state": state, "id": number, "user": {"login": "second", "type": "User"}})
+            f[REVIEWS_URL].append(row)
+        result = run(f)
+        self.assertEqual(result["independent_reviewers"], ["independent"])
+        self.assertEqual(result["unresolved_change_request_reviewers"], ["second"])
+        self.assertIn("UNRESOLVED_INDEPENDENT_CHANGE_REQUEST", result["blockers"])
+
+    def test_pr_author_cannot_be_independent_even_if_not_owner(self):
+        f = fixture()
+        f[PR_URL]["user"] = {"login": "Independent"}
+        self.assertEqual(run(f)["independent_reviewers"], [])
+
+    def test_new_attempt_of_same_workflow_run_overrides_success(self):
+        f = fixture()
+        first = f[runs_url(HEAD)]["workflow_runs"][0]
+        first["run_attempt"] = 1
+        newer = copy.deepcopy(first)
+        newer.update({"run_attempt": 2, "status": "in_progress", "conclusion": None})
+        f[runs_url(HEAD)]["workflow_runs"].append(newer)
+        self.assertFalse(run(f)["ci"][WORKFLOWS[0]]["passed"])
+
+    def test_gate_reopened_during_audit_is_blocker(self):
+        f = fixture()
+        calls = []
+        def get(url):
+            row = copy.deepcopy(f[url])
+            if url == GATE_URL:
+                calls.append(1)
+                if len(calls) == 2:
+                    row["state"] = "open"
+            return row
+        result = audit(get)
+        self.assertIn("GATE_CHANGED_DURING_AUDIT", result["blockers"])
+        self.assertIn("P0_GATE_98_OPEN", result["blockers"])
+        self.assertFalse(result["production_authorized"])
 
 if __name__ == "__main__":
     unittest.main()

@@ -67,6 +67,11 @@ def audit(get=fetch):
         blocked.append("WRONG_SOURCE_OR_BASE")
     if gate.get("state") != "closed":
         blocked.append("P0_GATE_98_OPEN")
+    author = pr.get("user")
+    author_login = author.get("login") if isinstance(author, dict) else None
+    if not isinstance(author_login, str) or not author_login:
+        blocked.append("PR_AUTHOR_UNVERIFIED")
+    excluded = {OWNER.lower(), author_login.lower() if isinstance(author_login, str) else ""}
     current_reviews = {}
     for review in reviews:
         if not isinstance(review, dict) or not isinstance(review.get("user"), dict):
@@ -75,15 +80,23 @@ def audit(get=fetch):
         login = user.get("login")
         if not isinstance(login, str) or not login or user.get("type") != "User":
             continue
+        # A comment must not erase a submitted approval or change request.
+        if review.get("state") not in ("APPROVED", "CHANGES_REQUESTED", "DISMISSED"):
+            continue
         order = (str(review.get("submitted_at") or ""), review.get("id") if type(review.get("id")) is int else 0)
         if login.lower() not in current_reviews or order > current_reviews[login.lower()][0]:
             current_reviews[login.lower()] = (order, review)
     approvals = sorted(login for login, (_, review) in current_reviews.items()
-                       if login != OWNER and review.get("state") == "APPROVED"
+                       if login not in excluded and author_login and review.get("state") == "APPROVED"
                        and review.get("commit_id") == sha
                        and review.get("author_association") in ("MEMBER", "COLLABORATOR"))
     if not approvals:
         blocked.append("NO_CURRENT_INDEPENDENT_COLLABORATOR_REVIEW")
+    objections = sorted(login for login, (_, review) in current_reviews.items()
+                        if login not in excluded and review.get("state") == "CHANGES_REQUESTED"
+                        and review.get("author_association") in ("MEMBER", "COLLABORATOR", "OWNER"))
+    if objections:
+        blocked.append("UNRESOLVED_INDEPENDENT_CHANGE_REQUEST")
     ci = {}
     for path in WORKFLOWS:
         matches = [run for run in run_response["workflow_runs"] if isinstance(run, dict)
@@ -92,7 +105,8 @@ def audit(get=fetch):
                    and isinstance(run.get("repository"), dict)
                    and run["repository"].get("full_name") == OWNER + "/" + REPO
                    and type(run.get("id")) is int and run["id"] > 0]
-        newest = max(matches, key=lambda run: run["id"]) if matches else None
+        newest = max(matches, key=lambda run: (run["id"], run.get("run_attempt")
+                     if type(run.get("run_attempt")) is int else 0)) if matches else None
         passed = bool(newest and newest.get("status") == "completed" and newest.get("conclusion") == "success")
         ci[path] = {"passed": passed, "run_id": newest["id"] if newest else None}
         if not passed:
@@ -100,9 +114,19 @@ def audit(get=fetch):
     after = get(PR_URL)
     if not isinstance(after, dict) or not isinstance(after.get("head"), dict) or after["head"].get("sha") != sha:
         blocked.append("HEAD_CHANGED_DURING_AUDIT")
+    elif (after.get("state") != pr.get("state") or after.get("draft") != pr.get("draft")
+          or after.get("merged") != pr.get("merged") or after.get("base") != pr.get("base")):
+        blocked.append("PR_STATE_OR_BASE_CHANGED_DURING_AUDIT")
+    gate_after = get(GATE_URL)
+    if not isinstance(gate_after, dict) or gate_after.get("number") != 98:
+        raise ReviewError("UNVERIFIED_GATE_RECHECK")
+    if gate_after.get("state") != gate.get("state") or gate_after.get("updated_at") != gate.get("updated_at"):
+        blocked.append("GATE_CHANGED_DURING_AUDIT")
+    if gate_after.get("state") != "closed":
+        blocked.append("P0_GATE_98_OPEN")
     blocked.extend(("SOURCE_PARITY_REVIEW_REQUIRED", "ROLLBACK_REVIEW_REQUIRED"))
     return {"schema": "aeos2047-preflight/1", "head_sha": sha, "pr": 114,
-            "independent_reviewers": approvals, "ci": ci, "blockers": sorted(set(blocked)),
+            "independent_reviewers": approvals, "unresolved_change_request_reviewers": objections, "ci": ci, "blockers": sorted(set(blocked)),
             "production_authorized": False, "writes": 0, "money_actions": 0,
             "note": "Read-only evidence; never a substitute for #98, independent review or parity."}
 
