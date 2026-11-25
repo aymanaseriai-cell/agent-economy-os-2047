@@ -48,6 +48,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/ARMS-REACH-DIGITAL-AGENCY/mike_crozite_template/issues/901": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/Agri-fund/agri-fi/issues/1391": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -329,9 +336,9 @@
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix-health/issues/317": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 21,
       "tier": "research_only"
     },
@@ -482,6 +489,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/RockyRous/Orbita/issues/19": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/SAFuDarren/Trellin/issues/111": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -531,10 +545,17 @@
       "score": 13,
       "tier": "research_only"
     },
-    "https://github.com/TrentBest/TheSingularityWorkshop.ServerApp/issues/10": {
+    "https://github.com/TrentBest/TheSingularityWorkshop.FSM_Execution/issues/7": {
       "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 24,
+      "tier": "research_only"
+    },
+    "https://github.com/TrentBest/TheSingularityWorkshop.ServerApp/issues/10": {
+      "days_observed": 2,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -833,9 +854,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 14,
       "tier": "research_only"
     },
