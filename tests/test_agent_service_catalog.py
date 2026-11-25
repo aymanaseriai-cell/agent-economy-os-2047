@@ -33,6 +33,22 @@ class AgentServiceCatalogTests(unittest.TestCase):
         self.assertIs(self.catalog["independently_verified_organic_buyers"], False)
         self.assertIs(self.catalog["independently_verified_commercial_revenue"], False)
 
+    def test_commercial_catalog_is_on_hold(self):
+        policy = self.catalog["commercial_policy"]
+        self.assertEqual(policy["status"], "PAYMENT_ON_HOLD")
+        self.assertIs(policy["payment_enabled"], False)
+        self.assertEqual(set(policy["allowed_actions"]), {"free_synthetic_evaluation", "nonbinding_scope_inquiry"})
+        self.assertIn("paid_service_invocation", policy["prohibited_actions"])
+        self.assertIn("payment_signature", policy["prohibited_actions"])
+        for service in self.catalog["services"]:
+            self.assertIs(service["purchase_enabled"], False)
+            self.assertIs(service["discovery_only"], service["billing"] != "free")
+        for interface in self.catalog["agent_interfaces"]:
+            self.assertIs(interface["purchase_enabled"], False)
+        for key in ("human_scoped_pilot", "human_scoped_starter_pilot"):
+            self.assertIs(self.catalog[key]["payment_enabled"], False)
+            self.assertEqual(self.catalog[key]["allowed_action"], "NONBINDING_SCOPE_INQUIRY")
+
     def test_service_identifiers_and_free_paid_distinction(self):
         services = self.catalog["services"]
         ids = [service["id"] for service in services]

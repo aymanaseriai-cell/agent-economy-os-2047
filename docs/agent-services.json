@@ -2,7 +2,7 @@
   "schema": "agent-economy.service-catalog.v1",
   "title": "Agent Economy OS 2047 — agent-buyer service directory",
   "last_registry_check": "2026-11-21",
-  "disclosure": "Machine-readable discovery, not an A2A Agent Card or a promise of service availability. Live HTTP 402 price, chain, token, recipient, legal compliance and response must be checked by the buyer before any payment.",
+  "disclosure": "Machine-readable discovery, not an A2A Agent Card or availability guarantee. Commercial purchasing through this catalog is on hold pending lawful payment readiness and release approval. Experimental x402 URLs are historical technical references, not purchase instructions.",
   "registry_status": "Supabase registry functions were ACTIVE at the 2026-11-21 check. External GitHub Actions run #44907456246 independently reached 5/5 free demo/discovery endpoints with HTTP 200 and service-specific JSON checks. This is not paid quote or settlement validation.",
   "autonomous_purchase": false,
   "owner_approval_required_for_paid_calls": true,
@@ -13,12 +13,14 @@
     {
       "kind": "A2A_V1_DISCOVERY",
       "card_url": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json",
-      "note": "Read-only experimental paid-assessment offer discovery; not a transaction or wallet"
+      "note": "Read-only experimental assessment metadata; payment on hold, not an actionable offer.",
+      "purchase_enabled": false
     },
     {
       "kind": "MCP",
       "endpoint": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp",
-      "note": "Server exposes read-only discovery tools; correct transport/headers and live service status must be checked independently"
+      "note": "Server exposes read-only discovery tools; correct transport/headers and live service status must be checked independently",
+      "purchase_enabled": false
     }
   ],
   "services": [
@@ -32,7 +34,9 @@
       "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/demo",
       "openapi": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-work-covenant-2047/openapi.json",
       "availability": "public beta; registry active; no contractual SLA",
-      "trust_limit": "Checks only submitted bytes and declared tests; not real-world provenance, payment or independent approval"
+      "trust_limit": "Checks only submitted bytes and declared tests; not real-world provenance, payment or independent approval",
+      "purchase_enabled": false,
+      "discovery_only": false
     },
     {
       "id": "base_usdc_receipt_lite",
@@ -51,10 +55,12 @@
       ],
       "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt-lite/api/v1/demo",
       "documentation": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/AGENT402_BUYER_ROUTE.md",
-      "availability": "experimental; confirm live 402 challenge and parameters",
+      "availability": "Technical reference only; commercial purchasing on hold. Do not invoke paid endpoint or sign payment.",
       "trust_limit": "Not a signed cryptographic state proof or a guarantee of a valid commercial settlement",
       "buyer_owner_authorization_required": true,
-      "verified_organic_buyer": false
+      "verified_organic_buyer": false,
+      "purchase_enabled": false,
+      "discovery_only": true
     },
     {
       "id": "base_usdc_receipt",
@@ -73,10 +79,12 @@
       ],
       "demo": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-usdc-receipt/api/v1/demo",
       "documentation": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/AGENT402_BUYER_ROUTE.md",
-      "availability": "beta; confirm live 402 challenge and parameters",
+      "availability": "Technical reference only; commercial purchasing on hold. Do not invoke paid endpoint or sign payment.",
       "trust_limit": "Does not establish external buyer identity or independently proven organic demand",
       "buyer_owner_authorization_required": true,
-      "verified_organic_buyer": false
+      "verified_organic_buyer": false,
+      "purchase_enabled": false,
+      "discovery_only": true
     },
     {
       "id": "automated_assessment_750",
@@ -93,10 +101,12 @@
       "free_preflight": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-automated-assessment/preflight",
       "sample_report": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-automated-assessment/sample-report",
       "offer_card": "https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json",
-      "availability": "experimental; no independently verified end-to-end paid delivery for this 750 USDC offer",
+      "availability": "Technical reference only; commercial purchasing on hold. Do not invoke paid endpoint or sign payment.",
       "trust_limit": "Not a financial audit, realized saving, guaranteed refund, verified seller delivery, or independent buyer approval",
       "buyer_owner_authorization_required": true,
-      "verified_organic_buyer": false
+      "verified_organic_buyer": false,
+      "purchase_enabled": false,
+      "discovery_only": true
     }
   ],
   "human_scoped_pilot": {
@@ -106,7 +116,8 @@
     "binding_quote": false,
     "payment_enabled": false,
     "form": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
-    "note": "Separate human-scoped B2B proposal; not the 750 USDC automated report and not a checkout"
+    "note": "Separate human-scoped B2B proposal; not the 750 USDC automated report and not a checkout",
+    "allowed_action": "NONBINDING_SCOPE_INQUIRY"
   },
   "free_discovery_smoke_evidence": {
     "date": "2026-11-21",
@@ -125,6 +136,22 @@
     "exclusions": "No private access, production deployment, signed agent provenance, customer secrets, certification, automatic checkout or guaranteed performance.",
     "details": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/PILOT_49.md",
     "form": "https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml",
-    "note": "Indicative USD $49 narrow service proposal, subject to prior scope agreement and lawful invoice/payment setup. Not a paid settlement or self-service x402 API."
+    "note": "Indicative USD $49 narrow service proposal, subject to prior scope agreement and lawful invoice/payment setup. Not a paid settlement or self-service x402 API.",
+    "allowed_action": "NONBINDING_SCOPE_INQUIRY"
+  },
+  "commercial_policy": {
+    "status": "PAYMENT_ON_HOLD",
+    "payment_enabled": false,
+    "allowed_actions": [
+      "free_synthetic_evaluation",
+      "nonbinding_scope_inquiry"
+    ],
+    "prohibited_actions": [
+      "payment_signature",
+      "wallet_connection",
+      "automatic_purchase",
+      "paid_service_invocation"
+    ],
+    "note": "Catalog policy only; does not change or disable deployed endpoints. Do not initiate any payment from this directory."
   }
 }

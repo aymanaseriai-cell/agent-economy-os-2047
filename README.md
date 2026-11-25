@@ -13,7 +13,7 @@ For a team receiving files from AI agents, the [buyer-controlled evidence starte
 
 **[Machine-readable service catalog](docs/agent-services.json)** · **[Agent-focused discovery guide](docs/llms.txt)** · [A2A experimental assessment offer](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json) · [Existing MCP server](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp).
 
-Free local validation and x402 paid receipt evidence are distinct offerings. A separate experimental automated 750 **USDC** report is not the indicative human-scoped 750 **USD** evidence audit. These paths are discoverable and not proof of an independent buyer, signed contract, completed purchase, accepted service delivery or realized revenue. Wallet-owner authorization is required before any payment. Catalog service states reflect a dated Supabase registry check and require live endpoint verification.
+Free local validation and x402 paid receipt evidence are distinct offerings. A separate experimental automated 750 **USDC** report is not the indicative human-scoped 750 **USD** evidence audit. These paths are discoverable and not proof of an independent buyer, signed contract, completed purchase, accepted service delivery or realized revenue. Commercial purchasing via this catalog is on hold pending lawful payment readiness and release approval; do not initiate payments or invoke paid resources. Free synthetic evaluation and non-binding scope inquiries remain available as discovery paths. Catalog service states reflect a dated Supabase registry check and require live endpoint verification.
 
 
 ## Buyer-controlled AI agent acceptance gate — reusable GitHub Action
