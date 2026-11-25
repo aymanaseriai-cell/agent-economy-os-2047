@@ -175,9 +175,9 @@
       "tier": "research_only"
     },
     "https://github.com/Comfy-Org/ComfyUI_frontend/issues/24212": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 9,
       "tier": "research_only"
     },
@@ -501,6 +501,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/ReinderVosDeWael/rocx/issues/70": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 10,
       "tier": "research_only"
     },
     "https://github.com/RockyRous/Orbita/issues/19": {
@@ -1211,9 +1218,9 @@
       "tier": "research_only"
     },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
     },
@@ -1491,9 +1498,9 @@
       "tier": "research_only"
     },
     "https://github.com/mojtaba-arvin/android-sim-call-recorder/issues/14": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
     },
