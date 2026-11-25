@@ -433,6 +433,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/Oddmash/oddmash-skills/issues/89": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/OpenHands/OpenHands/issues/19924": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -783,6 +790,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/can1357/oh-my-pi/issues/6126": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/cascode-ai/analog-canvas/issues/2546": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -928,6 +942,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 13,
+      "tier": "research_only"
+    },
+    "https://github.com/cooper3330/weekly-meal-planner/issues/106": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/corneym/Exam/issues/276": {
@@ -1137,6 +1158,13 @@
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-24",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/hippoley/Agent-Memory-Core-v0.1.0/issues/68": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
     },
@@ -1670,6 +1698,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/vstorm-co/agenticos/issues/3342": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/w3c-cg/aikr/issues/40": {
