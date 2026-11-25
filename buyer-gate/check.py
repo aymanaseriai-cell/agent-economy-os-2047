@@ -10,6 +10,7 @@ import argparse
 import hashlib
 import json
 import math
+from decimal import Decimal, InvalidOperation
 import os
 import re
 import stat
@@ -40,10 +41,18 @@ def strict_json(content: bytes):
         return result
 
     def finite_float(value):
+        if len(value) > 4096:
+            raise GateError("JSON_NUMBER_TOO_LONG")
         number = float(value)
         if not math.isfinite(number):
             raise GateError("NONFINITE_JSON_NUMBER")
-        return number
+        try:
+            exact = Decimal(value)
+        except (InvalidOperation, ValueError) as exc:
+            raise GateError("INVALID_JSON_NUMBER") from exc
+        if not exact.is_finite():
+            raise GateError("NONFINITE_JSON_NUMBER")
+        return exact
 
     def invalid_constant(value):
         raise GateError("NONFINITE_JSON_NUMBER")
