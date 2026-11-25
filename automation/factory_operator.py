@@ -108,7 +108,7 @@ def plan_dispatch(orders: list) -> dict:
 
 def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, source_orders=None) -> dict:
     """Execute only selected review-only worker probes via existing allowlisted dispatcher."""
-    if plan.get("schema") != SCHEMA or plan.get("production_release_authorized") is not False:
+    if not isinstance(plan, dict) or plan.get("schema") != SCHEMA or plan.get("production_release_authorized") is not False:
         raise PolicyError("INVALID_FACTORY_PLAN")
     choices = plan.get("selected")
     if not isinstance(choices, list) or len(choices) != 4:
@@ -152,6 +152,7 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
     if not selected:
         return {"execution_status": "NO_ELIGIBLE_WORK_TO_EXECUTE",
                 "dispatched_count": 0, "technically_verified_readonly_count": 0,
+                "blocked_probe_count": 0,
                 "receipts": [], "production_changes": False,
                 "source_orders_sha256": plan["source_orders_sha256"]}
     if not isinstance(live_jobs, list):
@@ -165,8 +166,21 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
         available[job["worker_id"]] = job
     if not set(selected).issubset(available):
         raise PolicyError("MISSING_EXACT_SELECTED_JOB")
-    result = run_fleet([available[w] for w in selected], root, fetch=fetch, max_concurrent=4)
-    return {"execution_status": "REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY",
+    # The validated executive decision, not provider-job metadata, owns priority.
+    priorities = {o["worker_id"]: o["priority"] for o in choices if o["worker_id"] in selected}
+    assignments = [dict(available[w], priority=priorities[w]) for w in selected]
+    result = run_fleet(assignments, root, fetch=fetch, max_concurrent=4)
+    receipts = result["receipts"]
+    verified = result["technically_verified_readonly_count"]
+    if (result["dispatched_count"] != len(selected)
+            or len(receipts) != len(selected)
+            or {r["worker_id"] for r in receipts} != set(selected)
+            or verified != sum(r["technical_status"] == "VERIFIED_READONLY" for r in receipts)):
+        raise PolicyError("FACTORY_RECEIPT_RECONCILIATION_FAILED")
+    blocked = len(selected) - verified
+    return {"execution_status": ("REVIEW_ONLY_PROBES_DEGRADED_NOT_BUSINESS_DELIVERY" if blocked
+                                 else "REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY"),
+            "blocked_probe_count": blocked,
             "dispatched_count": result["dispatched_count"],
             "rechecked_in_progress_count": sum(
                 o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" for o in choices),
@@ -206,6 +220,10 @@ def main(argv=None):
         a.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print("EXECUTIVE_FACTORY: %d validated work orders; %d role decisions; no production actions"
               % (len(orders), len(plan["selected"])))
+        # Retain the report for diagnosis, but never signal success for a degraded cycle.
+        if plan.get("reviewonly_execution", {}).get("blocked_probe_count", 0):
+            print("FACTORY_DEGRADED: one or more selected probes lack verified evidence", file=sys.stderr)
+            return 2
         return 0
     except (PolicyError, ValueError, TypeError, KeyError, OSError) as exc:
         print("FACTORY_FAIL_CLOSED: %s: %s" % (type(exc).__name__, exc), file=sys.stderr)

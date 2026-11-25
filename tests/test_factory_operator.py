@@ -217,5 +217,47 @@ class FactoryOperatorTests(unittest.TestCase):
         with self.assertRaisesRegex(PolicyError,"FORGED_ACTION_SELECTION"):
             execute_reviewonly(p,[{"worker_id":"AEOS-W03","payload":{"path":"verifier.py"}}],Path("."),source_orders=orders)
 
+    def test_executive_priority_overrides_provider_job_priority(self):
+        from unittest.mock import patch
+        orders = [item("AEOS-W03", priority=1)]
+        jobs = [{"worker_id": "AEOS-W03", "payload": {"path": "verifier.py"}, "priority": 5}]
+        result = {"dispatched_count": 1, "technically_verified_readonly_count": 1,
+                  "receipts": [{"worker_id": "AEOS-W03", "technical_status": "VERIFIED_READONLY"}]}
+        with patch("automation.factory_operator.run_fleet", return_value=result) as run:
+            receipt = execute_reviewonly(plan_dispatch(orders), jobs, Path("."), source_orders=orders)
+            self.assertEqual(run.call_args.args[0][0]["priority"], 1)
+        self.assertEqual(jobs[0]["priority"], 5)
+        self.assertEqual(receipt["blocked_probe_count"], 0)
+
+    def test_degraded_cycle_preserves_receipt_and_fails_cli(self):
+        from unittest.mock import patch
+        from automation import factory_operator
+        orders = [item("AEOS-W03")]
+        jobs = [{"worker_id": "AEOS-W03", "payload": {"path": "verifier.py"}}]
+        result = {"dispatched_count": 1, "technically_verified_readonly_count": 0,
+                  "receipts": [{"worker_id": "AEOS-W03", "technical_status": "BLOCKED"}]}
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            source, jobfile, out = (root / n for n in ("orders.json", "jobs.json", "out.json"))
+            source.write_text(json.dumps(orders), encoding="utf-8")
+            jobfile.write_text(json.dumps(jobs), encoding="utf-8")
+            with patch("automation.factory_operator.run_fleet", return_value=result):
+                code = factory_operator.main(["--orders", str(source), "--jobs", str(jobfile), "--out", str(out)])
+            self.assertEqual(code, 2)
+            report = json.loads(out.read_text())["reviewonly_execution"]
+            self.assertEqual(report["blocked_probe_count"], 1)
+            self.assertEqual(report["execution_status"], "REVIEW_ONLY_PROBES_DEGRADED_NOT_BUSINESS_DELIVERY")
+            self.assertFalse(report["production_changes"])
+
+    def test_mismatched_worker_receipt_is_not_accepted(self):
+        from unittest.mock import patch
+        orders = [item("AEOS-W03")]
+        jobs = [{"worker_id": "AEOS-W03", "payload": {"path": "verifier.py"}}]
+        result = {"dispatched_count": 1, "technically_verified_readonly_count": 1,
+                  "receipts": [{"worker_id": "AEOS-W04", "technical_status": "VERIFIED_READONLY"}]}
+        with patch("automation.factory_operator.run_fleet", return_value=result):
+            with self.assertRaisesRegex(PolicyError, "FACTORY_RECEIPT_RECONCILIATION_FAILED"):
+                execute_reviewonly(plan_dispatch(orders), jobs, Path("."), source_orders=orders)
+
 if __name__=="__main__":
     unittest.main()
