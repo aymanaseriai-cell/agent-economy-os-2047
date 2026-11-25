@@ -90,8 +90,10 @@ def audit(get=fetch):
                        if login not in excluded and author_login and review.get("state") == "APPROVED"
                        and review.get("commit_id") == sha
                        and review.get("author_association") in ("MEMBER", "COLLABORATOR"))
-    if not approvals:
-        blocked.append("NO_CURRENT_INDEPENDENT_COLLABORATOR_REVIEW")
+    # Founder amendment, 2026-11-25: external human review is not a blanket
+    # prerequisite. Keep the approval evidence and all unresolved objections.
+    # The documented release/security review itself remains mandatory.
+    blocked.append("DOCUMENTED_SECURITY_REVIEW_REQUIRED")
     objections = sorted(login for login, (_, review) in current_reviews.items()
                         if login not in excluded and review.get("state") == "CHANGES_REQUESTED"
                         and review.get("author_association") in ("MEMBER", "COLLABORATOR", "OWNER"))
@@ -128,7 +130,7 @@ def audit(get=fetch):
     return {"schema": "aeos2047-preflight/1", "head_sha": sha, "pr": 114,
             "independent_reviewers": approvals, "unresolved_change_request_reviewers": objections, "ci": ci, "blockers": sorted(set(blocked)),
             "production_authorized": False, "writes": 0, "money_actions": 0,
-            "note": "Read-only evidence; never a substitute for #98, independent review or parity."}
+            "note": "Read-only evidence; external review is optional unless separately required; documented security review, #98 and parity remain mandatory."}
 
 def main():
     parser = argparse.ArgumentParser()

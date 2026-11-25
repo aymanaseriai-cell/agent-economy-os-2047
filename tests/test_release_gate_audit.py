@@ -42,6 +42,28 @@ class ReleasePreflightTests(unittest.TestCase):
         self.assertIn("P0_GATE_98_OPEN", result["blockers"])
         self.assertEqual(result["independent_reviewers"], [])
 
+    def test_absence_of_external_review_is_not_a_blanket_blocker(self):
+        f = fixture()
+        f[REVIEWS_URL] = []
+        result = run(f)
+        self.assertEqual(result["independent_reviewers"], [])
+        self.assertNotIn("NO_CURRENT_INDEPENDENT_COLLABORATOR_REVIEW", result["blockers"])
+        self.assertIn("DOCUMENTED_SECURITY_REVIEW_REQUIRED", result["blockers"])
+        self.assertIn("SOURCE_PARITY_REVIEW_REQUIRED", result["blockers"])
+        self.assertIn("ROLLBACK_REVIEW_REQUIRED", result["blockers"])
+        self.assertFalse(result["production_authorized"])
+        self.assertEqual(result["writes"], 0)
+        self.assertEqual(result["money_actions"], 0)
+
+    def test_external_objection_remains_blocking_without_approval(self):
+        f = fixture()
+        f[REVIEWS_URL][0]["state"] = "CHANGES_REQUESTED"
+        result = run(f)
+        self.assertEqual(result["independent_reviewers"], [])
+        self.assertIn("UNRESOLVED_INDEPENDENT_CHANGE_REQUEST", result["blockers"])
+        self.assertIn("DOCUMENTED_SECURITY_REVIEW_REQUIRED", result["blockers"])
+        self.assertFalse(result["production_authorized"])
+
     def test_stale_approval_and_bots_cannot_approve(self):
         for mutation in (
             {"commit_id": "b" * 40},
