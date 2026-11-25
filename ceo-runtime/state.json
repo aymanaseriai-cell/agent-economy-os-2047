@@ -573,6 +573,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/VanDalkvist/vanya-ui/issues/30": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/WHEELBACK/COMEBACKHERE-contracts/issues/873": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -986,6 +993,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/danielbrownjr/klippeRx/issues/7": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/decentespresso/decaid/issues/1202": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1099,9 +1113,9 @@
       "tier": "research_only"
     },
     "https://github.com/groktopus/proprio/issues/223": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-23",
+      "last_seen_day": "2026-11-25",
       "score": 19,
       "tier": "research_only"
     },
@@ -1145,6 +1159,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-24",
       "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/hanzoai/agents/issues/87": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/89": {
