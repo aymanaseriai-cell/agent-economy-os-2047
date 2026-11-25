@@ -1,10 +1,14 @@
 -- Agent Economy OS 2047 — independent-evidence accounting, not percent inflation.
--- Exact pg_get_viewdef() snapshot from deployed PRIVATE Supabase database, 21 Nov 2026.
+-- REVIEW-ONLY correction to the deployed 21 Nov snapshot; not installed.
 -- No Data API access to anon/authenticated; this review-only file has NO auto-deploy wiring.
 CREATE OR REPLACE VIEW executive_nexus.factory_autonomy_evidence_14d
 WITH (security_invoker=true)
 AS
-WITH observed AS (
+WITH history AS (
+         SELECT min(triggered_at) AS first_eligible_history_at
+         FROM executive_nexus.autonomy_episode_log
+         WHERE eligible_routine IS TRUE AND is_synthetic IS FALSE AND triggered_at <= now()
+        ), observed AS (
          SELECT autonomy_episode_log.episode_key,
             autonomy_episode_log.owner_role,
             autonomy_episode_log.trigger_type,
@@ -22,7 +26,7 @@ WITH observed AS (
             autonomy_episode_log.recorded_at,
             autonomy_episode_log.note
            FROM executive_nexus.autonomy_episode_log
-          WHERE autonomy_episode_log.triggered_at >= (now() - '14 days'::interval) AND autonomy_episode_log.eligible_routine IS TRUE AND autonomy_episode_log.is_synthetic IS FALSE
+          WHERE autonomy_episode_log.triggered_at >= (now() - '14 days'::interval) AND autonomy_episode_log.triggered_at <= now() AND autonomy_episode_log.eligible_routine IS TRUE AND autonomy_episode_log.is_synthetic IS FALSE
         ), verified AS (
          SELECT observed.episode_key,
             observed.owner_role,
@@ -41,7 +45,8 @@ WITH observed AS (
             observed.recorded_at,
             observed.note
            FROM observed
-          WHERE observed.result_status = 'VERIFIED'::text AND observed.trigger_type = 'SCHEDULED'::text AND observed.human_interventions = 0 AND observed.provider_verified IS TRUE AND observed.controls_passed IS TRUE AND observed.policy_violation IS FALSE AND observed.evidence_ref IS NOT NULL
+          WHERE observed.result_status = 'VERIFIED'::text AND observed.trigger_type = 'SCHEDULED'::text AND observed.human_interventions = 0 AND observed.provider_verified IS TRUE AND observed.controls_passed IS TRUE AND observed.policy_violation IS FALSE AND observed.evidence_ref IS NOT NULL AND btrim(observed.evidence_ref) <> ''
+            AND observed.finished_at >= observed.triggered_at AND observed.finished_at <= now()
         ), aggregate_observed AS (
          SELECT count(*)::integer AS eligible_routine_episodes,
             min(observed.triggered_at) AS first_eligible_at,
@@ -66,11 +71,12 @@ WITH observed AS (
     o.first_eligible_at,
     o.latest_eligible_at,
         CASE
-            WHEN o.first_eligible_at IS NOT NULL AND o.first_eligible_at <= (now() - '14 days'::interval) AND v.executive_roles_with_verified_episodes = 4 AND v.distinct_provider_proof_references >= 4 THEN 'INDEPENDENT_FULL_COMPANY_VALIDATION_STILL_REQUIRED'::text
+            WHEN h.first_eligible_history_at IS NOT NULL AND h.first_eligible_history_at <= (now() - '14 days'::interval) AND v.executive_roles_with_verified_episodes = 4 AND v.distinct_provider_proof_references >= 4 THEN 'INDEPENDENT_FULL_COMPANY_VALIDATION_STILL_REQUIRED'::text
             ELSE 'NOT_VERIFIED_FULL_COMPANY_AUTONOMY'::text
         END AS full_company_autonomy_verdict,
     'A repeated receipt is one distinct provider proof; successful CI rereads are not separate worker execution, customer acceptance, repaired incidents or settled revenue.'::text AS measurement_boundary
    FROM aggregate_observed o
-     CROSS JOIN aggregate_verified v;
+     CROSS JOIN aggregate_verified v
+     CROSS JOIN history h;
 REVOKE ALL ON executive_nexus.factory_autonomy_evidence_14d FROM PUBLIC,anon,authenticated;
 -- This view does not prove 100% company autonomy or count repeated CI reads as new delivery.

@@ -7,6 +7,8 @@ on:
       - 'infra/supabase/factory_watchdog_freeze_replay_20261123.sql'
       - 'infra/supabase/tests/watchdog_freeze_postgres_review.py'
       - 'infra/supabase/tests/watchdog_migration_postgres_review.py'
+      - 'infra/supabase/factory_autonomy_evidence_20261121.sql'
+      - 'infra/supabase/tests/autonomy_window_postgres_review.py'
       - '.github/workflows/watchdog-verdict-postgres.yml'
   workflow_dispatch:
 permissions:
@@ -53,3 +55,5 @@ jobs:
         run: python3 infra/supabase/tests/watchdog_freeze_postgres_review.py
       - name: Rehearse legacy constraint migration and compensating rollback on PostgreSQL 17
         run: python3 infra/supabase/tests/watchdog_migration_postgres_review.py
+      - name: Verify bounded autonomy evidence window in isolated PostgreSQL
+        run: python3 infra/supabase/tests/autonomy_window_postgres_review.py
