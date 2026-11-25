@@ -286,6 +286,13 @@
       "score": 18,
       "tier": "research_only"
     },
+    "https://github.com/FurinyaDev/OpenHarness/issues/53": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/GaelCT/FastASL/issues/23": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -332,6 +339,13 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/KAVentures/openworkgraph/issues/1455": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -769,6 +783,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/auditstream/auditstream-js/issues/88": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/auscaster/frantic-board/issues/540": {
       "days_observed": 2,
       "first_seen_day": "2026-11-22",
@@ -1106,9 +1127,9 @@
       "tier": "research_only"
     },
     "https://github.com/genfeedai/genfeed.ai/issues/5132": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 16,
       "tier": "research_only"
     },
@@ -1463,9 +1484,9 @@
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 15,
       "tier": "research_only"
     },
@@ -1652,9 +1673,9 @@
       "tier": "research_only"
     },
     "https://github.com/rimanfatykhov-arch/bms24/issues/84": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 15,
       "tier": "research_only"
     },
