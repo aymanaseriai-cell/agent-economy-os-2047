@@ -279,6 +279,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/FAIR-bioHeaders/FAIR-bioHeaders-Specification/issues/296": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/Flanxiyum001/Ryoko/issues/49": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1805,10 +1812,17 @@
       "score": 12,
       "tier": "research_only"
     },
-    "https://github.com/vixttha/Version-Issues-Hub/issues/10": {
+    "https://github.com/vh2224/forge-agent/issues/471": {
       "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/vixttha/Version-Issues-Hub/issues/10": {
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 16,
       "tier": "research_only"
     },
