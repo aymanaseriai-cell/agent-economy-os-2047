@@ -1273,6 +1273,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/inamprotocol/inam-protocol/issues/189": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/interplanetarysister/InterplanetaryFund/issues/5": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -1526,9 +1533,9 @@
       "tier": "research_only"
     },
     "https://github.com/morluto/rea/issues/14187": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 14,
       "tier": "research_only"
     },
