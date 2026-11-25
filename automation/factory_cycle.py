@@ -127,7 +127,7 @@ def atomic_json(path: Path, value: dict):
                                          dir=path.parent, delete=False) as handle:
             temp = Path(handle.name)
             json.dump(value, handle, indent=2, sort_keys=True)
-            handle.write("\\n")
+            handle.write("\n")
             handle.flush()
             os.fsync(handle.fileno())
         os.replace(temp, path)
