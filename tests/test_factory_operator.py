@@ -130,11 +130,10 @@ class FactoryOperatorTests(unittest.TestCase):
             with patch("automation.worker_fleet_live.prepare_live_jobs") as live:
                 live.return_value={"jobs":[
                     {"worker_id":"AEOS-W03","payload":{"path":"verifier.py"}},
-                    {"worker_id":"AEOS-W04","payload":{"run_id":1,"expected_head_sha":"a"*40}},
                 ]}
                 result=factory_operator.main([
                     "--orders",str(f),"--auto-live-jobs","--root",str(root),"--out",str(out)])
-                live.assert_called_once()
+                live.assert_called_once_with(selected_workers=["AEOS-W03"])
             self.assertEqual(result,0)
             data=json.loads(out.read_text())["reviewonly_execution"]
             self.assertEqual(data["dispatched_count"],1)
@@ -256,6 +255,39 @@ class FactoryOperatorTests(unittest.TestCase):
                     "receipts": [],
                 }), self.assertRaisesRegex(PolicyError, "INCONSISTENT_FLEET_COUNTS"):
                     execute_reviewonly(plan_dispatch(orders), jobs, Path("."), source_orders=orders)
+
+    def test_ci_discovery_failure_does_not_block_other_executive(self):
+        from unittest.mock import patch
+        from automation import factory_operator
+        from automation.worker_fleet_live import LivePlanError
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            (root / "buyer-gate").mkdir()
+            (root / "buyer-gate/README.md").write_text("safe", encoding="utf-8")
+            f, out = root / "orders.json", root / "result.json"
+            f.write_text(json.dumps([item("AEOS-W04"), item("AEOS-W10")]), encoding="utf-8")
+            def discover(*, selected_workers):
+                if selected_workers == ["AEOS-W04"]:
+                    raise LivePlanError("LATEST_CI_NOT_COMPLETED")
+                return {"jobs": [{"worker_id": "AEOS-W10",
+                                  "payload": {"path": "buyer-gate/README.md"}}]}
+            with patch("automation.worker_fleet_live.prepare_live_jobs", side_effect=discover):
+                status = factory_operator.main(["--orders", str(f), "--auto-live-jobs",
+                                                "--root", str(root), "--out", str(out)])
+            self.assertEqual(status, 2)
+            result = json.loads(out.read_text())["reviewonly_execution"]
+            self.assertEqual(result["discovery_blocked_worker_ids"], ["AEOS-W04"])
+            self.assertEqual(result["dispatched_count"], 1)
+            self.assertEqual(result["receipts"][0]["worker_id"], "AEOS-W10")
+            self.assertEqual(result["technically_verified_readonly_count"], 1)
+            self.assertFalse(result["production_changes"])
+
+    def test_unavailable_worker_must_be_selected(self):
+        orders = [item("AEOS-W03")]
+        with self.assertRaisesRegex(PolicyError, "INVALID_DISCOVERY_BLOCKERS"):
+            execute_reviewonly(plan_dispatch(orders), [], Path("."),
+                               source_orders=orders, unavailable_workers=["AEOS-W04"])
+
 
 if __name__=="__main__":
     unittest.main()

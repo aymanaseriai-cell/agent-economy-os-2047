@@ -106,7 +106,7 @@ def plan_dispatch(orders: list) -> dict:
             "production_release_authorized": False, "funds_moved": False,
             "customer_contact_authorized": False, "independent_llm_sessions": 0}
 
-def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, source_orders=None) -> dict:
+def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, source_orders=None, unavailable_workers=()) -> dict:
     """Execute only selected review-only worker probes via existing allowlisted dispatcher."""
     if plan.get("schema") != SCHEMA or plan.get("production_release_authorized") is not False:
         raise PolicyError("INVALID_FACTORY_PLAN")
@@ -149,8 +149,17 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
     selected = [o["worker_id"] for o in choices
                 if o["disposition"] in ("REVIEW_ONLY_ACTION_ELIGIBLE",
                                         "VERIFY_IN_PROGRESS_FIRST")]
+    if (not isinstance(unavailable_workers, (list, tuple))
+            or any(not isinstance(w, str) for w in unavailable_workers)
+            or len(set(unavailable_workers)) != len(unavailable_workers)
+            or not set(unavailable_workers).issubset(selected)):
+        raise PolicyError("INVALID_DISCOVERY_BLOCKERS")
+    blocked = set(unavailable_workers)
+    selected = [w for w in selected if w not in blocked]
     if not selected:
-        return {"execution_status": "NO_ELIGIBLE_WORK_TO_EXECUTE",
+        return {"execution_status": ("DISCOVERY_BLOCKED_NO_EXECUTION" if blocked
+                                     else "NO_ELIGIBLE_WORK_TO_EXECUTE"),
+                "discovery_blocked_worker_ids": sorted(blocked),
                 "dispatched_count": 0, "technically_verified_readonly_count": 0,
                 "receipts": [], "production_changes": False,
                 "source_orders_sha256": plan["source_orders_sha256"]}
@@ -163,6 +172,8 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
         if job["worker_id"] in available:
             raise PolicyError("DUPLICATE_LIVE_JOB")
         available[job["worker_id"]] = job
+    if blocked.intersection(available):
+        raise PolicyError("BLOCKED_WORKER_HAS_LIVE_JOB")
     if not set(selected).issubset(available):
         raise PolicyError("MISSING_EXACT_SELECTED_JOB")
     result = run_fleet([available[w] for w in selected], root, fetch=fetch, max_concurrent=4)
@@ -170,12 +181,15 @@ def execute_reviewonly(plan: dict, live_jobs: list, root: Path, fetch=None, *, s
     verified = result["technically_verified_readonly_count"]
     if dispatched != len(selected) or not 0 <= verified <= dispatched:
         raise PolicyError("INCONSISTENT_FLEET_COUNTS")
-    return {"execution_status": ("REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY"
+    return {"execution_status": ("PARTIAL_DISCOVERY_REVIEW_ONLY" if blocked else
+                                 "REVIEW_ONLY_PROBES_COMPLETED_NOT_BUSINESS_DELIVERY"
                                  if verified == dispatched else "REVIEW_ONLY_PROBES_DEGRADED"),
+            "discovery_blocked_worker_ids": sorted(blocked),
             "dispatched_count": dispatched,
             "unverified_readonly_count": dispatched - verified,
             "rechecked_in_progress_count": sum(
-                o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" for o in choices),
+                o["disposition"] == "VERIFY_IN_PROGRESS_FIRST" and
+                o["worker_id"] in selected for o in choices),
             "technically_verified_readonly_count": result["technically_verified_readonly_count"],
             "receipts": result["receipts"],
             "production_changes": False, "independent_llm_sessions": 0,
@@ -195,25 +209,35 @@ def main(argv=None):
         orders = json.loads(a.orders.read_text(encoding="utf-8"))
         plan = plan_dispatch(orders)
         if a.jobs is not None or a.auto_live_jobs:
+            unavailable = []
             if a.auto_live_jobs:
-                eligible = any(c["disposition"] in (
-                    "REVIEW_ONLY_ACTION_ELIGIBLE", "VERIFY_IN_PROGRESS_FIRST")
-                    for c in plan["selected"])
-                if eligible:
-                    from automation.worker_fleet_live import prepare_live_jobs
-                    live_jobs = prepare_live_jobs()["jobs"]
-                else:
-                    live_jobs = []  # No provider calls for blocked/approval-only queues.
+                from automation.worker_fleet_live import prepare_live_jobs
+                live_jobs = []
+                for choice in plan["selected"]:
+                    if choice["disposition"] not in (
+                            "REVIEW_ONLY_ACTION_ELIGIBLE", "VERIFY_IN_PROGRESS_FIRST"):
+                        continue
+                    worker_id = choice["worker_id"]
+                    try:
+                        discovered = prepare_live_jobs(selected_workers=[worker_id])["jobs"]
+                        if [j["worker_id"] for j in discovered] != [worker_id]:
+                            raise PolicyError("DISCOVERY_WORKER_MISMATCH")
+                        live_jobs.extend(discovered)
+                    except (ValueError, OSError, TypeError, KeyError):
+                        # Preserve independent executives without inventing receipts.
+                        unavailable.append(worker_id)
             else:
                 live_jobs = json.loads(a.jobs.read_text(encoding="utf-8"))
             plan["reviewonly_execution"] = execute_reviewonly(
-                plan, live_jobs, a.root, source_orders=orders)
+                plan, live_jobs, a.root, source_orders=orders,
+                unavailable_workers=unavailable)
         a.out.parent.mkdir(parents=True, exist_ok=True)
         a.out.write_text(json.dumps(plan, indent=2, sort_keys=True) + "\n", encoding="utf-8")
         print("EXECUTIVE_FACTORY: %d validated work orders; %d role decisions; no production actions"
               % (len(orders), len(plan["selected"])))
         execution = plan.get("reviewonly_execution", {})
-        if execution.get("execution_status") == "REVIEW_ONLY_PROBES_DEGRADED":
+        if (execution.get("discovery_blocked_worker_ids") or
+                execution.get("execution_status") == "REVIEW_ONLY_PROBES_DEGRADED"):
             print("FACTORY_DEGRADED: worker verification incomplete; see receipts", file=sys.stderr)
             return 2
         return 0

@@ -14,7 +14,7 @@ class LivePlanError(ValueError):
     pass
 
 
-def prepare_live_jobs(fetch=default_fetch):
+def _current_ci(fetch):
     branch = fetch(MAIN_BRANCH_URL)
     sha = (branch.get("commit") or {}).get("sha") if isinstance(branch, dict) else None
     if not isinstance(sha, str) or len(sha) != 40 or any(c not in "0123456789abcdef" for c in sha):
@@ -35,25 +35,46 @@ def prepare_live_jobs(fetch=default_fetch):
     current_ci = max(matches, key=lambda x: x["id"])
     if current_ci.get("status") != "completed":
         raise LivePlanError("LATEST_CI_NOT_COMPLETED")
-    candidates = _open_inbound_snapshot(_fetch_open_issues(fetch))
-    issue = candidates["eligible_external_candidates"][0]["issue_number"] if candidates["eligible_external_candidates"] else 112
-    ci = {"run_id": current_ci["id"], "expected_head_sha": sha}
-    entries = [
-        ("AEOS-W01", {}), ("AEOS-W02", {}), ("AEOS-W03", {"path": "verifier.py"}),
-        ("AEOS-W04", ci), ("AEOS-W05", ci), ("AEOS-W06", {"issue_number": 98}),
-        ("AEOS-W07", {}), ("AEOS-W08", {"issue_number": issue}),
-        ("AEOS-W09", {"path": "docs/ENTERPRISE_EVIDENCE_PILOT.md"}),
-        ("AEOS-W10", {"path": "buyer-gate/README.md"}),
-        ("AEOS-W11", {}), ("AEOS-W12", {"issue_number": 112}),
-    ]
-    jobs = [{"worker_id": worker_id, "payload": payload, "max_attempts": 2}
-            for worker_id, payload in entries]
-    if len(jobs) != len(REGISTRY) or len({j["worker_id"] for j in jobs}) != 12:
-        raise LivePlanError("FLEET_NOT_TWELVE")
-    for job in jobs:
+    return sha, current_ci["id"]
+
+
+def prepare_live_jobs(fetch=default_fetch, *, selected_workers=None):
+    """Prepare selected capabilities without unrelated provider dependencies."""
+    if selected_workers is None:
+        selected = list(REGISTRY)
+    else:
+        if (not isinstance(selected_workers, (list, tuple))
+                or not 1 <= len(selected_workers) <= len(REGISTRY)
+                or any(not isinstance(w, str) or w not in REGISTRY
+                       for w in selected_workers)
+                or len(set(selected_workers)) != len(selected_workers)):
+            raise LivePlanError("INVALID_SELECTED_WORKERS")
+        selected = list(selected_workers)
+    sha = run_id = candidate_count = None
+    if {"AEOS-W04", "AEOS-W05"}.intersection(selected):
+        sha, run_id = _current_ci(fetch)
+    issue = None
+    if "AEOS-W08" in selected:
+        candidates = _open_inbound_snapshot(_fetch_open_issues(fetch))
+        candidate_count = candidates["candidate_count"]
+        eligible = candidates["eligible_external_candidates"]
+        issue = eligible[0]["issue_number"] if eligible else 112
+    jobs = []
+    for worker_id in selected:
+        worker = REGISTRY[worker_id]
+        if worker_id in ("AEOS-W04", "AEOS-W05"):
+            payload = {"run_id": run_id, "expected_head_sha": sha}
+        elif worker_id == "AEOS-W08":
+            payload = {"issue_number": issue}
+        elif worker_id == "AEOS-W12":
+            payload = {"issue_number": 112}
+        else:
+            payload = worker.default_payload
+        job = {"worker_id": worker_id, "payload": payload, "max_attempts": 2}
         make_task(job)
-    return {"jobs": jobs, "head_sha": sha, "ci_run": current_ci["id"],
-            "candidate_count": candidates["candidate_count"],
+        jobs.append(job)
+    return {"jobs": jobs, "head_sha": sha, "ci_run": run_id,
+            "candidate_count": candidate_count,
             "verified_customers": None, "verified_revenue_usd": None}
 
 

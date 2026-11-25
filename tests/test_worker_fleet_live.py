@@ -79,5 +79,33 @@ class LivePlanTests(unittest.TestCase):
             prepare_live_jobs(bad)
 
 
+    def test_local_and_health_workers_do_not_need_ci_or_inbound(self):
+        def forbidden(url):
+            self.fail("unexpected discovery dependency: " + url)
+        selected = ["AEOS-W03", "AEOS-W11"]
+        result = prepare_live_jobs(forbidden, selected_workers=selected)
+        self.assertEqual([j["worker_id"] for j in result["jobs"]], selected)
+        self.assertIsNone(result["ci_run"])
+        self.assertIsNone(result["candidate_count"])
+
+    def test_selected_ci_worker_still_rejects_stale_run(self):
+        with self.assertRaisesRegex(LivePlanError, "NO_CURRENT_MAIN_CANONICAL_CI"):
+            prepare_live_jobs(lambda url: provider(url, matched=False),
+                              selected_workers=["AEOS-W04"])
+
+    def test_selected_inbound_does_not_need_ci(self):
+        def only_inbound(url):
+            self.assertEqual(url, GITHUB_ISSUES_LIST)
+            return provider(url)
+        result = prepare_live_jobs(only_inbound, selected_workers=["AEOS-W08"])
+        self.assertEqual(result["jobs"][0]["payload"]["issue_number"], 123)
+        self.assertIsNone(result["head_sha"])
+
+    def test_invalid_selection_rejected(self):
+        for selected in ([], ["AEOS-W99"], ["AEOS-W03", "AEOS-W03"], "AEOS-W03"):
+            with self.subTest(selected=selected), self.assertRaises(LivePlanError):
+                prepare_live_jobs(provider, selected_workers=selected)
+
+
 if __name__ == "__main__":
     unittest.main()
