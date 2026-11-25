@@ -17,7 +17,7 @@ The package includes the repo's MIT license, exact supported technical checks an
 
 ## Marketplace readiness
 
-Agensi's creator documentation describes a ZIP with a root `SKILL.md`, automated security screening and manual review. Its current terms state 70% creator revenue share and possible Solana USDC payout, but an actual listing requires an account, verified authorized payout mechanism and independent country/legal review. No signup, wallet signing, private key or seller authorization is included in this PR. Do not claim confirmed demand, listing, sales, or the platform's reported traffic as measured outcomes.
+Agensi's creator documentation describes a ZIP with a root `SKILL.md`, automated security screening and manual review. Agensi confirmed by email on 23 November 2026 that a free listing needs no payout setup. A free listing still requires applicable independent code-safety review, creator authorization, compliance with marketplace terms and the platform's own screening and manual approval. Paid sales and payout activation remain out of scope: a lawful, Morocco-compatible payout route has not been confirmed. No signup, wallet signing, private key or seller authorization is included in this PR. Do not claim confirmed demand, listing, sales, or the platform's reported traffic as measured outcomes.
 
 ## Safety gate
 
