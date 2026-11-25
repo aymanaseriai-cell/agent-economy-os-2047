@@ -37,6 +37,47 @@ jobs:
           languages: python
           queries: security-extended
       - name: Analyze Python code and publish findings to GitHub code scanning
+        id: codeql_analyze
         uses: github/codeql-action/analyze@v4
         with:
           category: '/language:python'
+          output: ${{ runner.temp }}/aeos-codeql-results
+      - name: Record bounded security scan diagnostics
+        if: ${{ !cancelled() && (steps.codeql_analyze.outcome == 'success' || steps.codeql_analyze.outcome == 'failure') }}
+        shell: bash
+        env:
+          SARIF_PATH: ${{ runner.temp }}/aeos-codeql-results/python.sarif
+          ANALYZE_OUTCOME: ${{ steps.codeql_analyze.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          path = Path(os.environ["SARIF_PATH"])
+          outcome = os.environ["ANALYZE_OUTCOME"]
+          state = "missing"
+          count = None
+          try:
+              if path.is_file():
+                  if path.stat().st_size > 50 * 1024 * 1024:
+                      state = "size_limit"
+                  else:
+                      data = json.loads(path.read_text(encoding="utf-8"))
+                      runs = data["runs"]
+                      if not isinstance(runs, list) or not runs:
+                          raise ValueError("invalid runs")
+                      results = [run.get("results", []) for run in runs]
+                      if any(not isinstance(items, list) for items in results):
+                          raise ValueError("invalid results")
+                      count = sum(map(len, results))
+                      state = "present"
+          except (OSError, ValueError, KeyError, TypeError, AttributeError):
+              state = "unreadable"
+          with open(os.environ["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as summary:
+              summary.write(f"### CodeQL diagnostic (not release approval)\n")
+              summary.write(f"- Analyze outcome: {outcome}\n")
+              summary.write(f"- SARIF state: {state}\n")
+              summary.write(f"- Reported result count: {count if count is not None else 'unknown'}\n")
+              summary.write("- Raw findings are not exported here. Failed analysis/upload remains a failed job.\n")
+          PY
