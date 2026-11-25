@@ -18,6 +18,16 @@ SHA256 = re.compile(r"^[0-9a-fA-F]{64}$")
 
 
 
+def _reject_duplicate_json_keys(pairs):
+    """Reject ambiguous JSON objects instead of silently taking the last key."""
+    out = {}
+    for key, value in pairs:
+        if key in out:
+            raise ValueError(f"duplicate JSON key: {key!r}")
+        out[key] = value
+    return out
+
+
 def _components(relative: str) -> tuple[str, ...]:
     """Reject ambiguous or platform-specific paths before touching the filesystem."""
     if (not relative or relative.strip() != relative or "\\" in relative
@@ -74,8 +84,8 @@ def validate(manifest_path: Path, root: Path) -> dict:
     errors = []
     results = []
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"), object_pairs_hook=_reject_duplicate_json_keys)
+    except (OSError, UnicodeError, ValueError, RecursionError) as exc:
         return {"passed": False, "checked": 0, "artifacts": [], "errors": [f"Could not read manifest: {exc}"]}
 
     records = manifest.get("artifacts") if isinstance(manifest, dict) else None
