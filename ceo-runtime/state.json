@@ -1560,6 +1560,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/rebuildup/herdr-plugins/issues/103": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/reppiks490/builds/issues/1": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1592,6 +1599,13 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-22",
+      "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/slighter12/ai-agent-config/issues/2": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
       "score": 10,
       "tier": "research_only"
     },
