@@ -241,3 +241,67 @@ class FactoryCycleTests(unittest.TestCase):
         j["state"] = "IN_PROGRESS"
         with self.assertRaisesRegex(PolicyError, "RECOVERY_SNAPSHOT_MISMATCH"):
             recovery_orders([], j)
+
+    def test_auto_recovery_once_without_manual_resume(self):
+        from automation import factory_cycle
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for w in ("AEOS-W09", "AEOS-W10"):
+                p = root / REGISTRY[w].default_payload["path"]
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("fixture")
+            inp, jobs, out, journal = [root / n for n in ("orders.json","jobs.json","out.json","journal.json")]
+            inp.write_text(json.dumps([item("AEOS-W09"), item("AEOS-W10", priority=3)]))
+            jobs.write_text(json.dumps([{"worker_id":"AEOS-W09"},{"worker_id":"AEOS-W10"}]))
+            original = factory_cycle.execute_reviewonly
+            calls = []
+            def interrupt(*args, **kwargs):
+                calls.append(1)
+                if len(calls) == 2:
+                    raise OSError("transient dispatch error")
+                return original(*args, **kwargs)
+            args = ["--orders",str(inp),"--jobs",str(jobs),"--out",str(out),
+                    "--root",str(root),"--checkpoint",str(journal),"--recover-once"]
+            with patch("automation.factory_cycle.execute_reviewonly", side_effect=interrupt):
+                self.assertEqual(factory_cycle.main(args), 0)
+            report = json.loads(out.read_text())
+            self.assertEqual(len(calls), 3)
+            self.assertTrue(report["automatic_recovery_attempted"])
+            self.assertEqual(report["recovery"]["historical_worker_ids_not_reverified"], ["AEOS-W09"])
+            self.assertEqual(report["technically_verified_readonly_count"], 1)
+            self.assertEqual(report["business_deliveries_verified"], 0)
+            self.assertFalse(report["production_release_authorized"])
+            self.assertEqual(json.loads(journal.read_text())["state"], "FAILED_INCOMPLETE")
+            self.assertTrue(journal.with_name("journal.json.recovery").exists())
+
+    def test_auto_recovery_is_bounded_and_does_not_retry_policy_errors(self):
+        from automation import factory_cycle
+        from unittest.mock import patch
+        for error, expected in ((OSError("offline"), 2), (PolicyError("denied"), 1)):
+            with self.subTest(error=type(error).__name__), tempfile.TemporaryDirectory() as d:
+                root = Path(d)
+                inp, jobs, out, journal = [root / n for n in ("orders.json","jobs.json","out.json","journal.json")]
+                inp.write_text(json.dumps([item("AEOS-W09")]))
+                jobs.write_text(json.dumps([{"worker_id":"AEOS-W09"}]))
+                args = ["--orders",str(inp),"--jobs",str(jobs),"--out",str(out),
+                        "--checkpoint",str(journal),"--recover-once"]
+                with patch("automation.factory_cycle.execute_reviewonly", side_effect=error) as execute:
+                    self.assertEqual(factory_cycle.main(args), 2)
+                    self.assertEqual(execute.call_count, expected)
+                self.assertFalse(out.exists())
+
+    def test_waiting_orders_do_not_claim_fresh_work(self):
+        from automation.factory_cycle import main
+        from unittest.mock import patch
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            inp, out = root / "orders.json", root / "out.json"
+            inp.write_text(json.dumps([item("AEOS-W06", "NEEDS_APPROVAL"), item("AEOS-W07", "BLOCKED")]))
+            with patch("automation.worker_fleet_live.prepare_live_jobs") as discover:
+                self.assertEqual(main(["--orders",str(inp),"--auto-live-jobs","--out",str(out)]), 0)
+                discover.assert_not_called()
+            report = json.loads(out.read_text())
+            self.assertFalse(report["fresh_worker_execution_occurred"])
+            self.assertEqual(report["external_evidence_wait_count"], 1)
+            self.assertEqual(report["approval_wait_count"], 1)

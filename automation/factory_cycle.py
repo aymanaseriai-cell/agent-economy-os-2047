@@ -11,6 +11,10 @@ from automation.factory_operator import plan_dispatch, execute_reviewonly, PREFI
 from automation.worker_dispatcher import PolicyError
 from automation.worker_fleet import REGISTRY, make_task
 
+class RetryableReviewInterruption(OSError):
+    """A read-only dispatch interruption, not a storage or policy failure."""
+
+
 def run_review_cycle(orders: list, live_jobs: list, root: Path, fetch=None, *, checkpoint=None) -> dict:
     """Consider each worker once per bounded review-only snapshot.
 
@@ -50,8 +54,11 @@ def run_review_cycle(orders: list, live_jobs: list, root: Path, fetch=None, *, c
         ready_ids = {c["worker_id"] for c in picked
                      if c["disposition"] in eligible and c["worker_id"] in available}
         ready_orders = [o for o in remaining if o["work_key"][len(PREFIX):] in ready_ids]
-        batch = execute_reviewonly(plan_dispatch(ready_orders), list(available.values()),
-                                   root, fetch=fetch, source_orders=ready_orders)
+        try:
+            batch = execute_reviewonly(plan_dispatch(ready_orders), list(available.values()),
+                                       root, fetch=fetch, source_orders=ready_orders)
+        except OSError as exc:
+            raise RetryableReviewInterruption("READONLY_DISPATCH_INTERRUPTED") from exc
         by_worker = {x["worker_id"]: x for x in batch["receipts"]}
         if set(by_worker) != ready_ids or len(by_worker) != len(batch["receipts"]):
             raise PolicyError("CYCLE_RECEIPT_SET_MISMATCH")
@@ -235,7 +242,41 @@ def main(argv=None):
     p.add_argument("--checkpoint", type=Path,
                    help="New private path for partial receipts; never reused as authorization")
     p.add_argument("--resume-from", type=Path, help="Private incomplete journal; requires a new checkpoint")
+    p.add_argument("--recover-once", action="store_true",
+                   help="Retry an interrupted read-only dispatch once using a fresh journal")
     args = p.parse_args(argv)
+    if not args.recover_once:
+        return execute_once(args)
+    if args.checkpoint is None or args.resume_from is not None or args.out.exists():
+        print("AUTO_RECOVERY_REQUIRES_NEW_OUTPUT_AND_CHECKPOINT")
+        return 2
+    second = args.checkpoint.with_name(args.checkpoint.name + ".recovery")
+    inputs = [x.resolve() for x in (args.orders, args.jobs, args.out, args.checkpoint, second)
+              if x is not None]
+    if len(inputs) != len(set(inputs)) or args.checkpoint.exists() or second.exists():
+        print("AUTO_RECOVERY_PATH_COLLISION")
+        return 2
+    code = execute_once(args)
+    if code != 2 or args.out.exists():
+        return code
+    try:
+        record = json.loads(args.checkpoint.read_text(encoding="utf-8"))
+        if (record.get("state") != "FAILED_INCOMPLETE"
+                or record.get("error_class") != "RetryableReviewInterruption"):
+            return code
+        # A valid, persisted same-snapshot journal is mandatory. No retry
+        # for policy errors, missing evidence, or failed checkpoint writes.
+        recovery_orders(json.loads(args.orders.read_text(encoding="utf-8")), record)
+    except (PolicyError, OSError, ValueError, TypeError, KeyError, AttributeError):
+        return code
+    print("FACTORY_AUTO_RECOVERY: one bounded read-only retry")
+    return execute_once(argparse.Namespace(**{
+        **vars(args), "resume_from": args.checkpoint, "checkpoint": second,
+        "recover_once": False, "automatic_recovery": True,
+    }))
+
+
+def execute_once(args):
     journal = None
     try:
         paths = [x.resolve() for x in (args.orders, args.jobs, args.out, args.checkpoint, args.resume_from)
@@ -272,6 +313,13 @@ def main(argv=None):
         if recovery is not None:
             result["recovery"] = recovery
             result["full_original_snapshot_freshly_verified"] = False
+        result["external_evidence_wait_count"] = sum(
+            d["cycle_result"] == "WAIT_EXTERNAL_EVIDENCE" for d in result["decisions"])
+        result["approval_wait_count"] = sum(
+            d["cycle_result"] == "ESCALATE_INDEPENDENT_APPROVAL" for d in result["decisions"])
+        result["fresh_worker_execution_occurred"] = result["dispatched_count"] > 0
+        result["automatic_recovery_attempted"] = (
+            recovery is not None and getattr(args, "automatic_recovery", False))
         if journal is not None:
             result["run_id"] = journal["run_id"]
         atomic_json(args.out, result)
