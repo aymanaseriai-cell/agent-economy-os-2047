@@ -34,6 +34,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/4citeB4U/LeeWay-Agent-Skills/issues/22": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 18,
+      "tier": "research_only"
+    },
     "https://github.com/529-studio/projectKV/issues/552": {
       "days_observed": 2,
       "first_seen_day": "2026-11-24",
@@ -1364,6 +1371,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/joshualeestone/kosmos/issues/9090": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/kindrat86/agentmail/issues/40": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
@@ -1654,6 +1668,13 @@
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
+      "last_seen_day": "2026-11-25",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/raffaelefarinaro/ciaobot/issues/3646": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-25",
       "score": 12,
       "tier": "research_only"
