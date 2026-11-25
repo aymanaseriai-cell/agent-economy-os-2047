@@ -335,6 +335,13 @@
       "score": 16,
       "tier": "research_only"
     },
+    "https://github.com/JacobHamrac/deskguest/issues/113": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-25",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Jaimin-ptl07/FinancialDocumentIntelligence/issues/36": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
