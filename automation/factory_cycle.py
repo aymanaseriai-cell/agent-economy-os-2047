@@ -231,7 +231,7 @@ def recovery_orders(orders: list, journal: dict) -> tuple[list, dict]:
              "journal_is_independent_authorization": False})
 
 
-def main(argv=None):
+def main(argv=None, *, fetch=None):
     p = argparse.ArgumentParser()
     p.add_argument("--orders", type=Path, required=True)
     jobs_group = p.add_mutually_exclusive_group(required=True)
@@ -246,7 +246,7 @@ def main(argv=None):
                    help="Retry an interrupted read-only dispatch once using a fresh journal")
     args = p.parse_args(argv)
     if not args.recover_once:
-        return execute_once(args)
+        return execute_once(args, fetch=fetch)
     if args.checkpoint is None or args.resume_from is not None or args.out.exists():
         print("AUTO_RECOVERY_REQUIRES_NEW_OUTPUT_AND_CHECKPOINT")
         return 2
@@ -256,7 +256,7 @@ def main(argv=None):
     if len(inputs) != len(set(inputs)) or args.checkpoint.exists() or second.exists():
         print("AUTO_RECOVERY_PATH_COLLISION")
         return 2
-    code = execute_once(args)
+    code = execute_once(args, fetch=fetch)
     if code != 2 or args.out.exists():
         return code
     try:
@@ -273,10 +273,10 @@ def main(argv=None):
     return execute_once(argparse.Namespace(**{
         **vars(args), "resume_from": args.checkpoint, "checkpoint": second,
         "recover_once": False, "automatic_recovery": True,
-    }))
+    }), fetch=fetch)
 
 
-def execute_once(args):
+def execute_once(args, *, fetch=None):
     journal = None
     try:
         paths = [x.resolve() for x in (args.orders, args.jobs, args.out, args.checkpoint, args.resume_from)
@@ -307,9 +307,9 @@ def execute_once(args):
                 journal["progress"] = progress
                 atomic_json(args.checkpoint, journal)
         if args.auto_live_jobs:
-            result = run_live_review_cycle(orders, args.root, checkpoint=checkpoint)
+            result = run_live_review_cycle(orders, args.root, fetch=fetch, checkpoint=checkpoint)
         else:
-            result = run_review_cycle(orders, json.loads(args.jobs.read_text(encoding="utf-8")), args.root, checkpoint=checkpoint)
+            result = run_review_cycle(orders, json.loads(args.jobs.read_text(encoding="utf-8")), args.root, fetch=fetch, checkpoint=checkpoint)
         if recovery is not None:
             result["recovery"] = recovery
             result["full_original_snapshot_freshly_verified"] = False

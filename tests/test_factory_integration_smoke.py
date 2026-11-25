@@ -84,6 +84,27 @@ class FactoryIntegrationTests(unittest.TestCase):
             self.assertEqual(missing["integration_status"], "DEGRADED")
             self.assertEqual(missing["technically_verified_readonly_count"], 5)
 
+    def test_recovery_smoke_keeps_historical_and_fresh_proof_separate(self):
+        from automation.factory_integration_smoke import run_recovery_smoke
+        from automation.worker_fleet import REGISTRY
+        import tempfile
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d)
+            for w in ("AEOS-W03", "AEOS-W09"):
+                p = root / REGISTRY[w].default_payload["path"]
+                p.parent.mkdir(parents=True, exist_ok=True)
+                p.write_text("fixture")
+            assignments = jobs() + [{"worker_id":"AEOS-W03"},{"worker_id":"AEOS-W09"}]
+            report = run_recovery_smoke(assignments, root, fetch=fetch)
+            self.assertEqual(report["integration_status"], "PASSED")
+            self.assertEqual(report["dispatch_attempts"], 3)
+            self.assertEqual(report["fresh_verified_count"], 2)
+            self.assertEqual(len(report["historical_worker_ids"]), 4)
+            self.assertEqual(report["historical_receipts_counted_as_new"], 0)
+            self.assertFalse(report["production_release_authorized"])
+            self.assertEqual(run_recovery_smoke(assignments[:-1], root, fetch=fetch)["integration_status"],
+                             "DEGRADED")
+
 
 if __name__ == "__main__":
     unittest.main()

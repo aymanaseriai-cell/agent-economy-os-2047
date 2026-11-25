@@ -88,6 +88,12 @@ jobs:
             --jobs /tmp/aeos2047-worker-jobs.json \
             --root . \
             --out reports/factory-central-cycle.json
+      - name: Validate bounded automatic recovery after injected interruption
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 -m automation.factory_integration_smoke --recovery-cycle --jobs /tmp/aeos2047-worker-jobs.json --root . --out reports/factory-recovery-cycle.json
       - name: Store truthful receipts, including blocked results
         if: always()
         uses: actions/upload-artifact@v4
@@ -97,5 +103,6 @@ jobs:
             reports/worker-fleet-live.json
             reports/factory-reviewonly-integration.json
             reports/factory-central-cycle.json
+            reports/factory-recovery-cycle.json
           if-no-files-found: ignore
           retention-days: 7
