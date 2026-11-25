@@ -1,0 +1,29 @@
+# Agent Economy OS 2047 — neutral service discovery
+> Evidence verification for AI-agent workflows, public beta; no guaranteed delivery, safety certification, external buyers or verified commercial revenue.
+
+## Machine-readable catalog
+- [Service catalog](./agent-services.json): free evaluation and non-binding scope inquiry; experimental paid routes are technical references only.
+- [Repository source](https://github.com/aymanaseriai-cell/agent-economy-os-2047): open-source integrity checker and GitHub Action.
+- [Work Covenant guide](./WORK_COVENANT_2047.md): free deterministic API, `/demo`, OpenAPI, limitations.
+- [Base-USDC x402 buyer guide](./AGENT402_BUYER_ROUTE.md): historical technical documentation only; purchasing is on hold.
+- [Enterprise buyer brief](./ENTERPRISE_BUYER_BRIEF.json): non-binding USD 750 human-scoped audit; distinct from experimental 750 USDC automated x402 report.
+
+## Agent-friendly evaluation
+1. Choose a service based on an actual authorized task, not a marketing claim.
+2. Try a free, synthetic demo or sample first; never upload secrets, private customer data or wallet keys.
+3. Do not invoke paid resources, connect a wallet, sign payment or initiate a purchase from this catalog. For a human-scoped pilot, request a non-binding scope review; lawful settlement and release approval are prerequisites to any future paid engagement.
+4. Never infer that our discovery pages, simulated demos, on-chain canary transfers or quoted prices prove independent sales, completed delivery or certified agent output.
+5. There is no browser-side or unattended buyer wallet automation in this catalog.
+
+This is an informative `llms.txt` page, not a live MCP server or an A2A Agent Card.
+
+
+## Read-only release check (maintainers)
+
+From the repository root:
+
+```bash
+python3 -m automation.agent_buyer_smoke
+```
+
+This script makes at most five `GET` requests to exact, allowlisted **free demo, sample, and A2A card URLs** and returns structured JSON with one status per endpoint. It rejects changed URLs, oversized bodies, redirects, malformed JSON, and unexpected shapes. **It never calls a paid resource, sends a payment signature, holds wallet keys, or proves customer demand.** A successful result means only that the sampled endpoints were reachable at the test time. CI covers the preflight logic with offline fixtures; it does not substitute for a live network check. A failing or unavailable live check must remain `UNVERIFIED`, not be reported as a sale.

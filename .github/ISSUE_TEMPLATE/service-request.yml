@@ -5,7 +5,7 @@ labels: []
 body:
   - type: markdown
     attributes:
-      value: "No purchase is made by opening this issue. This form is public. Do not share secrets, source code from private repos, personal or payment data."
+      value: "Offers: USD $49 indicative starter (one public/synthetic workflow, up to five artifacts) or separately scoped enterprise work; no binding price, purchase or payment by this form. Public submissions only. Do not post secrets, private repository code, customer or payment data. Scope: https://github.com/aymanaseriai-cell/agent-economy-os-2047/blob/main/docs/PILOT_49.md"
   - type: input
     id: public-repository
     attributes:
@@ -19,6 +19,7 @@ body:
     attributes:
       label: What service do you want?
       options:
+        - "Starter: buyer-pinned output evidence, indicative 49 USD (public/synthetic only)"
         - "Evaluate agent handoff evidence and buyer acceptance (enterprise audit)"
         - Configure automated agent-evidence integrity checks
         - Add safer GitHub Actions CI automation

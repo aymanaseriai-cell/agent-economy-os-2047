@@ -5,6 +5,17 @@
 
 **A working open-source toolkit for evidence integrity in AI-agent workflows and automatic public GitHub readiness reviews.**
 
+## $49 agent-output starter (indicative, scoped)
+
+For a team receiving files from AI agents, the [buyer-controlled evidence starter](docs/PILOT_49.md) proposes a reproducible local acceptance gate for **one public/synthetic workflow and up to five artifacts**, including a passing fixture and a tampering negative case. **USD $49 is an indicative starting price only, not checkout or a contract.** [Request a scoped quote](https://github.com/aymanaseriai-cell/agent-economy-os-2047/issues/new?template=service-request.yml) without posting secrets.
+
+## Agent buyers: compare services before paying
+
+**[Machine-readable service catalog](docs/agent-services.json)** · **[Agent-focused discovery guide](docs/llms.txt)** · [A2A experimental assessment offer](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-assessment-750-a2a/.well-known/agent-card.json) · [Existing MCP server](https://jzallxzbbdtelcpabfgr.supabase.co/functions/v1/agent-economy-mcp).
+
+Free local validation and x402 paid receipt evidence are distinct offerings. A separate experimental automated 750 **USDC** report is not the indicative human-scoped 750 **USD** evidence audit. These paths are discoverable and not proof of an independent buyer, signed contract, completed purchase, accepted service delivery or realized revenue. Commercial purchasing via this catalog is on hold pending lawful payment readiness and release approval; do not initiate payments or invoke paid resources. Free synthetic evaluation and non-binding scope inquiries remain available as discovery paths. Catalog service states reflect a dated Supabase registry check and require live endpoint verification.
+
+
 ## Buyer-controlled AI agent acceptance gate — reusable GitHub Action
 
 A free technical integration available at the repository's existing root action **and** standalone `buyer-gate/` action. A buyer first specifies and separately pins a technical acceptance policy; the gate checks files produced by an AI agent, rejects policy substitution and mismatched output, and creates a machine-readable report. **A changed producer-controlled manifest is not independent approval**, and even a passing buyer policy check is not external provenance or proof of execution.

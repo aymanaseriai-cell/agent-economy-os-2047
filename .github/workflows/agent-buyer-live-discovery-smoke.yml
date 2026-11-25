@@ -1,0 +1,34 @@
+name: Agent buyer discovery external HTTP smoke (review only)
+on:
+  push:
+    branches:
+      - feat/agent-buyer-catalog-evidence-20261121
+    paths:
+      - .github/workflows/agent-buyer-live-discovery-smoke.yml
+      - automation/agent_buyer_smoke.py
+      - automation/assessment_750_quote_guard.py
+      - automation/work_covenant_live_smoke.py
+      - docs/agent-services.json
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  free-discovery-http:
+    if: github.repository == 'aymanaseriai-cell/agent-economy-os-2047'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Check fixed free discovery endpoints (no payment)
+        run: python -m automation.agent_buyer_smoke
+      - name: Validate free preflight and unsigned 750 USDC HTTP 402 quote (no settlement)
+        run: python -m automation.assessment_750_quote_guard
+      - name: Validate Work Covenant demo-compile-evaluate and tamper rejection (synthetic)
+        run: python -m automation.work_covenant_live_smoke
