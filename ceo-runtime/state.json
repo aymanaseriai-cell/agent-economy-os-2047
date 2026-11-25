@@ -280,9 +280,9 @@
       "tier": "research_only"
     },
     "https://github.com/HospitiumRIS/HospitiumRIS/issues/147": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 13,
       "tier": "research_only"
     },
@@ -728,9 +728,9 @@
       "tier": "research_only"
     },
     "https://github.com/b-mendoza/agent-skills/issues/59": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 11,
       "tier": "research_only"
     },
@@ -1099,9 +1099,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/83": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-25",
       "score": 13,
       "tier": "research_only"
     },
