@@ -153,13 +153,6 @@
       "score": 9,
       "tier": "research_only"
     },
-    "https://github.com/Blummer92/agent-os/issues/4079": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
-      "tier": "research_only"
-    },
     "https://github.com/Bokky73/cryptara/issues/14": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -181,25 +174,11 @@
       "score": 10,
       "tier": "research_only"
     },
-    "https://github.com/ChaBo-Project/ChaBo-Orchestrator/issues/96": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 10,
-      "tier": "research_only"
-    },
     "https://github.com/Comfy-Org/ComfyUI_frontend/issues/24212": {
       "days_observed": 3,
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-26",
       "score": 9,
-      "tier": "research_only"
-    },
-    "https://github.com/CtrlCarlitos/agent-guardrails/issues/96": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/DanAG-Am/ObsAgent/issues/21": {
@@ -221,13 +200,6 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 12,
-      "tier": "research_only"
-    },
-    "https://github.com/DevTunaSoft/Canopy/issues/88": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/Dimkox/Getzilla/issues/152": {
@@ -769,6 +741,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/ahmedhanye/devtools/issues/29": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/ai-timon/timon/issues/146": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -1005,6 +984,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-26",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/cohabitation-project/workspace/issues/323": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 17,
       "tier": "research_only"
     },
     "https://github.com/compliance-framework/docs/issues/168": {
@@ -1644,6 +1630,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/mevensson/nixos-config-new/issues/272": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/mickdarling/hailing-station/issues/1354": {
       "days_observed": 2,
       "first_seen_day": "2026-11-24",
@@ -2019,6 +2012,13 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/velella-sh/offing/issues/442": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
