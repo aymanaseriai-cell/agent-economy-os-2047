@@ -13,6 +13,13 @@
   },
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
+    "https://github.com/0sec-labs/0security/issues/475": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/0xJ1nn/ezchain/issues/476": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -273,16 +280,16 @@
       "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/13386": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 11,
       "tier": "research_only"
     },
     "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/13400": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
@@ -1050,9 +1057,9 @@
       "tier": "research_only"
     },
     "https://github.com/cooper3330/weekly-meal-planner/issues/106": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 11,
       "tier": "research_only"
     },
@@ -1617,9 +1624,9 @@
       "tier": "research_only"
     },
     "https://github.com/oneshot-agent/sdk/issues/10": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 10,
       "tier": "research_only"
     },
