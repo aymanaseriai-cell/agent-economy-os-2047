@@ -510,6 +510,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/PeterKopa/multi-agent-model-advisor/issues/34": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Pi-Defi-world/acbu-backend/issues/1340": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -685,6 +692,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/Yusyer174/Nexus-Agent-Evaluation/issues/37": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 21,
+      "tier": "research_only"
+    },
     "https://github.com/accesslayerorg/accesslayer-server/issues/1324": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -760,13 +774,6 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-25",
       "score": 15,
-      "tier": "research_only"
-    },
-    "https://github.com/aj4359/TA-GuruLabs-AIDES-Brain/issues/107": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/alibaba/spring-ai-alibaba/issues/5055": {
@@ -872,13 +879,6 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 18,
-      "tier": "research_only"
-    },
-    "https://github.com/blur88/erp2/issues/1984": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/blur88/erp2/issues/1989": {
