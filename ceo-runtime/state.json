@@ -482,6 +482,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/NakulManchanda/ai-analytics-poc/issues/231": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/Nmoreland51/Nmoreland51-Nmoreland51-cognitive-nexus-2.0/issues/3": {
       "days_observed": 2,
       "first_seen_day": "2026-11-23",
@@ -1133,6 +1140,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/drsanti/ternion-forge/issues/81": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/dwebagents/AgentPipe/issues/1663": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1316,9 +1330,9 @@
       "tier": "research_only"
     },
     "https://github.com/hippoley/Agent-Memory-Core-v0.1.0/issues/68": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
@@ -1644,6 +1658,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/mweastwood/rom-nom-nom/issues/16": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/neilkpatel/whatagentsbuy/issues/16": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1663,6 +1684,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-26",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/open-gsd/gsd-core/issues/6685": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/openai/codex/issues/63179": {
