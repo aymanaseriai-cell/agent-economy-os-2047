@@ -76,13 +76,6 @@
       "score": 14,
       "tier": "research_only"
     },
-    "https://github.com/Agri-fund/agri-fi/issues/1391": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 10,
-      "tier": "research_only"
-    },
     "https://github.com/AimTune/ilmek/issues/34": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -770,9 +763,9 @@
       "tier": "research_only"
     },
     "https://github.com/ahed-jneed/ai-assurance/issues/360": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-26",
       "score": 9,
       "tier": "research_only"
     },
@@ -868,9 +861,9 @@
       "tier": "research_only"
     },
     "https://github.com/auscaster/frantic-board/issues/540": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-26",
       "score": 9,
       "tier": "research_only"
     },
@@ -1621,6 +1614,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-26",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/massimiliano1991/the-attempt/issues/4": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 18,
       "tier": "research_only"
     },
     "https://github.com/matthewjameswatkins1978-cyber/pepin/issues/16": {
