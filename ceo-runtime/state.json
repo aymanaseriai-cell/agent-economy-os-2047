@@ -853,6 +853,13 @@
       "score": 17,
       "tier": "research_only"
     },
+    "https://github.com/atqamz/hand/issues/1521": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/auditstream/auditstream-js/issues/88": {
       "days_observed": 1,
       "first_seen_day": "2026-11-25",
@@ -1225,9 +1232,9 @@
       "tier": "research_only"
     },
     "https://github.com/genfeedai/genfeed.ai/issues/5132": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 16,
       "tier": "research_only"
     },
@@ -1376,6 +1383,13 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/i365dev/free4chat/issues/638": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 22,
       "tier": "research_only"
     },
     "https://github.com/inamprotocol/inam-protocol/issues/189": {
@@ -1687,6 +1701,13 @@
       "tier": "research_only"
     },
     "https://github.com/mweastwood/rom-nom-nom/issues/16": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/neatlogs/neatroots/issues/387": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-26",
@@ -2016,9 +2037,9 @@
       "tier": "research_only"
     },
     "https://github.com/vstorm-co/agenticos/issues/3342": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
