@@ -734,6 +734,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/agentculture/culture-agents/issues/13": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/agentnameservice/ans/issues/96": {
       "days_observed": 2,
       "first_seen_day": "2026-11-24",
@@ -966,9 +973,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 14,
       "tier": "research_only"
     },
@@ -1656,6 +1663,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-25",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/morshedalamdev/visionq/issues/17": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 18,
       "tier": "research_only"
     },
     "https://github.com/mouse9527/multica/issues/199": {
