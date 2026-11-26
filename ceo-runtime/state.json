@@ -1126,6 +1126,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/devfelipenunes/ketary/issues/242": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/domesticmouse/EnvelopeFollower/issues/34": {
       "days_observed": 1,
       "first_seen_day": "2026-11-25",
@@ -1320,6 +1327,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-24",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/hewenyu/braid/issues/3": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
