@@ -881,13 +881,6 @@
       "score": 18,
       "tier": "research_only"
     },
-    "https://github.com/blur88/erp2/issues/1989": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
-      "tier": "research_only"
-    },
     "https://github.com/blur88/erp2/issues/1995": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1672,6 +1665,13 @@
       "score": 18,
       "tier": "research_only"
     },
+    "https://github.com/mortenbroesby/everyday-assistants/issues/365": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 17,
+      "tier": "research_only"
+    },
     "https://github.com/mouse9527/multica/issues/199": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -2023,9 +2023,9 @@
       "tier": "research_only"
     },
     "https://github.com/vh2224/forge-agent/issues/471": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
