@@ -958,6 +958,13 @@
       "score": 19,
       "tier": "research_only"
     },
+    "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2855": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
       "days_observed": 6,
       "first_seen_day": "2026-11-21",
@@ -1680,9 +1687,9 @@
       "tier": "research_only"
     },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
@@ -1777,10 +1784,24 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/sjkim1127/rust-motion/issues/191": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 28,
+      "tier": "research_only"
+    },
     "https://github.com/slighter12/ai-agent-config/issues/2": {
       "days_observed": 1,
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-25",
+      "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/stablyai/orca/issues/49454": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
       "score": 10,
       "tier": "research_only"
     },
@@ -1957,6 +1978,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/zhangyinghao977-beep/hongchenxian-prototype/issues/1": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 13,
       "tier": "research_only"
     }
   }
