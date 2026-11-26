@@ -27,6 +27,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/0xTomDaniel/octo-feather/issues/1317": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/1StepMore/AutoMedia/issues/629": {
       "days_observed": 1,
       "first_seen_day": "2026-11-22",
@@ -199,6 +206,13 @@
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
+      "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/DanAG-Am/ObsAgent/issues/21": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
       "score": 11,
       "tier": "research_only"
     },
@@ -958,6 +972,13 @@
       "score": 19,
       "tier": "research_only"
     },
+    "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2853": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2855": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -1596,9 +1617,9 @@
       "tier": "research_only"
     },
     "https://github.com/mojtaba-arvin/android-sim-call-recorder/issues/14": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 12,
       "tier": "research_only"
     },
@@ -1607,6 +1628,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-25",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/mouse9527/multica/issues/199": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/mouzzlii/Kreislauf/issues/9": {
