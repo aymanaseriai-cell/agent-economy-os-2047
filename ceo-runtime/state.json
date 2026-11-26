@@ -196,9 +196,9 @@
       "tier": "research_only"
     },
     "https://github.com/Comfy-Org/ComfyUI_frontend/issues/24212": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 9,
       "tier": "research_only"
     },
@@ -385,9 +385,9 @@
       "tier": "research_only"
     },
     "https://github.com/KAVentures/openworkgraph/issues/1455": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 11,
       "tier": "research_only"
     },
@@ -530,6 +530,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/OptikerGerhardt/Motero/issues/44": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 9,
+      "tier": "research_only"
     },
     "https://github.com/PIsberg/speckit-agents/issues/492": {
       "days_observed": 1,
@@ -1161,13 +1168,6 @@
       "score": 14,
       "tier": "research_only"
     },
-    "https://github.com/dwebagents/AgentPipe/issues/1663": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 9,
-      "tier": "research_only"
-    },
     "https://github.com/e2b-dev/E2B/issues/2162": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1187,13 +1187,6 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 12,
-      "tier": "research_only"
-    },
-    "https://github.com/faberline/sift/issues/330": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/fission-systems/Fission/issues/1083": {
@@ -1617,16 +1610,16 @@
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2694": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-26",
       "score": 15,
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-26",
       "score": 15,
       "tier": "research_only"
     },
@@ -1719,6 +1712,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/nikolakralj/Hybridsaassocialnetwork/issues/14": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/nwverse/persona/issues/12697": {
