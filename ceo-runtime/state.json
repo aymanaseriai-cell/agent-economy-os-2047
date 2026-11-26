@@ -21,9 +21,9 @@
       "tier": "research_only"
     },
     "https://github.com/0xJ1nn/ezchain/issues/476": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-26",
       "score": 11,
       "tier": "research_only"
     },
@@ -228,13 +228,6 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 12,
-      "tier": "research_only"
-    },
-    "https://github.com/DevTunaSoft/Canopy/issues/87": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/DevTunaSoft/Canopy/issues/88": {
@@ -713,11 +706,11 @@
       "score": 10,
       "tier": "research_only"
     },
-    "https://github.com/aaf1007/grove-ade/issues/26": {
+    "https://github.com/YuriiMurha/grooviq/issues/822": {
       "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 9,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/accesslayerorg/accesslayer-server/issues/1324": {
@@ -1222,6 +1215,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 20,
+      "tier": "research_only"
+    },
+    "https://github.com/fullsend-ai/agents/issues/2188": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/fyannk/pgToolBox/issues/135": {
@@ -1768,6 +1768,13 @@
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-25",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/overurdream-collab/AI-Software-Factory/issues/11": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-26",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/ozand/kb-bootstrap/issues/129": {
