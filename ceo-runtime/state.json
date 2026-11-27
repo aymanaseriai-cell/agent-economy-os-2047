@@ -328,6 +328,13 @@
       "score": 9,
       "tier": "research_only"
     },
+    "https://github.com/IEEE-Student-Branch-NU/Atrium/issues/64": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 20,
+      "tier": "research_only"
+    },
     "https://github.com/INNVoices/waarp/issues/40": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1729,9 +1736,9 @@
       "tier": "research_only"
     },
     "https://github.com/open-gsd/gsd-core/issues/6685": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 13,
       "tier": "research_only"
     },
@@ -1824,13 +1831,6 @@
       "first_seen_day": "2026-11-21",
       "last_seen_day": "2026-11-21",
       "score": 14,
-      "tier": "research_only"
-    },
-    "https://github.com/rammicz/agentswitch/issues/5": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/rammicz/agentswitch/issues/9": {
