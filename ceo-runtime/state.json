@@ -553,9 +553,9 @@
       "tier": "research_only"
     },
     "https://github.com/SAFuDarren/Trellin/issues/111": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
+      "last_seen_day": "2026-11-27",
       "score": 15,
       "tier": "research_only"
     },
@@ -1267,16 +1267,16 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-27",
       "score": 13,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/83": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-27",
       "score": 13,
       "tier": "research_only"
     },
@@ -1288,9 +1288,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/85": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1666,9 +1666,9 @@
       "tier": "research_only"
     },
     "https://github.com/mojtaba-arvin/android-sim-call-recorder/issues/14": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
