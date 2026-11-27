@@ -182,9 +182,9 @@
       "tier": "research_only"
     },
     "https://github.com/DanAG-Am/ObsAgent/issues/21": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
