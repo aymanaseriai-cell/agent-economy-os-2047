@@ -14,9 +14,9 @@
   "schema": "agent-economy-ceo-memory/1",
   "seen": {
     "https://github.com/0sec-labs/0security/issues/475": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 9,
       "tier": "research_only"
     },
@@ -133,16 +133,16 @@
       "tier": "research_only"
     },
     "https://github.com/AxalNetwork/StudioOS/issues/8509": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 16,
       "tier": "research_only"
     },
     "https://github.com/Ayush441-python/AUREN/issues/288": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 9,
       "tier": "research_only"
     },
@@ -273,9 +273,9 @@
       "tier": "research_only"
     },
     "https://github.com/FAIR-bioHeaders/FAIR-bioHeaders-Specification/issues/296": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -566,6 +566,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/SHANKER4K/elimam/issues/35": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 9,
+      "tier": "research_only"
+    },
     "https://github.com/Savitura/crowdpay/issues/1317": {
       "days_observed": 3,
       "first_seen_day": "2026-11-24",
@@ -623,9 +630,9 @@
       "tier": "research_only"
     },
     "https://github.com/TychiWallet/agent-finance/issues/1": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 18,
       "tier": "research_only"
     },
@@ -693,10 +700,17 @@
       "tier": "research_only"
     },
     "https://github.com/Yusyer174/Nexus-Agent-Evaluation/issues/37": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 21,
+      "tier": "research_only"
+    },
+    "https://github.com/ZaxbyHub/opencode-swarm/issues/3953": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/accesslayerorg/accesslayer-server/issues/1324": {
@@ -756,9 +770,9 @@
       "tier": "research_only"
     },
     "https://github.com/ahmedhanye/devtools/issues/29": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -881,13 +895,6 @@
       "score": 18,
       "tier": "research_only"
     },
-    "https://github.com/blur88/erp2/issues/1995": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
-      "tier": "research_only"
-    },
     "https://github.com/blur88/erp2/issues/2047": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -959,30 +966,30 @@
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2853": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2855": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
     "https://github.com/cohabitation-project/workspace/issues/323": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 17,
       "tier": "research_only"
     },
@@ -1183,9 +1190,9 @@
       "tier": "research_only"
     },
     "https://github.com/fullsend-ai/agents/issues/2188": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1232,9 +1239,9 @@
       "tier": "research_only"
     },
     "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1274,16 +1281,16 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/87": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/89": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1358,9 +1365,9 @@
       "tier": "research_only"
     },
     "https://github.com/inamprotocol/inam-protocol/issues/189": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1392,13 +1399,6 @@
       "score": 16,
       "tier": "research_only"
     },
-    "https://github.com/jdueadev/verified-agent-containment/issues/44": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
-      "tier": "research_only"
-    },
     "https://github.com/jleonelion/chef/issues/198": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1421,9 +1421,9 @@
       "tier": "research_only"
     },
     "https://github.com/joshualeestone/kosmos/issues/9090": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 10,
       "tier": "research_only"
     },
@@ -1666,10 +1666,10 @@
       "tier": "research_only"
     },
     "https://github.com/mortenbroesby/everyday-assistants/issues/365": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
-      "score": 17,
+      "last_seen_day": "2026-11-27",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/mouse9527/multica/issues/199": {
@@ -1694,9 +1694,9 @@
       "tier": "research_only"
     },
     "https://github.com/neatlogs/neatroots/issues/387": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -1722,9 +1722,9 @@
       "tier": "research_only"
     },
     "https://github.com/oneshot-agent/sdk/issues/10": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 10,
       "tier": "research_only"
     },
@@ -1799,9 +1799,9 @@
       "tier": "research_only"
     },
     "https://github.com/prsantiago/prsantiago.github.io/issues/5": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1897,9 +1897,9 @@
       "tier": "research_only"
     },
     "https://github.com/sjkim1127/rust-motion/issues/191": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 28,
       "tier": "research_only"
     },
@@ -2023,9 +2023,9 @@
       "tier": "research_only"
     },
     "https://github.com/vh2224/forge-agent/issues/471": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -2072,9 +2072,9 @@
       "tier": "research_only"
     },
     "https://github.com/x402-foundation/x402/issues/2833": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 15,
       "tier": "research_only"
     },
