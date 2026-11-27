@@ -111,13 +111,6 @@
       "score": 10,
       "tier": "research_only"
     },
-    "https://github.com/AnkanMisra/MicroAI-Paygate/issues/263": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
-    },
     "https://github.com/ArcadeAI/safeword/issues/8234": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -152,13 +145,6 @@
       "last_seen_day": "2026-11-22",
       "score": 9,
       "tier": "research_only"
-    },
-    "https://github.com/Bokky73/cryptara/issues/14": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
     },
     "https://github.com/CSOAI-ORG/councilof-ai/issues/4828": {
       "days_observed": 1,
@@ -620,6 +606,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 22,
+      "tier": "research_only"
+    },
+    "https://github.com/TheepprakornRakfaen/cs-361_G650-05/issues/89": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/TrebuchetDynamics/kit/issues/118": {
@@ -1147,6 +1140,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/devantler-tech/monorepo/issues/5215": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/devfelipenunes/ketary/issues/242": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -1658,6 +1658,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/mojtaba-arvin/ai-service-marketplace/issues/57": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/mojtaba-arvin/android-sim-call-recorder/issues/14": {
       "days_observed": 3,
       "first_seen_day": "2026-11-24",
@@ -1869,9 +1876,9 @@
       "tier": "research_only"
     },
     "https://github.com/rimanfatykhov-arch/bms24/issues/84": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-27",
       "score": 15,
       "tier": "research_only"
     },
@@ -1880,13 +1887,6 @@
       "first_seen_day": "2026-11-27",
       "last_seen_day": "2026-11-27",
       "score": 19,
-      "tier": "research_only"
-    },
-    "https://github.com/sameeerkashyap/mars-jepa/issues/2": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/sanjeevicivil66-chatGPT/Usha.Construction/issues/9": {
