@@ -195,13 +195,6 @@
       "score": 11,
       "tier": "research_only"
     },
-    "https://github.com/DavidHLP/UltiCode/issues/361": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
-      "tier": "research_only"
-    },
     "https://github.com/Dimkox/Getzilla/issues/152": {
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
@@ -438,13 +431,6 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 9,
-      "tier": "research_only"
-    },
-    "https://github.com/Mossad-esc/stellar-footprint-engine/issues/112": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/MousaXD/scriptotar/issues/116": {
@@ -817,6 +803,13 @@
       "last_seen_day": "2026-11-21",
       "score": 13,
       "tier": "manual_buyer_intent_review"
+    },
+    "https://github.com/alwisofwan1/nakara/issues/47": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
+      "tier": "research_only"
     },
     "https://github.com/amina69/PetAd-backend/issues/312": {
       "days_observed": 2,
@@ -1385,6 +1378,13 @@
       "score": 22,
       "tier": "research_only"
     },
+    "https://github.com/imandodo01/Tymetry-web/issues/41": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/inamprotocol/inam-protocol/issues/189": {
       "days_observed": 3,
       "first_seen_day": "2026-11-25",
@@ -1676,7 +1676,7 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-27",
-      "score": 12,
+      "score": 19,
       "tier": "research_only"
     },
     "https://github.com/mouse9527/multica/issues/199": {
@@ -1875,6 +1875,13 @@
       "score": 15,
       "tier": "research_only"
     },
+    "https://github.com/rustyeddy/investor/issues/54": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 19,
+      "tier": "research_only"
+    },
     "https://github.com/sameeerkashyap/mars-jepa/issues/2": {
       "days_observed": 1,
       "first_seen_day": "2026-11-21",
@@ -1922,13 +1929,6 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-24",
       "score": 15,
-      "tier": "research_only"
-    },
-    "https://github.com/tanyapruck/orasqill/issues/23": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/taralokha/lokha-mcp/issues/279": {
