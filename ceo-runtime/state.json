@@ -48,6 +48,13 @@
       "score": 14,
       "tier": "research_only"
     },
+    "https://github.com/45s/coinzilla/issues/1960": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/4citeB4U/LeeWay-Agent-Skills/issues/22": {
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
@@ -157,6 +164,13 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-25",
+      "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/ChaBo-Project/ChaBo-Orchestrator/issues/96": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
       "score": 10,
       "tier": "research_only"
     },
@@ -797,13 +811,6 @@
       "score": 14,
       "tier": "research_only"
     },
-    "https://github.com/alibaba/spring-ai-alibaba/issues/5055": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
-    },
     "https://github.com/alwisofwan1/nakara/issues/47": {
       "days_observed": 1,
       "first_seen_day": "2026-11-27",
@@ -1091,13 +1098,6 @@
       "score": 11,
       "tier": "research_only"
     },
-    "https://github.com/continuedev/continue/issues/13498": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "research_only"
-    },
     "https://github.com/cooper3330/weekly-meal-planner/issues/106": {
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
@@ -1167,13 +1167,6 @@
       "last_seen_day": "2026-11-26",
       "score": 14,
       "tier": "research_only"
-    },
-    "https://github.com/e2b-dev/E2B/issues/2162": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
     },
     "https://github.com/eltmon/overdeck/issues/5619": {
       "days_observed": 1,
@@ -1371,6 +1364,13 @@
       "score": 13,
       "tier": "research_only"
     },
+    "https://github.com/hose1021/grimoria/issues/519": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/hubisan/agent-setup/issues/9": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -1551,13 +1551,6 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 11,
-      "tier": "research_only"
-    },
-    "https://github.com/mabrig1/aivideo/issues/16": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/macksteward59-lgtm/pocket-ai-lab/issues/255": {
@@ -1922,6 +1915,13 @@
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-26",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/sympoies/nils-cli/issues/4179": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/tanaabased/openclaw-agent-system/issues/447": {
