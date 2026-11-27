@@ -377,6 +377,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/KoshiirRa/midgley/issues/765": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/LanternOps/breeze/issues/2387": {
       "days_observed": 1,
       "first_seen_day": "2026-11-27",
@@ -966,9 +973,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 14,
       "tier": "research_only"
     },
@@ -1210,13 +1217,6 @@
       "score": 11,
       "tier": "research_only"
     },
-    "https://github.com/fyannk/pgToolBox/issues/135": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
-      "tier": "research_only"
-    },
     "https://github.com/genfeedai/genfeed.ai/issues/5132": {
       "days_observed": 4,
       "first_seen_day": "2026-11-23",
@@ -1257,6 +1257,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-27",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/hanzoai/agent/issues/15": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
@@ -1362,13 +1369,6 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-24",
       "score": 11,
-      "tier": "research_only"
-    },
-    "https://github.com/humanaios-ui/operations/issues/1057": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/i365dev/free4chat/issues/638": {
@@ -1512,9 +1512,9 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/1207": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-27",
       "score": 11,
       "tier": "research_only"
     },
@@ -1526,9 +1526,9 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/658": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-27",
       "score": 18,
       "tier": "research_only"
     },
@@ -1799,9 +1799,9 @@
       "tier": "research_only"
     },
     "https://github.com/probityai/agent-evidence-vectors/issues/352": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
