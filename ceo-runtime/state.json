@@ -489,13 +489,6 @@
       "score": 15,
       "tier": "research_only"
     },
-    "https://github.com/OpenHands/OpenHands/issues/19924": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
-    },
     "https://github.com/OptikerGerhardt/Motero/issues/44": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -1596,16 +1589,16 @@
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2694": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 15,
       "tier": "research_only"
     },
     "https://github.com/marius-patrik/DarkFactory/issues/2712": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 15,
       "tier": "research_only"
     },
@@ -1656,6 +1649,13 @@
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-26",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/moisestech/infra24/issues/89": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/mojtaba-arvin/ai-service-marketplace/issues/57": {
