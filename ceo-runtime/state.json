@@ -1526,10 +1526,10 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/597": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-22",
-      "score": 11,
+      "last_seen_day": "2026-11-27",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/658": {
