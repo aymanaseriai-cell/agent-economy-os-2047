@@ -958,13 +958,6 @@
       "score": 15,
       "tier": "research_only"
     },
-    "https://github.com/cgfixit/LanCartographer/issues/22": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 14,
-      "tier": "research_only"
-    },
     "https://github.com/champion5566/tw-stock-agent/issues/41": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
@@ -1575,9 +1568,9 @@
       "tier": "research_only"
     },
     "https://github.com/manvirt97/trading-platform/issues/53": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-24",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -1663,6 +1656,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-27",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/moldovancsaba/habi/issues/606": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 16,
       "tier": "research_only"
     },
     "https://github.com/morluto/rea/issues/14187": {
