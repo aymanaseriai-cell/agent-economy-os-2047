@@ -279,6 +279,13 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/FHTW-AI25/CiteGuard/issues/29": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Flanxiyum001/Ryoko/issues/49": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -368,6 +375,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-24",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/LanternOps/breeze/issues/2387": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix-health/issues/317": {
@@ -1330,9 +1344,9 @@
       "tier": "research_only"
     },
     "https://github.com/hippoley/Agent-Memory-Core-v0.1.0/issues/68": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-27",
       "score": 12,
       "tier": "research_only"
     },
@@ -1397,13 +1411,6 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 16,
-      "tier": "research_only"
-    },
-    "https://github.com/jleonelion/chef/issues/198": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/jonathanung/strike/issues/1962": {
@@ -1474,13 +1481,6 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 10,
-      "tier": "research_only"
-    },
-    "https://github.com/les-cabochons/ajour-plugins/issues/77": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 11,
       "tier": "research_only"
     },
     "https://github.com/levifig/loaf/issues/453": {
@@ -1669,7 +1669,7 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-27",
-      "score": 15,
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/mouse9527/multica/issues/199": {
