@@ -475,6 +475,13 @@
       "score": 16,
       "tier": "research_only"
     },
+    "https://github.com/OWASP/AISVS/issues/1242": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 12,
+      "tier": "research_only"
+    },
     "https://github.com/OWASP/Agentic-Evidence/issues/15": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -580,13 +587,6 @@
       "score": 14,
       "tier": "research_only"
     },
-    "https://github.com/Significant-Gravitas/AutoGPT/issues/17176": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
-      "tier": "manual_buyer_intent_review"
-    },
     "https://github.com/Spellguard/spellguard/issues/8": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -648,13 +648,6 @@
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-25",
       "score": 17,
-      "tier": "research_only"
-    },
-    "https://github.com/WHEELBACK/COMEBACKHERE-contracts/issues/873": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 13,
       "tier": "research_only"
     },
     "https://github.com/WaylonWalker/markata/issues/2095": {
@@ -795,6 +788,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-25",
       "score": 15,
+      "tier": "research_only"
+    },
+    "https://github.com/alfonsodg/lightdash/issues/40": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/alibaba/spring-ai-alibaba/issues/5055": {
@@ -1249,7 +1249,7 @@
       "days_observed": 3,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-27",
-      "score": 12,
+      "score": 21,
       "tier": "research_only"
     },
     "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
