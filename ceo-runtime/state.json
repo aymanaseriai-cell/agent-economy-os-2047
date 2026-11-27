@@ -706,6 +706,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/YuanshuoDu/applymate-jobcopilot/issues/1417": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 16,
+      "tier": "research_only"
+    },
     "https://github.com/YuriiMurha/grooviq/issues/822": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -1343,6 +1350,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/hexuria/buwiz-forms/issues/449": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-27",
+      "score": 10,
+      "tier": "research_only"
+    },
     "https://github.com/hgjr55mvv4-cell/Chapin-Road-Farm/issues/86": {
       "days_observed": 6,
       "first_seen_day": "2026-11-21",
@@ -1418,13 +1432,6 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 16,
-      "tier": "research_only"
-    },
-    "https://github.com/jonathanung/strike/issues/1962": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/jortega0033/paginated-word-processor/issues/39": {
@@ -1816,13 +1823,6 @@
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-26",
-      "score": 12,
-      "tier": "research_only"
-    },
-    "https://github.com/rammicz/agentswitch/issues/11": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
       "score": 12,
       "tier": "research_only"
     },
