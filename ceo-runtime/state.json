@@ -336,9 +336,9 @@
       "tier": "research_only"
     },
     "https://github.com/KAVentures/openworkgraph/issues/1455": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-26",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -410,13 +410,6 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-23",
       "score": 12,
-      "tier": "research_only"
-    },
-    "https://github.com/Monster-Orange/den/issues/631": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
@@ -1397,6 +1390,13 @@
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-27",
       "score": 10,
+      "tier": "research_only"
+    },
+    "https://github.com/khanhtimn/yab/issues/27": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/kindrat86/agentmail/issues/40": {
