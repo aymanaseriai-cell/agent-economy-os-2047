@@ -321,13 +321,6 @@
       "score": 20,
       "tier": "research_only"
     },
-    "https://github.com/INNVoices/waarp/issues/40": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 16,
-      "tier": "research_only"
-    },
     "https://github.com/JacobHamrac/deskguest/issues/113": {
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
@@ -1379,9 +1372,9 @@
       "tier": "research_only"
     },
     "https://github.com/inamprotocol/inam-protocol/issues/189": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1498,9 +1491,9 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/1207": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1628,6 +1621,13 @@
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-26",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/minsago-elite/decomp_thing/issues/750": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 19,
       "tier": "research_only"
     },
     "https://github.com/moisestech/infra24/issues/89": {
