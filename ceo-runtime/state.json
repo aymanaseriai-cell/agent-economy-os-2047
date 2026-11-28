@@ -168,9 +168,9 @@
       "tier": "research_only"
     },
     "https://github.com/ChaBo-Project/ChaBo-Orchestrator/issues/96": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 10,
       "tier": "research_only"
     },
@@ -881,13 +881,6 @@
       "score": 23,
       "tier": "research_only"
     },
-    "https://github.com/bhadkamkar9snehil/Nexus/issues/42": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 18,
-      "tier": "research_only"
-    },
     "https://github.com/blur88/erp2/issues/2047": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -1302,9 +1295,9 @@
       "tier": "research_only"
     },
     "https://github.com/hexuria/buwiz-forms/issues/449": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 10,
       "tier": "research_only"
     },
@@ -1684,6 +1677,13 @@
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-24",
       "score": 14,
+      "tier": "research_only"
+    },
+    "https://github.com/munimtechnologies/munim-computer-use/issues/93": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 15,
       "tier": "research_only"
     },
     "https://github.com/mweastwood/rom-nom-nom/issues/16": {
