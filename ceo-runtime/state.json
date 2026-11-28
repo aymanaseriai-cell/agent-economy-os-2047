@@ -174,6 +174,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/Chain-Frost/pmp-toolkit/issues/22": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 15,
+      "tier": "research_only"
+    },
     "https://github.com/Comfy-Org/ComfyUI_frontend/issues/24212": {
       "days_observed": 3,
       "first_seen_day": "2026-11-24",
@@ -354,6 +361,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 9,
+      "tier": "research_only"
+    },
+    "https://github.com/Kenbinhoainam/WebMinhDuc/issues/10": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/Khushialm/wavygo-saas-structure/issues/14": {
@@ -874,13 +888,6 @@
       "score": 16,
       "tier": "research_only"
     },
-    "https://github.com/bhadkamkar9snehil/Nexus/issues/18": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 23,
-      "tier": "research_only"
-    },
     "https://github.com/blur88/erp2/issues/2047": {
       "days_observed": 1,
       "first_seen_day": "2026-11-23",
@@ -908,13 +915,6 @@
       "last_seen_day": "2026-11-24",
       "score": 14,
       "tier": "research_only"
-    },
-    "https://github.com/celo-org/buy-skill/issues/76": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 24,
-      "tier": "manual_buyer_intent_review"
     },
     "https://github.com/cfg-is/cfgms/issues/6489": {
       "days_observed": 1,
@@ -1207,7 +1207,7 @@
       "days_observed": 4,
       "first_seen_day": "2026-11-23",
       "last_seen_day": "2026-11-28",
-      "score": 17,
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
@@ -1491,9 +1491,9 @@
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/597": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 12,
       "tier": "research_only"
     },
@@ -1896,6 +1896,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/stainless-code/codemap/issues/324": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 13,
+      "tier": "research_only"
+    },
     "https://github.com/sympoies/nils-cli/issues/4179": {
       "days_observed": 1,
       "first_seen_day": "2026-11-27",
@@ -2077,13 +2084,6 @@
       "last_seen_day": "2026-11-28",
       "score": 15,
       "tier": "research_only"
-    },
-    "https://github.com/x402-foundation/x402/issues/3379": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 22,
-      "tier": "manual_buyer_intent_review"
     },
     "https://github.com/yanaalvasiu/byte/issues/2": {
       "days_observed": 1,
