@@ -133,9 +133,9 @@
       "tier": "research_only"
     },
     "https://github.com/AxalNetwork/StudioOS/issues/8509": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 16,
       "tier": "research_only"
     },
@@ -201,13 +201,6 @@
       "last_seen_day": "2026-11-26",
       "score": 14,
       "tier": "research_only"
-    },
-    "https://github.com/DonCervantes/x402-Handle/issues/168": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 15,
-      "tier": "manual_buyer_intent_review"
     },
     "https://github.com/EF-CHAIN/SendAm/issues/981": {
       "days_observed": 1,
@@ -378,9 +371,9 @@
       "tier": "research_only"
     },
     "https://github.com/KoshiirRa/midgley/issues/765": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -616,9 +609,9 @@
       "tier": "research_only"
     },
     "https://github.com/TheepprakornRakfaen/cs-361_G650-05/issues/89": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 12,
       "tier": "research_only"
     },
@@ -644,9 +637,9 @@
       "tier": "research_only"
     },
     "https://github.com/TychiWallet/agent-finance/issues/1": {
-      "days_observed": 7,
+      "days_observed": 8,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 18,
       "tier": "research_only"
     },
@@ -875,9 +868,9 @@
       "tier": "research_only"
     },
     "https://github.com/auditstream/auditstream-js/issues/88": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-25",
+      "last_seen_day": "2026-11-28",
       "score": 13,
       "tier": "research_only"
     },
@@ -980,23 +973,23 @@
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2853": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/2855": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 14,
       "tier": "research_only"
     },
     "https://github.com/claude-builders-bounty/claude-builders-bounty/issues/4": {
-      "days_observed": 7,
+      "days_observed": 8,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1232,16 +1225,16 @@
       "tier": "research_only"
     },
     "https://github.com/groktopus/proprio/issues/223": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-23",
-      "last_seen_day": "2026-11-27",
-      "score": 21,
+      "last_seen_day": "2026-11-28",
+      "score": 17,
       "tier": "research_only"
     },
     "https://github.com/hakuramasam/thirdeye-ai/issues/98": {
-      "days_observed": 4,
+      "days_observed": 5,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1253,16 +1246,16 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/82": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 13,
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/83": {
-      "days_observed": 6,
+      "days_observed": 7,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 13,
       "tier": "research_only"
     },
@@ -1274,9 +1267,9 @@
       "tier": "research_only"
     },
     "https://github.com/hanzoai/agents/issues/85": {
-      "days_observed": 5,
+      "days_observed": 6,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1358,9 +1351,9 @@
       "tier": "research_only"
     },
     "https://github.com/hose1021/grimoria/issues/519": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 14,
       "tier": "research_only"
     },
@@ -1379,9 +1372,9 @@
       "tier": "research_only"
     },
     "https://github.com/imandodo01/Tymetry-web/issues/41": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 11,
       "tier": "research_only"
     },
@@ -1568,9 +1561,9 @@
       "tier": "research_only"
     },
     "https://github.com/manvirt97/trading-platform/issues/53": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 12,
       "tier": "research_only"
     },
@@ -1659,9 +1652,9 @@
       "tier": "research_only"
     },
     "https://github.com/moldovancsaba/habi/issues/606": {
-      "days_observed": 1,
+      "days_observed": 2,
       "first_seen_day": "2026-11-27",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 16,
       "tier": "research_only"
     },
@@ -1680,9 +1673,9 @@
       "tier": "research_only"
     },
     "https://github.com/mortenbroesby/everyday-assistants/issues/365": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 19,
       "tier": "research_only"
     },
@@ -1708,9 +1701,9 @@
       "tier": "research_only"
     },
     "https://github.com/neatlogs/neatroots/issues/387": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 12,
       "tier": "research_only"
     },
@@ -1826,13 +1819,6 @@
       "score": 12,
       "tier": "research_only"
     },
-    "https://github.com/rammicz/agentswitch/issues/12": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 14,
-      "tier": "research_only"
-    },
     "https://github.com/rammicz/agentswitch/issues/9": {
       "days_observed": 2,
       "first_seen_day": "2026-11-21",
@@ -1869,9 +1855,9 @@
       "tier": "research_only"
     },
     "https://github.com/rimanfatykhov-arch/bms24/issues/84": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-24",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 15,
       "tier": "research_only"
     },
@@ -1897,9 +1883,9 @@
       "tier": "research_only"
     },
     "https://github.com/sjkim1127/rust-motion/issues/191": {
-      "days_observed": 2,
+      "days_observed": 3,
       "first_seen_day": "2026-11-26",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 28,
       "tier": "research_only"
     },
@@ -2015,6 +2001,27 @@
       "score": 12,
       "tier": "research_only"
     },
+    "https://github.com/velella-sh/offing/issues/1157": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/velella-sh/offing/issues/1163": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 17,
+      "tier": "research_only"
+    },
+    "https://github.com/velella-sh/offing/issues/1165": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/velella-sh/offing/issues/442": {
       "days_observed": 1,
       "first_seen_day": "2026-11-26",
@@ -2023,9 +2030,9 @@
       "tier": "research_only"
     },
     "https://github.com/vh2224/forge-agent/issues/471": {
-      "days_observed": 3,
+      "days_observed": 4,
       "first_seen_day": "2026-11-25",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 12,
       "tier": "research_only"
     },
@@ -2064,17 +2071,10 @@
       "score": 12,
       "tier": "research_only"
     },
-    "https://github.com/writfold-dev/writfold/issues/57": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 15,
-      "tier": "research_only"
-    },
     "https://github.com/x402-foundation/x402/issues/2833": {
-      "days_observed": 7,
+      "days_observed": 8,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 15,
       "tier": "research_only"
     },
