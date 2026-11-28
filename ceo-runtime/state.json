@@ -146,13 +146,6 @@
       "score": 9,
       "tier": "research_only"
     },
-    "https://github.com/Bagelwaffles/aspect-ai-webview-app/issues/279": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
-      "tier": "research_only"
-    },
     "https://github.com/CSOAI-ORG/councilof-ai/issues/4828": {
       "days_observed": 1,
       "first_seen_day": "2026-11-24",
@@ -258,13 +251,6 @@
       "score": 12,
       "tier": "research_only"
     },
-    "https://github.com/EffortlessMetrics/perl-lsp-swarm/issues/8949": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
-      "tier": "research_only"
-    },
     "https://github.com/FAIR-bioHeaders/FAIR-bioHeaders-Specification/issues/296": {
       "days_observed": 3,
       "first_seen_day": "2026-11-25",
@@ -300,13 +286,6 @@
       "score": 11,
       "tier": "research_only"
     },
-    "https://github.com/GoldRay19/Civic-Help-Setu/issues/1170": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
-      "tier": "research_only"
-    },
     "https://github.com/HospitiumRIS/HospitiumRIS/issues/147": {
       "days_observed": 2,
       "first_seen_day": "2026-11-24",
@@ -314,18 +293,18 @@
       "score": 13,
       "tier": "research_only"
     },
-    "https://github.com/IAPro-Community/nexus/issues/110": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
-      "tier": "research_only"
-    },
     "https://github.com/IEEE-Student-Branch-NU/Atrium/issues/64": {
       "days_observed": 1,
       "first_seen_day": "2026-11-27",
       "last_seen_day": "2026-11-27",
       "score": 20,
+      "tier": "research_only"
+    },
+    "https://github.com/Ink01101011/ex-workflow/issues/53": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/JacobHamrac/deskguest/issues/113": {
@@ -396,6 +375,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-25",
       "score": 21,
+      "tier": "research_only"
+    },
+    "https://github.com/Luminous-Dynamics/mycelix/issues/6820": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 12,
       "tier": "research_only"
     },
     "https://github.com/Luminous-Dynamics/mycelix/issues/830": {
@@ -839,6 +825,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/armorwallet/armor-crypto-mcp/issues/32": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/astrgd27/CardGameCreator/issues/9": {
       "days_observed": 2,
       "first_seen_day": "2026-11-25",
@@ -931,9 +924,9 @@
       "tier": "research_only"
     },
     "https://github.com/chf3198/megingjord-harness/issues/3576": {
-      "days_observed": 7,
+      "days_observed": 8,
       "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-27",
+      "last_seen_day": "2026-11-28",
       "score": 14,
       "tier": "research_only"
     },
@@ -1488,6 +1481,13 @@
       "first_seen_day": "2026-11-24",
       "last_seen_day": "2026-11-28",
       "score": 11,
+      "tier": "research_only"
+    },
+    "https://github.com/loftwah/app-composer/issues/311": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 17,
       "tier": "research_only"
     },
     "https://github.com/loftwah/app-composer/issues/597": {
