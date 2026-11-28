@@ -426,13 +426,6 @@
       "score": 9,
       "tier": "research_only"
     },
-    "https://github.com/MousaXD/scriptotar/issues/116": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 17,
-      "tier": "research_only"
-    },
     "https://github.com/Muhammed-Fathi/CardioAssist-AI/issues/103": {
       "days_observed": 4,
       "first_seen_day": "2026-11-21",
@@ -515,13 +508,6 @@
       "first_seen_day": "2026-11-26",
       "last_seen_day": "2026-11-26",
       "score": 11,
-      "tier": "research_only"
-    },
-    "https://github.com/Pi-Defi-world/acbu-backend/issues/1340": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 18,
       "tier": "research_only"
     },
     "https://github.com/Pi-Defi-world/acbu-backend/issues/1380": {
@@ -1469,6 +1455,13 @@
       "score": 10,
       "tier": "research_only"
     },
+    "https://github.com/les-cabochons/ajour/issues/989": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/levifig/loaf/issues/453": {
       "days_observed": 1,
       "first_seen_day": "2026-11-25",
@@ -1721,13 +1714,6 @@
       "score": 11,
       "tier": "research_only"
     },
-    "https://github.com/nwverse/persona/issues/12697": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-21",
-      "last_seen_day": "2026-11-21",
-      "score": 17,
-      "tier": "research_only"
-    },
     "https://github.com/oneshot-agent/sdk/issues/10": {
       "days_observed": 5,
       "first_seen_day": "2026-11-23",
@@ -1910,6 +1896,13 @@
       "score": 11,
       "tier": "research_only"
     },
+    "https://github.com/takurot/ai-termchat/issues/181": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
+      "tier": "research_only"
+    },
     "https://github.com/tanaabased/openclaw-agent-system/issues/447": {
       "days_observed": 2,
       "first_seen_day": "2026-11-23",
@@ -2062,6 +2055,13 @@
       "first_seen_day": "2026-11-22",
       "last_seen_day": "2026-11-22",
       "score": 12,
+      "tier": "research_only"
+    },
+    "https://github.com/werkrbee/ai-hive/issues/377": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 14,
       "tier": "research_only"
     },
     "https://github.com/wfnuser/cowiki/issues/170": {
