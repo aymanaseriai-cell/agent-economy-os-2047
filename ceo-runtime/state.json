@@ -300,6 +300,13 @@
       "score": 20,
       "tier": "research_only"
     },
+    "https://github.com/IniZio/moor/issues/1758": {
+      "days_observed": 1,
+      "first_seen_day": "2026-11-28",
+      "last_seen_day": "2026-11-28",
+      "score": 11,
+      "tier": "research_only"
+    },
     "https://github.com/Ink01101011/ex-workflow/issues/53": {
       "days_observed": 1,
       "first_seen_day": "2026-11-28",
@@ -333,13 +340,6 @@
       "first_seen_day": "2026-11-25",
       "last_seen_day": "2026-11-26",
       "score": 11,
-      "tier": "research_only"
-    },
-    "https://github.com/KaranDev316/AI-Enabled-B2B-E-Commerce-Platform-for-Industrial-Pattern-Manufacturing/issues/39": {
-      "days_observed": 1,
-      "first_seen_day": "2026-11-22",
-      "last_seen_day": "2026-11-22",
-      "score": 9,
       "tier": "research_only"
     },
     "https://github.com/Kenbinhoainam/WebMinhDuc/issues/10": {
